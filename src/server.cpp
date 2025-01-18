@@ -119,81 +119,81 @@ void	communicate(int clientFD)
 }
 #endif
 
-#include <poll.h>
-
-void	printPollFD(pollfd const& pfd)
-{
-	std::cout << "FD: " << pfd.fd << '\n';
-	std::cout << "Events: " << pfd.events << '\n';
-	std::cout << "Revents: " << pfd.revents << '\n';
-}
-
 void	server()
 {
-	int	sockFD = startListening();
+	int	listenerFD = startListening();
 	sockaddr_storage	clientAddr = {};
 	socklen_t			clientAddrLen = sizeof clientAddr;
 	int					clientNum = 0;
 
-	pollfd	*pfds = new pollfd[clientNum+1];
-	std::memset(pfds, -1, sizeof(pollfd));
-	pfds[0].fd = sockFD;
-	pfds[0].events = POLLIN;
-	pfds[0].revents = 0;
+	int	epoll = epoll_create(1);
+	if (epoll == -1)
+	{
+		error("epoll_create failed");
+	}
+	epoll_event	registeredEvents = {};
+	registeredEvents.events |= EPOLLIN;
+	registeredEvents.data.fd = listenerFD;
+	epoll_ctl(epoll, EPOLL_CTL_ADD, listenerFD, &registeredEvents);
+	std::cout << "Added " << listenerFD << '\n';
 	dbg::println("Server is running...");
-	printPollFD(pfds[0]);
+	epoll_event*	readyEvents = new epoll_event[clientNum+1];
+	for (int i = 0; i < clientNum+1; ++i)
+	{
+		std::memset(&readyEvents[i], 0, sizeof (epoll_event));
+	}
 	while (1)
 	{
-		for (int i = 0; i < clientNum+1; ++i)
-			pfds[i].revents = 0;
 		dbg::println("Polling...");
-		int polled = poll(pfds, clientNum+1, -1);
-		if (polled < 0)
+		int	polled = epoll_wait(epoll, readyEvents, clientNum+1, -1);
+		if (polled == -1)
 		{
-			perror("poll");
-			error("poll failed");
+			perror("epw");
+			error("epoll_wait failed");
 		}
 		std::cout << "Polled " << polled << '\n';
-		if (pfds[0].revents & POLLIN)
+		for (int i = 0; i < polled; ++i)
 		{
-			dbg::println("Someone came in!");
-			int	clientFD = accept(sockFD, (sockaddr*)&clientAddr, &clientAddrLen);
-			dbg::printSocketAddr((sockaddr*)&clientAddr);
-			++clientNum;
-			pollfd*	oldPFDs = pfds;
-			pfds = new pollfd[clientNum+1];
-			for (int i = 0; i < clientNum+1; ++i)
+			if (readyEvents[i].data.fd == listenerFD)
 			{
-				pfds[i] = oldPFDs[i];
-			}
-			delete[] oldPFDs;
-			pfds[clientNum].fd = clientFD;
-			pfds[clientNum].events = POLLIN;
-			pfds[clientNum].revents = 0;
-			printPollFD(pfds[clientNum]);
-			std::string	tmp = "Hello, you are client " + toString(clientNum) + "!\n"
+				dbg::println("Someone came in!");
+				int	clientFD = accept(listenerFD, (sockaddr*)&clientAddr, &clientAddrLen);
+				++clientNum;
+				dbg::printSocketAddr((sockaddr*)&clientAddr);
+				registeredEvents.events = EPOLLIN;
+				registeredEvents.data.fd = clientFD;
+				epoll_ctl(epoll, EPOLL_CTL_ADD, clientFD, &registeredEvents);
+				std::string	tmp = "Hello, you are client " + toString(clientNum) + "!\n"
 							+ "--------------------------------------------------\n";
-			send(clientFD, tmp.data(), tmp.size(), 0);
-		}
-		else
-		{
-			pollfd*	readyPFD;
-			for (int i = 1; i < clientNum+1; ++i)
-			{
-				if (pfds[i].revents == 1)
-					readyPFD = &pfds[i];
+				epoll_event*	oldEvents = readyEvents;
+				readyEvents = new epoll_event[clientNum+1];
+				for (int i = 0; i < clientNum; ++i)
+				{
+					readyEvents[i] = oldEvents[i];
+				}
+				readyEvents[clientNum].events |= EPOLLIN;
+				readyEvents[clientNum].data.fd = clientFD;
+				delete[] oldEvents;
+				send(clientFD, tmp.data(), tmp.size(), 0);
 			}
-			char	readBuf[128] = {};
-			std::string	buf;
-			ssize_t	retval = recv(readyPFD->fd, readBuf, sizeof readBuf, 0);
-			if (retval == 0)
+			else if (readyEvents[i].events & EPOLLIN)
 			{
-				std::cout << readyPFD->fd << " has closed the connection.\n";
-				readyPFD->fd = -1;
-			}
-			else
-			{
-				prettyPrintReceived(readBuf, retval, readyPFD->fd);
+				char	readBuf[128] = {};
+				std::string	buf;
+				ssize_t	retval = recv(readyEvents[i].data.fd, readBuf, sizeof readBuf, 0);
+				if (retval == 0)
+				{
+					std::cout << readyEvents[i].data.fd << " has closed the connection.\n";
+					readyEvents[i].data.fd = -1;
+				}
+				else if (retval == -1)
+				{
+					perror("recv");
+				}
+				else
+				{
+					prettyPrintReceived(readBuf, retval, readyEvents[i].data.fd);
+				}
 			}
 		}
 	}

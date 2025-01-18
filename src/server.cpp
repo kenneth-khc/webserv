@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <sstream>
 #include <string>
+#include <vector>
 #include "debugUtils.hpp"
 
 void	error(const std::string& errmsg)
@@ -85,9 +86,9 @@ int	startListening()
 	return sockFD;
 }
 
-void	prettyPrintReceived(char* buf, ssize_t bytes)
+void	prettyPrintReceived(char* buf, ssize_t bytes, int clientFD)
 {
-	std::cout << "Received " << bytes << " bytes:\n";
+	std::cout << "Received " << bytes << " bytes from " << clientFD << ":\n";
 	for (int i = 0; i < bytes; ++i)
 		std::cout << '-';
 	std::cout << '\n';
@@ -97,6 +98,7 @@ void	prettyPrintReceived(char* buf, ssize_t bytes)
 	std::cout << '\n';
 }
 
+#if 0
 void	communicate(int clientFD)
 {
 	char	readBuf[128] = {};
@@ -115,6 +117,16 @@ void	communicate(int clientFD)
 		prettyPrintReceived(readBuf, retval);
 	}
 }
+#endif
+
+#include <poll.h>
+
+void	printPollFD(pollfd const& pfd)
+{
+	std::cout << "FD: " << pfd.fd << '\n';
+	std::cout << "Events: " << pfd.events << '\n';
+	std::cout << "Revents: " << pfd.revents << '\n';
+}
 
 void	server()
 {
@@ -123,16 +135,66 @@ void	server()
 	socklen_t			clientAddrLen = sizeof clientAddr;
 	int					clientNum = 0;
 
+	pollfd	*pfds = new pollfd[clientNum+1];
+	std::memset(pfds, -1, sizeof(pollfd));
+	pfds[0].fd = sockFD;
+	pfds[0].events = POLLIN;
+	pfds[0].revents = 0;
 	dbg::println("Server is running...");
+	printPollFD(pfds[0]);
 	while (1)
 	{
-		int	clientFD = accept(sockFD, (sockaddr*)&clientAddr, &clientAddrLen); // blocked here
-		dbg::println("Someone came in!");
-		dbg::printSocketAddr((sockaddr*)&clientAddr);
-		++clientNum;
-		std::string	tmp = "Hello, you are client " + toString(clientNum) + "!\n"
-						+ "--------------------------------------------------\n";
-		send(clientFD, tmp.data(), tmp.size(), 0);
-		communicate(clientFD);
+		for (int i = 0; i < clientNum+1; ++i)
+			pfds[i].revents = 0;
+		dbg::println("Polling...");
+		int polled = poll(pfds, clientNum+1, -1);
+		if (polled < 0)
+		{
+			perror("poll");
+			error("poll failed");
+		}
+		std::cout << "Polled " << polled << '\n';
+		if (pfds[0].revents & POLLIN)
+		{
+			dbg::println("Someone came in!");
+			int	clientFD = accept(sockFD, (sockaddr*)&clientAddr, &clientAddrLen);
+			dbg::printSocketAddr((sockaddr*)&clientAddr);
+			++clientNum;
+			pollfd*	oldPFDs = pfds;
+			pfds = new pollfd[clientNum+1];
+			for (int i = 0; i < clientNum+1; ++i)
+			{
+				pfds[i] = oldPFDs[i];
+			}
+			delete[] oldPFDs;
+			pfds[clientNum].fd = clientFD;
+			pfds[clientNum].events = POLLIN;
+			pfds[clientNum].revents = 0;
+			printPollFD(pfds[clientNum]);
+			std::string	tmp = "Hello, you are client " + toString(clientNum) + "!\n"
+							+ "--------------------------------------------------\n";
+			send(clientFD, tmp.data(), tmp.size(), 0);
+		}
+		else
+		{
+			pollfd*	readyPFD;
+			for (int i = 1; i < clientNum+1; ++i)
+			{
+				if (pfds[i].revents == 1)
+					readyPFD = &pfds[i];
+			}
+			char	readBuf[128] = {};
+			std::string	buf;
+			ssize_t	retval = recv(readyPFD->fd, readBuf, sizeof readBuf, 0);
+			if (retval == 0)
+			{
+				std::cout << readyPFD->fd << " has closed the connection.\n";
+				readyPFD->fd = -1;
+			}
+			else
+			{
+				prettyPrintReceived(readBuf, retval, readyPFD->fd);
+			}
+		}
 	}
 }

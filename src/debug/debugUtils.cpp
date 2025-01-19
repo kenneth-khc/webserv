@@ -1,19 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   macrosToString.cpp                                 :+:      :+:    :+:   */
+/*   debugUtils.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 18:07:50 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/16 19:23:57 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/19 17:52:47 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "debugUtils.hpp"
 
 /* These are helper functions to convert a symbolic constant into a readable
- * form for debugging and visualizing purposes */
+ * form for debugging and visualization purposes */
+
+/* They're not important, pls turn back */
+
+#define TO_STRING(value) \
+case value: \
+	return #value;
 
 const char*	dbg::familyToString(int ai_family)
 {
@@ -188,5 +194,17 @@ void	dbg::printAddrInfos(addrinfo* head)
 		dbg::println("------------------------------------------------");
 	}
 	dbg::println("Printed out all addresses!");
+}
+
+void	dbg::prettyPrintReceived(char* buf, ssize_t bytes, int clientFD)
+{
+	std::cout << "Received " << bytes << " bytes from " << clientFD << ":\n";
+	for (int i = 0; i < bytes; ++i)
+		std::cout << '-';
+	std::cout << '\n';
+	std::cout << buf;
+	for (int i = 0; i < bytes; ++i)
+		std::cout << '-';
+	std::cout << '\n';
 }
 

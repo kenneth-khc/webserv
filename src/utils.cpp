@@ -1,33 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   testServer.cpp                                     :+:      :+:    :+:   */
+/*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/19 17:52:51 by kecheong         ###   ########.fr       */
+/*   Created: 2025/01/19 17:26:12 by kecheong          #+#    #+#             */
+/*   Updated: 2025/01/19 17:28:26 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
-#include "Server.hpp"
-#include "debugUtils.hpp"
+#include <string>
+#include <cstdlib>
 
-void	server();
-
-int	main()
+void	error(const std::string& errmsg)
 {
-	Server	server;
-
-	server.startListening();
-	server.initEpoll();
-
-	std::cout << "Server is running...\n";
-	while (1)
-	{
-		dbg::println("Polling...");
-		server.epollWait();
-		server.processReadyEvents();
-	}
+	std::cerr << errmsg << '\n';
+	std::exit(1);
 }
+

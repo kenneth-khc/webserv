@@ -47,6 +47,7 @@ void	Server::startListening()
 {
 	addrinfo*	localhost = NULL;
 	addrinfo	requirements = {};
+	requirements.ai_family = AF_INET;
 	requirements.ai_flags |= AI_CANONNAME | AI_PASSIVE;
 	requirements.ai_socktype = SOCK_STREAM;
 

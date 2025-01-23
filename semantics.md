@@ -108,6 +108,26 @@
 |segment-nz-nc|1*( unreserved / pct-encoded / sub-delims / "@" )|Non-zero-length segment without any colon ":"|
 |absolute-URI|scheme ":" hier-part [ "?" query ]||
 
+## Cookies
+|Rule|Value|Description|
+|-|-|-|
+|Set-Cookie|set-cookie-setting||
+|set-cookie-setting|cookie-pair *( ";" SP cookie-av )||
+|cookie-pair|cookie-name "=" cookie-value||
+|cookie-name|token||
+|cookie-value|*cookie-octet / ( DQUOTE *cookie-octet DQUOTE )||
+|cookie-octet|%x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E|US-ASCII characters excluding CTLs, whitespace DQUOTE, comma, semicolon, and backslash|
+|cookie-av|expires-av / max-age-av / domain-av / path-av / secure-av / httponly-av||
+|expires-av|"Expires=" Date||
+|max-age-av|"Max-Age=" non-zero-digit *DIGIT|In practice, both expires-av and max-age-av are limited to dates representable by the user agent|
+|non-zero-digit|%x31-39|digits 1 through 9|
+|domain-av|"Domain=" domain-value||
+|domain-value|||
+|path-av|"Path=" path-value||
+|path-value|<any CHAR except CTLs or ";">||
+|secure-av|"Secure"||
+|httponly-av|"HttpOnly"||
+
 ## General Message Rules
 |Rule|Value|Description|
 |-|-|-|

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:50:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/25 18:27:40 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/26 02:45:47 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ bool	isAuthority(const std::string &line) {
 
 	std::stringstream	stream(line);
 	std::string			str;
+
 	std::getline(stream, str, ':');
 	if (isHost(str) == false)
 		return (false);

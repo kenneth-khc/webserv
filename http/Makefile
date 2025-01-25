@@ -6,7 +6,7 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/25 20:30:46 by cteoh             #+#    #+#              #
-#    Updated: 2025/01/25 22:26:17 by cteoh            ###   ########.fr        #
+#    Updated: 2025/01/26 03:28:52 by cteoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ CXXFLAGS	= -Wall -Werror -Wextra -std=c++98 $(include_dir) -g3
 
 AR			:= ar -rcs
 
-src_dir 	:= src src/coreABNF src/URI
+src_dir 	:= src src/coreABNF src/URI src/requestLine src/fields
 dirs		:= $(src_dir)
 
 full_srcs	:= $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:22:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/25 18:02:27 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/26 02:45:35 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,12 @@
 #include "absoluteURI.hpp"
 
 bool	isAbsoluteURI(const std::string &line) {
+	if (line.find(':') == std::string::npos)
+		return (false);
+
 	std::stringstream	stream(line);
 	std::string			str;
 
-	if (line.find(':') == std::string::npos)
-		return (false);
 	std::getline(stream, str, ':');
 	if (isScheme(str) == false)
 		return (false);

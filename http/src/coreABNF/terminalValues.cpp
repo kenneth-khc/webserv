@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 18:04:21 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/25 21:41:11 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/26 02:17:38 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ bool	isToken(const std::string &line) {
 /****************************************************************************/
 /* A character that is alphanumeric or one of the symbols listed below.		*/
 /****************************************************************************/
-bool	isUnreservedCharacter(const char &character) {
+bool	isUnreservedCharacter(const unsigned char &character) {
 	static const std::string	values = "-._~";
 
 	if (std::isalnum(character) != 0)
@@ -63,10 +63,22 @@ bool	isPercentEncoded(const std::string &line, int index) {
 /****************************************************************************/
 /* A character that is one of the symbols listed below.						*/
 /****************************************************************************/
-bool	isSubDelimiter(const char &character) {
+bool	isSubDelimiter(const unsigned char &character) {
 	static const std::string	values = "!$&'()*+,;=";
 
 	if (values.find(character) != std::string::npos)
 		return (true);
 	return (false);
+}
+
+bool	isVisibleCharacter(const unsigned char &character) {
+	if (std::isgraph(character) == 0)
+		return (false);
+	return (true);
+}
+
+bool	isObsoleteText(const unsigned char &character) {
+	if (character < 128)
+		return (false);
+	return (true);
 }

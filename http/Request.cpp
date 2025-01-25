@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 21:34:46 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/24 00:39:45 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/25 21:41:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ static void	extractRequestLine(Request &obj, const std::string &message) {
 	std::string			input;
 
 	std::getline(messageStream, input, ' ');
-	for (int i = 0; i <= NUM_OF_METHODS; i++) {
+	for (std::size_t i = 0; i <= NUM_OF_METHODS; i++) {
 		// if (i == NUM_OF_METHODS)
 		// 	throw something;
 		if (input == Request::methods[i]) {

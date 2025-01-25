@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:02:42 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/24 22:10:10 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/25 21:41:54 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,6 @@ bool	isPathEmpty(const std::string &line);
 bool	isSegment(const std::string &line);
 bool	isSegmentNZ(const std::string &line);
 bool	isSegmentNZNC(const std::string &line);
-bool	isPrintableCharacter(const std::string &line, int index);
+bool	isPrintableCharacter(const std::string &line, std::size_t &index);
 
 #endif

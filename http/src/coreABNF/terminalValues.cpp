@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 18:04:21 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/24 20:44:48 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/25 21:41:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ bool	isToken(const std::string &line) {
 
 	if (line.length() == 0)
 		return (false);
-	for (int i = 0; i < line.length(); i++) {
+	for (std::size_t i = 0; i < line.length(); i++) {
 		if (std::isalnum(line[i]) != 0)	// ALPHA and DIGIT
 			continue ;
 		if (values.find(line[i]) != std::string::npos)

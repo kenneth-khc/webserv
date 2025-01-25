@@ -66,7 +66,7 @@
 ## Miscellaneous Headers
 |Rule|Value|Description|
 |-|-|-|
-|Host|uri-host [ ":" port ]||
+|Host|host [ ":" port ]||
 |Last-Modified|HTTP-date||
 |Server|product *( RWS ( product / comment ) )||
 |User-Agent|product *( RWS ( product / comment ) )||
@@ -139,9 +139,9 @@
 |origin-form|absolute-path [ "?" query ]||
 |asbolute-path|1*( "/" segment )||
 |absolute-form|absolute-URI||
-|authority-form|uri-host ":" port||
+|authority-form|host ":" port||
 |asterisk-form|"*"||
-|HTTP-version|HTTP-name "/" DIGIT "." DIGIT||
+|HTTP-version|"HTTP/" DIGIT "." DIGIT||
 |status-line|HTTP-version SP status-code SP [ reason-phrase ]||
 |status-code|3DIGIT||
 |reason-phrase|1*( HTAB / SP / VCHAR / obs-text )||

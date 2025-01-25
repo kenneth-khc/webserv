@@ -6,14 +6,14 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/25 20:30:46 by cteoh             #+#    #+#              #
-#    Updated: 2025/01/25 22:06:05 by cteoh            ###   ########.fr        #
+#    Updated: 2025/01/25 22:26:17 by cteoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		:= libhttp.a
 
 CXX			:= c++
-CXXFLAGS	= -Wall -Werror -Wextra -std=c++98 $(include_dir)
+CXXFLAGS	= -Wall -Werror -Wextra -std=c++98 $(include_dir) -g3
 
 AR			:= ar -rcs
 
@@ -53,7 +53,7 @@ fclean: clean
 
 re: fclean all
 
-fsan: CXXFLAGS += -fsanitize=address,undefined -g3
+fsan: CXXFLAGS += -fsanitize=address,undefined
 fsan: all
 
 .PHONY: all clean fclean re fsan

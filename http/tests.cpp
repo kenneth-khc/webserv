@@ -9,6 +9,9 @@ int	main(void) {
 	tests.push_back("GET /software/gnulib/manual.css HTTP/1.1");
 	tests.push_back("GET /favicon.ico HTTP/1.1");
 	tests.push_back("GET /software/gawk/manual/gawk_array-elements.png HTTP/1.1");
+	tests.push_back("POST /~smith/home.html HTTP/1.1");
+	tests.push_back("POST /\%7Esmith/home.html HTTP/1.1");
+	tests.push_back("POST /\%7esmith/home.html HTTP/1.1");
 
 	for (std::size_t i = 0; i < tests.size(); i++) {
 		std::cout << "\033[36m" << i << "\033[0m: ";

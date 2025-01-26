@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:49:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/25 21:41:11 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/27 01:22:26 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,42 +15,26 @@
 #include "terminalValues.hpp"
 #include "host.hpp"
 
-bool	is16BitsHexa(const std::string &line) {
-	std::size_t	length = line.length();
-
-	if (length == 0 || length > 4)
-		return (false);
-
-	for (std::size_t i = 0; i < length; i++) {
-		if (std::isxdigit(line[i]) == 0)
-			return (false);
-	}
-	return (true);
-}
-
-bool	isDecOctet(const std::string &line) {
-	std::stringstream	stream(line);
-	int					octetValue;
-
-	stream >> octetValue;
-	if (octetValue >= 0 && octetValue <= 255)
+bool	isHost(const std::string &line) {
+	if (isIPLiteral(line) == true)
+		return (true);
+	if (isIPV4(line) == true)
+		return (true);
+	if (isRegName(line) == true)
 		return (true);
 	return (false);
 }
 
-bool	isIPV4(const std::string &line) {
-	std::stringstream	stream(line);
-	std::string			str;
-	int					counter = 0;
-
-	while (std::getline(stream, str, '.')) {
-		counter++;
-		if (isDecOctet(str) == false)
-			return (false);
-	}
-	if (counter != 4)
+bool	isIPLiteral(const std::string &line) {
+	if (line[0] != '[' || line[line.length() - 1] != ']')
 		return (false);
-	return (true);
+
+	std::string	str = line.substr(1, line.length() - 1);
+	if (isIPV6(str) == true)
+		return (true);
+	if (isIPVFuture(str) == true)
+		return (true);
+	return (false);
 }
 
 bool	isIPV6(const std::string &line) {
@@ -107,14 +91,40 @@ bool	isIPVFuture(const std::string &line) {
 	return (true);
 }
 
-bool	isIPLiteral(const std::string &line) {
-	if (line[0] != '[' || line[line.length() - 1] != ']')
+bool	isIPV4(const std::string &line) {
+	std::stringstream	stream(line);
+	std::string			str;
+	int					counter = 0;
+
+	while (std::getline(stream, str, '.')) {
+		counter++;
+		if (isDecOctet(str) == false)
+			return (false);
+	}
+	if (counter != 4)
+		return (false);
+	return (true);
+}
+
+bool	is16BitsHexa(const std::string &line) {
+	std::size_t	length = line.length();
+
+	if (length == 0 || length > 4)
 		return (false);
 
-	std::string	str = line.substr(1, line.length() - 1);
-	if (isIPV6(str) == true)
-		return (true);
-	if (isIPVFuture(str) == true)
+	for (std::size_t i = 0; i < length; i++) {
+		if (std::isxdigit(line[i]) == 0)
+			return (false);
+	}
+	return (true);
+}
+
+bool	isDecOctet(const std::string &line) {
+	std::stringstream	stream(line);
+	int					octetValue;
+
+	stream >> octetValue;
+	if (octetValue >= 0 && octetValue <= 255)
 		return (true);
 	return (false);
 }
@@ -132,14 +142,4 @@ bool	isRegName(const std::string &line) {
 		return (false);
 	}
 	return (true);
-}
-
-bool	isHost(const std::string &line) {
-	if (isIPLiteral(line) == true)
-		return (true);
-	if (isIPV4(line) == true)
-		return (true);
-	if (isIPVFuture(line) == true)
-		return (true);
-	return (false);
 }

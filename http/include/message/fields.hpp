@@ -1,27 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   fragment.cpp                                       :+:      :+:    :+:   */
+/*   fields.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/25 17:36:47 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/25 21:41:11 by cteoh            ###   ########.fr       */
+/*   Created: 2025/01/26 02:00:34 by cteoh             #+#    #+#             */
+/*   Updated: 2025/01/26 16:58:44 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "path.hpp"
-#include "fragment.hpp"
+#ifndef FIELDS_HPP
+# define FIELDS_HPP
 
-bool	isFragment(const std::string &line) {
-	static const std::string	values = "/?";
+# include <string>
 
-	for (std::size_t i = 0; i < line.length(); i++) {
-		if (isPrintableCharacter(line, i) == true)
-			continue ;
-		if (values.find(line[i]) != std::string::npos)
-			continue ;
-		return (false);		
-	}
-	return (true);
-}
+bool	isFieldLine(const std::string &line);
+bool	isFieldValue(const std::string &line);
+bool	isFieldContent(const std::string &line);
+bool	isFieldVisibleCharacter(const unsigned char &character);
+
+#endif

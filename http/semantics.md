@@ -27,55 +27,6 @@
 |VCHAR|%x21-7E|Visible Character|✅(std::isgraph)|
 |WSP|SP / HTAB||✅|
 
-## Connection
-|Rule|Value|Description|Check|
-|-|-|-|-|
-|Connection|[ connection-option *( OWS "," OWS connection-option ) ]|||
-|connection-option|token|||
-
-## Content
-|Rule|Value|Description|Check|
-|-|-|-|-|
-|Content-Language|[ language-tag *( OWS "," OWS language-tag ) ]|||
-|Content-Length|1*DIGIT|||
-|Content-Type|media-type|||
-
-## Date
-|Rule|Value|Description|Check|
-|-|-|-|-|
-|Date|HTTP-date|||
-|HTTP-date|IMF-fixdate / obs-date|||
-|IMF-fixdate|day-name "," SP date1 SP time-of-day SP GMT|||
-|day-name|%x4D.6F.6E / %x54.75.65 / %x57.65.64 / %x54.68.75 / %x46.72.69 / %x53.61.74 / %x53.75.6E|Mon / Tue / Wed / Thu / Fri / Sat / Sun||
-|date1|day SP month SP year|||
-|day|2DIGIT|||
-|month|%x4A.61.6E / %x46.65.62 / %x4D.61.72 / %x41.70.72 / %x4D.61.79 / %x4A.75.6E / %x4A.75.6C / %x41.75.67 / %x53.65.70 / %x4F.63.74 / %x4E.6F.76 / %x44.65.63|Jan / Feb / Mar / Apr / May / Jun / Jul / Aug / Sep / Oct / Nov / Dec||
-|year|4DIGIT|||
-|time-of-day|hour ":" minute ":" second|||
-|hour|2DIGIT|||
-|minute|2DIGIT|||
-|second|2DIGIT|||
-|GMT|%x47.4D.54|GMT||
-|obs-date|rfc850-date / asctime-date|||
-|rfc850-date|day-name-1 "," SP date2 SP time-of-day SP GMT||
-|day-name-1|%x4D.6F.6E.64.61.79 / %x54.75.65.73.64.61.79 / %x57.65.64.6E.65.73.64.61.79 / %x54.68.75.72.73.64.61.79 / %x46.72.69.64.61.79 / %x53.61.74.75.72.64.61.79 / %x53.75.6E.64.61.79|Monday / Tuesday / Wednesday / Thursday / Friday / Saturday / Sunday||
-|date2|day "-" month "-" 2DIGIT|||
-|asctime-date|day-name SP date3 SP time-of-day SP year|||
-|date3|month SP ( 2DIGIT / ( SP DIGIT ) )|||
-
-## Miscellaneous Headers
-|Rule|Value|Description|Check|
-|-|-|-|-|
-|Host|host [ ":" port ]|||
-|Last-Modified|HTTP-date|||
-|Server|product *( RWS ( product / comment ) )|||
-|User-Agent|product *( RWS ( product / comment ) )|||
-|product|token [ "/" product-version ]|||
-|product-version|token|||
-|comment|"(" *( ctext / quoted-pair / comment ) ")"|||
-|ctext|HTAB / SP / %x21-27 / %x2A-5B / %x5D-7E / obs-text|HTAB / SP / '!'-''' / '*'-'[' / ']'-'~' / obs-text||
-|quoted-pair|"\\" ( HTAB / SP / VCHAR / obs-text )|||
-
 ## URI Rules
 |Rule|Value|Description|Check|
 |-|-|-|-|
@@ -108,26 +59,6 @@
 |segment-nz-nc|1*( unreserved / pct-encoded / sub-delims / "@" )|Non-zero-length segment without any colon ":"|✅|
 |absolute-URI|scheme ":" hier-part [ "?" query ]||✅|
 
-## Cookies
-|Rule|Value|Description|Check|
-|-|-|-|-|
-|Set-Cookie|set-cookie-setting|||
-|set-cookie-setting|cookie-pair *( ";" SP cookie-av )|||
-|cookie-pair|cookie-name "=" cookie-value|||
-|cookie-name|token|||
-|cookie-value|*cookie-octet / ( DQUOTE *cookie-octet DQUOTE )|||
-|cookie-octet|%x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E|US-ASCII characters excluding CTLs, whitespace DQUOTE, comma, semicolon, and backslash||
-|cookie-av|expires-av / max-age-av / domain-av / path-av / secure-av / httponly-av|||
-|expires-av|"Expires=" Date|||
-|max-age-av|"Max-Age=" non-zero-digit *DIGIT|In practice, both expires-av and max-age-av are limited to dates representable by the user agent||
-|non-zero-digit|%x31-39|digits 1 through 9||
-|domain-av|"Domain=" domain-value|||
-|domain-value||||
-|path-av|"Path=" path-value|||
-|path-value|<any CHAR except CTLs or ";">|||
-|secure-av|"Secure"|||
-|httponly-av|"HttpOnly"|||
-
 ## General Message Rules
 |Rule|Value|Description|Check|
 |-|-|-|-|
@@ -150,4 +81,86 @@
 |field-value|*field-content||✅|
 |field-content|field-vchar [ 1*( SP / HTAB / field-vchar ) field-vchar]||✅|
 |field-vchar|VCHAR / obs-text||✅|
-|message-body|*OCTET|||
+|message-body|*OCTET||✅|
+
+## Headers
+### Connection
+|Rule|Value|Description|Check|
+|-|-|-|-|
+|Connection|[ connection-option *( OWS "," OWS connection-option ) ]|||
+|connection-option|token|||
+
+### Content
+|Rule|Value|Description|Check|
+|-|-|-|-|
+|Content-Language|[ language-tag *( OWS "," OWS language-tag ) ]|||
+|Content-Length|1*DIGIT|||
+|Content-Type|media-type|||
+
+### Date
+|Rule|Value|Description|Check|
+|-|-|-|-|
+|Date|HTTP-date|||
+|HTTP-date|IMF-fixdate / obs-date|||
+|IMF-fixdate|day-name "," SP date1 SP time-of-day SP GMT|||
+|day-name|%x4D.6F.6E / %x54.75.65 / %x57.65.64 / %x54.68.75 / %x46.72.69 / %x53.61.74 / %x53.75.6E|Mon / Tue / Wed / Thu / Fri / Sat / Sun||
+|date1|day SP month SP year|||
+|day|2DIGIT|||
+|month|%x4A.61.6E / %x46.65.62 / %x4D.61.72 / %x41.70.72 / %x4D.61.79 / %x4A.75.6E / %x4A.75.6C / %x41.75.67 / %x53.65.70 / %x4F.63.74 / %x4E.6F.76 / %x44.65.63|Jan / Feb / Mar / Apr / May / Jun / Jul / Aug / Sep / Oct / Nov / Dec||
+|year|4DIGIT|||
+|time-of-day|hour ":" minute ":" second|||
+|hour|2DIGIT|||
+|minute|2DIGIT|||
+|second|2DIGIT|||
+|GMT|%x47.4D.54|GMT||
+|obs-date|rfc850-date / asctime-date|||
+|rfc850-date|day-name-1 "," SP date2 SP time-of-day SP GMT||
+|day-name-1|%x4D.6F.6E.64.61.79 / %x54.75.65.73.64.61.79 / %x57.65.64.6E.65.73.64.61.79 / %x54.68.75.72.73.64.61.79 / %x46.72.69.64.61.79 / %x53.61.74.75.72.64.61.79 / %x53.75.6E.64.61.79|Monday / Tuesday / Wednesday / Thursday / Friday / Saturday / Sunday||
+|date2|day "-" month "-" 2DIGIT|||
+|asctime-date|day-name SP date3 SP time-of-day SP year|||
+|date3|month SP ( 2DIGIT / ( SP DIGIT ) )|||
+
+### Host
+|Rule|Value|Description|Check|
+|-|-|-|-|
+|Host|host [ ":" port ]|||
+
+### Last-Modified
+|Rule|Value|Description|Check|
+|-|-|-|-|
+|Last-Modified|HTTP-date|||
+
+### Server
+|Rule|Value|Description|Check|
+|-|-|-|-|
+|Server|product *( RWS ( product / comment ) )|||
+
+### User-Agent
+|Rule|Value|Description|Check|
+|-|-|-|-|
+|User-Agent|product *( RWS ( product / comment ) )|||
+|product|token [ "/" product-version ]|||
+|product-version|token|||
+|comment|"(" *( ctext / quoted-pair / comment ) ")"|||
+|ctext|HTAB / SP / %x21-27 / %x2A-5B / %x5D-7E / obs-text|HTAB / SP / '!'-''' / '*'-'[' / ']'-'~' / obs-text||
+|quoted-pair|"\\" ( HTAB / SP / VCHAR / obs-text )|||
+
+### Cookies
+|Rule|Value|Description|Check|
+|-|-|-|-|
+|Set-Cookie|set-cookie-setting|||
+|set-cookie-setting|cookie-pair *( ";" SP cookie-av )|||
+|cookie-pair|cookie-name "=" cookie-value|||
+|cookie-name|token|||
+|cookie-value|*cookie-octet / ( DQUOTE *cookie-octet DQUOTE )|||
+|cookie-octet|%x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E|US-ASCII characters excluding CTLs, whitespace DQUOTE, comma, semicolon, and backslash||
+|cookie-av|expires-av / max-age-av / domain-av / path-av / secure-av / httponly-av|||
+|expires-av|"Expires=" Date|||
+|max-age-av|"Max-Age=" non-zero-digit *DIGIT|In practice, both expires-av and max-age-av are limited to dates representable by the user agent||
+|non-zero-digit|%x31-39|digits 1 through 9||
+|domain-av|"Domain=" domain-value|||
+|domain-value||||
+|path-av|"Path=" path-value|||
+|path-value|<any CHAR except CTLs or ";">|||
+|secure-av|"Secure"|||
+|httponly-av|"HttpOnly"|||

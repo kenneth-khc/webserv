@@ -6,12 +6,13 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/26 02:00:53 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/26 04:16:40 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/27 21:39:07 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 #include "terminalValues.hpp"
+#include "ErrorCode.hpp"
 #include "fields.hpp"
 
 bool	isFieldVisibleCharacter(const unsigned char &character) {
@@ -58,10 +59,13 @@ bool	isFieldLine(const std::string &line) {
 	
 	std::getline(stream, str, ':');
 	if (isToken(str) == false)
-		return (false);
+		throw BadRequest400();
 	
 	if (!std::getline(stream, str))
 		return (true);
+	if (str.find("\r\n ") != std::string::npos || str.find("\r\n\t") != std::string::npos)
+		throw BadRequest400();
+		
 	std::size_t	frontPos = str.find_first_not_of(values);
 	std::size_t	backPos = str.find_last_not_of(values);
 	str = str.substr(frontPos, backPos + 1);

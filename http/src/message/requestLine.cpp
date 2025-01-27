@@ -6,25 +6,31 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:13:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/27 01:25:33 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/27 20:30:33 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 #include "terminalValues.hpp"
 #include "uri.hpp"
+#include "ErrorCode.hpp"
 #include "requestLine.hpp"
 
-bool	isRequestLine(const std::string &line) {
+bool	isRequestLine(const std::string &line, Request &request) {
 	std::stringstream	stream(line);
 	std::string			str;
 
 	std::getline(stream, str, ' ');
 	if (isToken(str) == false)
-		return (false);
+		throw BadRequest400();
+	if (request.isValidMethod(str) == false)
+		throw NotImplemented501();
+
 	std::getline(stream, str, ' ');
 	if (isRequestTarget(str) == false)
-		return (false);
+		throw BadRequest400();
+	request.requestTarget = str;
+
 	std::getline(stream, str, '/');
 	if (str != "HTTP")
 		return (false);
@@ -33,6 +39,7 @@ bool	isRequestLine(const std::string &line) {
 		return (false);
 	if (std::isdigit(str[0]) == 0 || str[1] != '.' || std::isdigit(str[2]) == 0)
 		return (false);
+	std::stringstream(str) >> request.httpVersion;
 	return (true);
 }
 

@@ -5,34 +5,28 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/23 21:34:46 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/25 21:41:11 by cteoh            ###   ########.fr       */
+/*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
+/*   Updated: 2025/01/27 20:28:06 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <sstream>
 #include "Request.hpp"
 
-const std::string	Request::methods[NUM_OF_METHODS] = { "GET", "HEAD", "POST", "PUT", "DELETE" };
+const std::string	Request::methods[NUM_OF_METHODS] = {
+	"GET",
+	"HEAD",
+	"POST",
+	"PUT",
+	"OPTIONS",
+	"DELETE"
+};
 
-static void	extractRequestLine(Request &obj, const std::string &message) {
-	std::stringstream	messageStream(message);
-	std::string			input;
-
-	std::getline(messageStream, input, ' ');
-	for (std::size_t i = 0; i <= NUM_OF_METHODS; i++) {
-		// if (i == NUM_OF_METHODS)
-		// 	throw something;
-		if (input == Request::methods[i]) {
-			obj.method = i;
-			break ;
+bool	Request::isValidMethod(const std::string &method) {
+	for (int i = 0; i < NUM_OF_METHODS; i++) {
+		if (method == methods[i]) {
+			this->method = i;
+			return (true);
 		}
 	}
-	
-	std::getline(messageStream, input, ' ');
-
-}
-
-Request::Request(const std::string &message) {
-	
+	return (false);
 }

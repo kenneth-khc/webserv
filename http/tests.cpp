@@ -1,3 +1,4 @@
+#if 0
 #include <string>
 #include <vector>
 #include <iostream>
@@ -87,3 +88,4 @@ int	main(void) {
 	std::cout << std::endl;
 	return (0);
 }
+#endif

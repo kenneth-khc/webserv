@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:25:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/27 22:03:34 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/28 00:14:39 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,9 @@
 # include <string>
 
 class ErrorCode : public std::exception {
+	public:
 		ErrorCode(const ErrorCode &obj);
 		ErrorCode	&operator=(const ErrorCode &obj);
-	protected:
 		float		httpVersion;
 		int			statusCode;
 		std::string	reasonPhrase;
@@ -27,7 +27,7 @@ class ErrorCode : public std::exception {
 
 		ErrorCode(void);
 		~ErrorCode(void) throw();
-		ErrorCode(int httpVersion, int statusCode, std::string reasonPhrase);
+		ErrorCode(float httpVersion, int statusCode, std::string reasonPhrase);
 	public:
 		const std::string	toString(void) const;
 		const char			*what(void) const throw();
@@ -36,13 +36,19 @@ class ErrorCode : public std::exception {
 class BadRequest400 : public ErrorCode {
 	public:
 		BadRequest400(void);
-		~BadRequest400(void) throw();
+		virtual ~BadRequest400(void) throw();
 };
 
 class NotImplemented501 : public ErrorCode {
 	public:
 		NotImplemented501(void);
-		~NotImplemented501(void) throw();
+		virtual ~NotImplemented501(void) throw();
+};
+
+class NotFound404 : public ErrorCode {
+	public:
+		NotFound404(void);
+		virtual ~NotFound404(void) throw();
 };
 
 

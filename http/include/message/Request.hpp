@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/27 19:14:19 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/27 23:51:27 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,9 @@ typedef struct Request {
 
 		Request(void);
 		~Request(void);
-	private:
 		Request(const Request &obj);
 		Request	&operator=(const Request &obj);
+	private:
 }	Request;
 
 enum METHODS {

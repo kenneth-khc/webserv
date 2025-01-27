@@ -6,10 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/27 20:28:06 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/28 00:10:03 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <sstream>
 #include "Request.hpp"
 
 const std::string	Request::methods[NUM_OF_METHODS] = {
@@ -30,3 +31,7 @@ bool	Request::isValidMethod(const std::string &method) {
 	}
 	return (false);
 }
+
+Request::Request() {}
+
+Request::~Request() {}

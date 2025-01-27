@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/19 17:53:09 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/28 00:42:46 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,10 @@
 #include "utils.hpp"
 #include "Server.hpp"
 #include <unistd.h>
+#include <sstream>
+#include <fstream>
+#include "Response.hpp"
+#include "ErrorCode.hpp"
 
 /* TODO: Configure the server based on the config file */
 Server::Server():
@@ -63,7 +67,8 @@ void	Server::startListening()
 	}
 	dbg::printAddrInfos(localhost);
 
-	listenerSocketFD = socket(localhost->ai_family, localhost->ai_socktype, 0);
+	listenerSocketFD = socket(localhost->ai_family,
+							  localhost->ai_socktype | SOCK_NONBLOCK, 0);
 	if (listenerSocketFD == -1)
 	{
 	// TODO: do we throw exceptions?
@@ -130,15 +135,20 @@ void	Server::processReadyEvents()
 		else if (ev.events & EPOLLIN)
 		{
 			std::string	request = receiveRequest(ev.data.fd);
-			std::cout << "Request:\n";
-			dbg::println("---------------------------------");
-			std::cout << request;
-			dbg::println("---------------------------------");
-			// TODO: generate responses for the client
-			std::string	response =
-			"HTTP/1.1 200 OK\r\n" \
-			"Connection: close\r\n\r\n <html>HELLO WORLD</html>\r\n";
-			send(ev.data.fd, response.data(), response.size(), 0);
+			// TODO: parse request
+			
+			dbg::println(request);
+			
+			// TODO: handle request
+			Request		tempRequest;
+			Response	tempResponse;
+			tempRequest.method = GET;
+			tempRequest.requestTarget = "/a";
+			tempResponse = handleRequest(tempRequest); // TODO: handle parsed requests
+
+			// TODO: send response back to client
+			sendResponse(ev.data.fd, tempResponse);
+
 			epoll_ctl(epollFD, EPOLL_CTL_DEL, ev.data.fd, NULL);
 			close(ev.data.fd);
 		}
@@ -160,6 +170,7 @@ void	Server::acceptNewClient()
 	epoll_ctl(epollFD, EPOLL_CTL_ADD, clientFD, &event);
 }
 
+// TODO: receive based on Content-Length
 std::string	Server::receiveRequest(int fd) const
 {
 	char		buf[1024] = {};
@@ -186,3 +197,53 @@ std::string	Server::receiveRequest(int fd) const
 	return request;
 }
 
+
+Response	Server::handleRequest(const Request& request) const
+{
+	Response	response;
+
+	try
+	{
+		if (request.method == GET)
+		{
+			get(response, request);
+		}
+		else if (request.method == POST)
+		{
+
+		}
+		else if (request.method == PUT)
+		{
+
+		}
+		else if (request.method == DELETE)
+		{
+
+		}
+		else if (request.method == HEAD)
+		{
+
+		}
+	}
+	catch (const ErrorCode& e)
+	{
+		response.httpVersion = e.httpVersion;
+		response.statusCode = e.statusCode;
+		response.reasonPhrase = e.reasonPhrase;
+	}
+	return response;
+}
+
+void	Server::sendResponse(int socketFD, const Response& response) const
+{
+	std::stringstream	ss;
+	std::string			message;
+
+	ss << "HTTP/" << response.httpVersion << " " << response.statusCode << " "
+	   << response.reasonPhrase << "\n" << "\n\n"
+	   << response.body;
+
+	message = ss.str();
+	dbg::println(message);
+	send(socketFD, message.data(), message.size(), 0);
+}

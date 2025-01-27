@@ -6,41 +6,42 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 00:44:49 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/28 05:13:55 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <sstream>
 #include "Response.hpp"
 
-Response::Response(void):
-statusCode(0),
-httpVersion(1.1),
-reasonPhrase(),
-headers(),
-body()
-{
-
+Response::Response(void) : httpVersion(1.1) {
+	this->headers.insert(std::pair<std::string, std::string>("Server", SERVER_NAME));
 }
 
-Response::~Response() {}
+Response::Response(const Response &obj) :
+	httpVersion(obj.httpVersion),
+	statusCode(obj.statusCode),
+	reasonPhrase(obj.reasonPhrase),
+	headers(obj.headers),
+	messageBody(obj.messageBody)	
+{}
 
-Response::Response(const Response& other):
-statusCode(other.statusCode),
-httpVersion(other.httpVersion),
-reasonPhrase(other.reasonPhrase),
-headers(other.headers),
-body(other.body)
-{
+const std::string	Response::toString(void) const {
+	std::stringstream	stream;
+	std::string			str;
+	
+	stream << "HTTP/" << this->httpVersion << ' ';
+	stream << this->statusCode << ' ';
+	stream << this->reasonPhrase << "\r\n";
 
-}
+	if (this->headers.size() != 0) {
+		for (std::map<std::string, std::string>::const_iterator it = this->headers.begin(); it != this->headers.end(); it++)
+			stream << it->first << ": " << it->second << "\r\n";
+	}
+	stream << "\r\n";
 
-Response&	Response::operator=(const Response& other)
-{
-	this->statusCode = other.statusCode;
-	this->httpVersion = other.httpVersion;
-	this->reasonPhrase = other.reasonPhrase;
-	this->headers = other.headers;
-	this->body = other.body;
-
-	return *this;
+	if (this->messageBody.length() != 0)
+		stream << this->messageBody;
+	
+	std::getline(stream, str);
+	return (str);
 }

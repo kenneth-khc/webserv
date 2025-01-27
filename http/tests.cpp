@@ -4,6 +4,8 @@
 #include <iostream>
 #include "requestLine.hpp"
 #include "fields.hpp"
+#include "Request.hpp"
+#include "ErrorCode.hpp"
 
 int	main(void) {
 	std::vector<std::string>	tests;
@@ -39,12 +41,18 @@ int	main(void) {
 	results.push_back("❌");
 
 	std::cout << "\033[32m" << "Request Line:" << "\033[0m" << std::endl;
+	Request	request;
 	for (std::size_t i = 0; i < tests.size(); i++) {
 		std::cout << "\033[36m" << i + 1 << "\033[0m: " << results[i] << '/';
-		if (isRequestLine(tests[i]) == true)
-			std::cout << "✅ ";
-		else
+		try {
+			getRequestLine(tests[i], request);
+		}
+		catch (const ErrorCode &error) {
 			std::cout << "❌ ";
+			std::cout << "\033[33m" << tests[i] << "\033[0m" << std::endl;
+			continue ;
+		}
+		std::cout << "✅ ";
 		std::cout << "\033[33m" << tests[i] << "\033[0m" << std::endl;
 	}
 	std::cout << std::endl;
@@ -79,10 +87,15 @@ int	main(void) {
 	std::cout << "\033[32m" << "Headers:" << "\033[0m" << std::endl;
 	for (std::size_t i = 0; i < tests.size(); i++) {
 		std::cout << "\033[36m" << i + 1 << "\033[0m: " << results[i] << '/';
-		if (isFieldLine(tests[i]) == true)
-			std::cout << "✅ ";
-		else
+		try {
+			getFieldLine(tests[i], request);
+		}
+		catch (const ErrorCode &error) {
 			std::cout << "❌ ";
+			std::cout << "\033[33m" << tests[i] << "\033[0m" << std::endl;
+			continue ;
+		}
+		std::cout << "✅ ";
 		std::cout << "\033[33m" << tests[i] << "\033[0m" << std::endl;
 	}
 	std::cout << std::endl;

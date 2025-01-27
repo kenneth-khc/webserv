@@ -1,21 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   messageBody.cpp                                    :+:      :+:    :+:   */
+/*   POST.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
+/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/26 17:00:09 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 04:24:09 by cteoh            ###   ########.fr       */
+/*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
+/*   Updated: 2025/01/28 04:37:59 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "messageBody.hpp"
+#include "Server.hpp"
 
-bool	isMessageBody(const std::string &line) {
-	for (std::size_t i = 0; i < line.length(); i++) {
-		if (static_cast<std::size_t>(line[i]) > 255)
-			return (false);
-	}
-	return (true);
+void	Server::post(Response& response, const Request& request) const
+{
+	(void)response;(void)request;
 }
+
+
+
+
+
+
+
+
+

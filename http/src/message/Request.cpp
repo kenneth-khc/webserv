@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 00:10:03 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/28 05:13:33 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,17 @@ const std::string	Request::methods[NUM_OF_METHODS] = {
 	"DELETE"
 };
 
+const float	Request::supportedVersions[NUM_OF_VERSIONS] = { 1.1 };
+
+Request::Request(void) {}
+
+Request::Request(const Request &obj) :
+	method(obj.method),
+	requestTarget(obj.requestTarget),
+	httpVersion(obj.httpVersion),
+	headers(obj.headers)
+{}
+
 bool	Request::isValidMethod(const std::string &method) {
 	for (int i = 0; i < NUM_OF_METHODS; i++) {
 		if (method == methods[i]) {
@@ -31,7 +42,10 @@ bool	Request::isValidMethod(const std::string &method) {
 	}
 	return (false);
 }
-
-Request::Request() {}
-
-Request::~Request() {}
+bool	Request::isSupportedVersion(const float &version) {
+	for (int i = 0; i < NUM_OF_VERSIONS; i++) {
+		if (version > supportedVersions[i])
+			return (false);
+	}
+	return (true);
+}

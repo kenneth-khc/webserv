@@ -1,24 +1,15 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   enums.h                                            :+:      :+:    :+:   */
+/*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/23 22:10:19 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/23 22:10:33 by cteoh            ###   ########.fr       */
+/*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
+/*   Updated: 2025/01/27 19:20:48 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef ENUMS_H
-# define ENUMS_H
+#include "Response.hpp"
 
-enum METHODS {
-	GET,
-	HEAD,
-	POST,
-	PUT,
-	DELETE
-};
-
-#endif
+Response::Response(void) : httpVersion(1.1) {}

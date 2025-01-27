@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/23 18:09:44 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/23 23:31:52 by cteoh            ###   ########.fr       */
+/*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
+/*   Updated: 2025/01/27 19:14:19 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,24 +15,33 @@
 
 # include <string>
 # include <map>
-# include "enums.h"
 
-# define NUM_OF_METHODS 5
+# define NUM_OF_METHODS 6
 
-class Request {
-		Request(void);
-		Request(const Request &obj);
-		Request	&operator=(const Request &obj);
-	public:
-		static const std::string			methods[NUM_OF_METHODS];
-
+typedef struct Request {
+		static const std::string	methods[NUM_OF_METHODS];
+		
 		int			method;
+		bool		isValidMethod(const std::string &method);
 		std::string	requestTarget;
-		std::string	httpVersion;
+		float		httpVersion;
+
 		std::map<std::string, std::string>	headers;
 
-		Request(const std::string &message);
+		Request(void);
 		~Request(void);
+	private:
+		Request(const Request &obj);
+		Request	&operator=(const Request &obj);
+}	Request;
+
+enum METHODS {
+	GET,
+	HEAD,
+	POST,
+	PUT,
+	OPTIONS,
+	DELETE
 };
 
 #endif

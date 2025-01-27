@@ -10,12 +10,12 @@
 |CRLF|CR LF|CR Line Feed||
 |DIGIT|%x30-39|0 - 9|✅(std::isdigit)|
 |DQUOTE|%x22|Double Quote|✅|
-|HEXDIG|DIGIT / "A" / "B" / "C" / "D" / "E" / "F"||✅(std::isxdigit [includes lowecase letters])|
+|HEXDIG|DIGIT / "A" / "B" / "C" / "D" / "E" / "F"||✅(std::isxdigit)|
 |HTAB|%x09|Horizontal Tab|✅|
 |LF|%x0A|Line Feed|✅|
 |LWSP|*( WSP / CRLF WSP )|Linear White Space||
 |obs-text|%x80-FF||✅|
-|OCTET|%x00-FF|||
+|OCTET|%x00-FF||❕|
 |OWS|*( SP / HTAB )|||
 |pct-encoded|"%" HEXDIG HEXDIG||✅|
 |RWS|1*( SP / HTAB )|Required White Space||
@@ -41,7 +41,7 @@
 |h16|1*4HEXDIG|16 bits of address represented in hexadecimal|✅|
 |IPv4address|dec-octet "." dec-octet "." dec-octet "." dec-octet||✅|
 |dec-octet|DIGIT / %x31-39 DIGIT / "1" 2DIGIT / "2" %x30-34 DIGIT / "25" %x30-35|0-9 / 10 - 99 / 100-199 / 200-249 / 250-255|✅|
-|reg-name|*( unreserved / pct-encoded / sub-delims )||
+|reg-name|*( unreserved / pct-encoded / sub-delims )|✅|
 |port|*DIGIT||✅|
 |path-abempty|*( "/" segment )|Begins with "/" or is empty|
 |segment|*pchar||✅|
@@ -62,7 +62,7 @@
 ## General Message Rules
 |Rule|Value|Description|Check|
 |-|-|-|-|
-|HTTP-message|start-line CRLF *( field-line CRLF ) CRLF [ message-body ]|||
+|HTTP-message|start-line CRLF *( field-line CRLF ) CRLF [ message-body ]||❕|
 |start-line|request-line / status-line|||
 |request-line|method SP request-target SP HTTP-version||✅|
 |method|token||❕|

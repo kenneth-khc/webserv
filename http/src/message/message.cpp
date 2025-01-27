@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 12:41:48 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/27 21:19:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/28 04:57:59 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,55 +18,67 @@
 #include "Response.hpp"
 #include "ErrorCode.hpp"
 
-bool	parseMessage(const std::string &line) {
+Request	constructRequest(const std::string &line) {
 	Request		request;
-	Response	response;
-
 	std::string	str;
 	std::size_t	terminatorPos = 0;
 
 	terminatorPos = line.find("\r\n", 0);
-	if (terminatorPos == std::string::npos)
-		return (false);
-	str = line.substr(0, terminatorPos);
 	try {
-		if (isRequestLine(str, request) == false)
-			return (false);
+		if (terminatorPos == std::string::npos)
+			throw BadRequest400();
+		str = line.substr(0, terminatorPos);
+		getRequestLine(str, request);
 	}
 	catch (const ErrorCode &error) {
-		response.httpVersion = error.httpVersion;
-		response.statusCode = error.statusCode;
-		response.reasonPhrase = error.reasonPhrase;
-		return (false);
+		throw Response(error);
 	}
 
 	std::size_t	prevTerminatorPos = terminatorPos;
 
 	terminatorPos = line.find("\r\n", prevTerminatorPos + 2);
-	if (terminatorPos == std::string::npos)
-		return (false);
+	try {
+		if (terminatorPos == std::string::npos)
+			throw BadRequest400();
+	}
+	catch (const ErrorCode &error) {
+		throw Response(error);
+	}
+
+
 	while (terminatorPos != prevTerminatorPos + 2) {
 		str = line.substr(prevTerminatorPos + 2, terminatorPos);
+
 		try {
-			if (isRequestLine(str, request) == false)
-				return (false);
+			getFieldLine(str, request);
 		}
 		catch (const ErrorCode &error) {
-			response.httpVersion = error.httpVersion;
-			response.statusCode = error.statusCode;
-			response.reasonPhrase = error.reasonPhrase;
-			return (false);
+			throw Response(error);
 		}
+
 		prevTerminatorPos = terminatorPos;
 		terminatorPos = line.find("\r\n", prevTerminatorPos + 2);
-		if (terminatorPos == std::string::npos)
-			return (false);
+
+		try {
+			if (terminatorPos == std::string::npos)
+				throw BadRequest400();
+		}
+		catch (const ErrorCode &error) {
+			throw Response(error);
+		}
 	}
 
 	if (line[terminatorPos + 2] == '\0')
-		return (true);
+		return (request);
 	str = line.substr(terminatorPos + 2);
-	if (isMessageBody(str) == false)
-		return (false);
-	return (true);
+	try {
+		if (isMessageBody(str) == false)
+			throw BadRequest400();
+		else
+			request.messageBody = str;
+	}
+	catch (const ErrorCode &error) {
+		throw Response(error);
+	}
+	return (request);
 }

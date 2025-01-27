@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/27 18:46:58 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/28 04:48:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,17 +16,20 @@
 # include <string>
 # include <map>
 
-typedef struct Response {
-		int			statusCode;
-		float		httpVersion;
-		std::string	reasonPhrase;
+# define SERVER_NAME "42webserv"
 
+typedef struct Response {
+		float		httpVersion;
+		int			statusCode;
+		std::string	reasonPhrase;
 		std::map<std::string, std::string>	headers;
+		std::string	messageBody;
 
 		Response(void);
-		~Response(void);
-	private:
 		Response(const Response &obj);
+		const std::string	toString(void) const;
+
+	private:
 		Response	&operator=(const Response &obj);
 }	Response;
 

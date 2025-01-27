@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/27 19:14:19 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/28 04:24:51 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,21 +17,23 @@
 # include <map>
 
 # define NUM_OF_METHODS 6
+# define NUM_OF_VERSIONS 1
 
 typedef struct Request {
 		static const std::string	methods[NUM_OF_METHODS];
+		static const float			supportedVersions[NUM_OF_VERSIONS];
 		
 		int			method;
-		bool		isValidMethod(const std::string &method);
 		std::string	requestTarget;
 		float		httpVersion;
-
 		std::map<std::string, std::string>	headers;
+		std::string	messageBody;
 
 		Request(void);
-		~Request(void);
-	private:
 		Request(const Request &obj);
+		bool		isValidMethod(const std::string &method);
+		bool		isSupportedVersion(const float &version);
+	private:
 		Request	&operator=(const Request &obj);
 }	Request;
 

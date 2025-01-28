@@ -6,7 +6,7 @@
 #    By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/01/16 18:55:20 by kecheong         ###   ########.fr        #
+#    Updated: 2025/01/28 00:32:19 by kecheong         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,17 +14,31 @@
 
 NAME := webserv
 
-CXX := c++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98 -I $(include_dir)
+CXX := g++
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes)
 
 src_dir := src
 dirs := $(src_dir) \
-		$(src_dir)/debug
+		$(src_dir)/debug \
+		$(src_dir)/methods \
+		http			 \
+		http/src		 \
+		http/src/message \
+		http/src/coreABNF \
+		http/src/URI
 
 srcs := $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))
 # For my own testing purposes
 srcs += testServer.cpp
-include_dir := include/
+include_dir := include/ 
+
+includes := -I include/ \
+			-I http/	\
+			-I http/include/ \
+			-I http/include/message \
+			-I http/include/coreABNF \
+			-I http/include/URI
+
 
 obj_dir := obj
 objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)
@@ -32,11 +46,12 @@ objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)
 all: $(NAME)
 
 $(NAME): $(objs)
-	$(CXX) $(CXXFLAGS) $(objs) $(includes) -o $(NAME)
+	$(CXX) $(CXXFLAGS) $(objs) -o $(NAME)
 
 $(obj_dir):
 	mkdir -p $(obj_dir)
 
+vpath %.cpp http/ http/src http/src/message
 $(obj_dir)/%.o: $(src_dir)/%.cpp | obj
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(includes) $< -c -o $@

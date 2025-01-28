@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 05:03:04 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/28 05:25:15 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ const std::string &title)
 	this->messageBody = "{\n\t\"title\": \"" + title + "\"\n}";
 }
 
-ErrorCode::ErrorCode(const ErrorCode &obj) {
+ErrorCode::ErrorCode(const ErrorCode &obj): Response() {
 	this->httpVersion = obj.httpVersion;
 	this->statusCode = obj.statusCode;
 	this->reasonPhrase = obj.reasonPhrase;
@@ -63,6 +63,13 @@ NotImplemented501::NotImplemented501(void) :
 
 NotImplemented501::NotImplemented501(std::string title) : 
 	ErrorCode(1.1, 501, "Not Implemented", title)
+{}
+
+/*****************/
+/* 404 Not Found */
+/*****************/
+NotFound404::NotFound404(void) :
+	ErrorCode(1.1, 404, "Not Found")
 {}
 
 /*****************************/

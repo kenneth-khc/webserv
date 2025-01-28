@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 04:48:00 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/28 05:24:59 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,16 @@ Response::Response(const Response &obj) :
 	headers(obj.headers),
 	messageBody(obj.messageBody)	
 {}
+
+Response&	Response::operator=(const Response& other)
+{
+	this->httpVersion = other.httpVersion;
+	this->statusCode = other.statusCode;
+	this->reasonPhrase = other.reasonPhrase;
+	this->headers = other.headers;
+	this->messageBody = other.messageBody;
+	return *this;
+}
 
 const std::string	Response::toString(void) const {
 	std::stringstream	stream;

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 04:24:51 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/28 05:13:08 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ typedef struct Request {
 		bool		isSupportedVersion(const float &version);
 	private:
 		Request	&operator=(const Request &obj);
+	private:
 }	Request;
 
 enum METHODS {

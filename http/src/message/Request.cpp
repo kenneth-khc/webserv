@@ -6,10 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 05:03:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/28 05:13:33 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <sstream>
 #include "Request.hpp"
 
 const std::string	Request::methods[NUM_OF_METHODS] = {
@@ -41,7 +42,6 @@ bool	Request::isValidMethod(const std::string &method) {
 	}
 	return (false);
 }
-
 bool	Request::isSupportedVersion(const float &version) {
 	for (int i = 0; i < NUM_OF_VERSIONS; i++) {
 		if (version > supportedVersions[i])

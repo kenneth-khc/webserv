@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 05:18:00 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/28 05:25:15 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ const std::string &title)
 	this->messageBody = "{\n\t\"title\": \"" + title + "\"\n}";
 }
 
-ErrorCode::ErrorCode(const ErrorCode &obj) {
+ErrorCode::ErrorCode(const ErrorCode &obj): Response() {
 	this->httpVersion = obj.httpVersion;
 	this->statusCode = obj.statusCode;
 	this->reasonPhrase = obj.reasonPhrase;

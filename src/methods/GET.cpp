@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/28 00:58:30 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/28 09:29:04 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,18 +26,23 @@ void	Server::get(Response& response, const Request& request) const
 		//TODO: try all index pages
 		file = "html/index.html";
 	}
+	// TODO: map directories properly
+	if (file[0] == '/')
+	{
+		file = file.substr(1, file.npos);
+	}
 	if (access(file.c_str(), F_OK) == 0)
 	{
 		if (access(file.c_str(), R_OK) == 0)
 		{
 			response.statusCode = 200;
 			response.reasonPhrase = "OK";
-			response.body = getFileContents(file);
+			response.messageBody = getFileContents(file);
 		}
 	}
 	else
 	{
-		response.body = getFileContents("html/error404.html");
+		response.messageBody = getFileContents("html/error404.html");
 		throw NotFound404();
 	}
 }

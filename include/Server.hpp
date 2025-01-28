@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/27 23:49:05 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/28 05:50:37 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,15 +32,18 @@ public:
 	void			processReadyEvents();
 
 	/* HTTP requests */
-	std::string		receiveRequest(int fd) const;
+	Request			receiveRequest(int fd) const;
 	Response		handleRequest(const Request&) const;
 
 	/* Handling HTTP methods */
 	void			get(Response&, const Request&) const;
+	void			post(Response&, const Request&) const;
+	void			delete_(Response&, const Request&) const;
+	void			put(Response&, const Request&) const;
+	void			head(Response&, const Request&) const;
 
 	std::string		getFileContents(const std::string&) const;
 	void			sendResponse(int socketFD, const Response&) const;
-	
 
 private:
 	int				epollFD; // fd of the epoll instance

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 12:41:48 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 04:57:59 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/28 06:15:01 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "ErrorCode.hpp"
+#include "debugUtils.hpp"
 
 Request	constructRequest(const std::string &line) {
 	Request		request;
@@ -45,9 +46,8 @@ Request	constructRequest(const std::string &line) {
 		throw Response(error);
 	}
 
-
 	while (terminatorPos != prevTerminatorPos + 2) {
-		str = line.substr(prevTerminatorPos + 2, terminatorPos);
+		str = line.substr(prevTerminatorPos + 2, terminatorPos - 2 - prevTerminatorPos);
 
 		try {
 			getFieldLine(str, request);
@@ -68,17 +68,17 @@ Request	constructRequest(const std::string &line) {
 		}
 	}
 
-	if (line[terminatorPos + 2] == '\0')
-		return (request);
-	str = line.substr(terminatorPos + 2);
-	try {
-		if (isMessageBody(str) == false)
-			throw BadRequest400();
-		else
-			request.messageBody = str;
-	}
-	catch (const ErrorCode &error) {
-		throw Response(error);
-	}
+	/*if (line[terminatorPos + 2] == '\0')*/
+	/*	return (request);*/
+	/*str = line.substr(terminatorPos + 2);*/
+	/*try {*/
+	/*	if (isMessageBody(str) == false)*/
+	/*		throw BadRequest400();*/
+	/*	else*/
+	/*		request.messageBody = str;*/
+	/*}*/
+	/*catch (const ErrorCode &error) {*/
+	/*	throw Response(error);*/
+	/*}*/
 	return (request);
 }

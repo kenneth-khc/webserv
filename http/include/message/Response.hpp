@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 05:12:04 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/28 05:23:20 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,6 @@ typedef struct Response {
 		Response(const Response &obj);
 		const std::string	toString(void) const;
 
-	private:
 		Response	&operator=(const Response &obj);
 	private:
 }	Response;

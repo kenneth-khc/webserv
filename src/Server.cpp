@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/28 00:42:46 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/28 09:29:16 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,14 +19,11 @@
 #include <cstdlib>
 #include <cstdio>
 #include <string>
+#include <unistd.h>
 #include "debugUtils.hpp"
 #include "utils.hpp"
 #include "Server.hpp"
-#include <unistd.h>
-#include <sstream>
-#include <fstream>
 #include "Response.hpp"
-#include "ErrorCode.hpp"
 
 /* TODO: Configure the server based on the config file */
 Server::Server():
@@ -107,7 +104,6 @@ void	Server::initEpoll()
 	event.events |= EPOLLIN;
 	event.data.fd = listenerSocketFD;
 	epoll_ctl(epollFD, EPOLL_CTL_ADD, listenerSocketFD, &event);
-	std::cout << "Added " << listenerSocketFD << '\n';
 }
 
 void	Server::epollWait()
@@ -119,7 +115,7 @@ void	Server::epollWait()
 		error("epoll_wait failed");
 	}
 	std::cout << "epoll_wait() returned with " << numReadyEvents
-			  << " ready events.\n";
+			  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
 }
 
 void	Server::processReadyEvents()
@@ -134,21 +130,9 @@ void	Server::processReadyEvents()
 		}
 		else if (ev.events & EPOLLIN)
 		{
-			std::string	request = receiveRequest(ev.data.fd);
-			// TODO: parse request
-			
-			dbg::println(request);
-			
-			// TODO: handle request
-			Request		tempRequest;
-			Response	tempResponse;
-			tempRequest.method = GET;
-			tempRequest.requestTarget = "/a";
-			tempResponse = handleRequest(tempRequest); // TODO: handle parsed requests
-
-			// TODO: send response back to client
-			sendResponse(ev.data.fd, tempResponse);
-
+			Request		request = receiveRequest(ev.data.fd);
+			Response	response = handleRequest(request);
+			sendResponse(ev.data.fd, response);
 			epoll_ctl(epollFD, EPOLL_CTL_DEL, ev.data.fd, NULL);
 			close(ev.data.fd);
 		}
@@ -168,82 +152,4 @@ void	Server::acceptNewClient()
 	event.events = EPOLLIN;
 	event.data.fd = clientFD;
 	epoll_ctl(epollFD, EPOLL_CTL_ADD, clientFD, &event);
-}
-
-// TODO: receive based on Content-Length
-std::string	Server::receiveRequest(int fd) const
-{
-	char		buf[1024] = {};
-	std::string	request;
-	int			retval;
-
-	while ((retval = recv(fd, buf, sizeof buf-1, 0)) > 0)
-	{
-		buf[retval] = '\0';
-		request += buf;
-		if (request.find("\r\n\r\n") != request.npos)
-			break ;
-	}
-	if (retval == -1)
-	{
-		perror("recv");
-		error("recv failed");
-	}
-	if (retval == 0)
-	{
-		std::cout << "Client has closed the connection\n";
-	}
-	epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, NULL);
-	return request;
-}
-
-
-Response	Server::handleRequest(const Request& request) const
-{
-	Response	response;
-
-	try
-	{
-		if (request.method == GET)
-		{
-			get(response, request);
-		}
-		else if (request.method == POST)
-		{
-
-		}
-		else if (request.method == PUT)
-		{
-
-		}
-		else if (request.method == DELETE)
-		{
-
-		}
-		else if (request.method == HEAD)
-		{
-
-		}
-	}
-	catch (const ErrorCode& e)
-	{
-		response.httpVersion = e.httpVersion;
-		response.statusCode = e.statusCode;
-		response.reasonPhrase = e.reasonPhrase;
-	}
-	return response;
-}
-
-void	Server::sendResponse(int socketFD, const Response& response) const
-{
-	std::stringstream	ss;
-	std::string			message;
-
-	ss << "HTTP/" << response.httpVersion << " " << response.statusCode << " "
-	   << response.reasonPhrase << "\n" << "\n\n"
-	   << response.body;
-
-	message = ss.str();
-	dbg::println(message);
-	send(socketFD, message.data(), message.size(), 0);
 }

@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 18:12:37 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/19 17:51:54 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/30 00:13:43 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <map>
+#include <string>
 
 namespace DebuggingTools
 {
@@ -30,6 +32,9 @@ namespace DebuggingTools
 	void		printAddrInfos(addrinfo*);
 	void		printSocketAddr(sockaddr*);
 	void		prettyPrintReceived(char*, ssize_t, int);
+
+	// HTTP
+	void	printHTTPHeaders(const std::map<std::string,std::string>& headers);
 };
 
 namespace dbg = DebuggingTools;

@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:24:45 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/28 09:26:15 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/29 22:41:20 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,9 @@
 #include "Request.hpp"
 #include "utils.hpp"
 #include "ErrorCode.hpp"
+
+#include "debugUtils.hpp"
+#include <iostream>
 
 // TODO: this belongs somewhere else
 Request	constructRequest(const std::string &line);
@@ -48,13 +51,21 @@ Request	Server::receiveRequest(int fd) const
 	{
 		contentLength = std::atoi(it->second.c_str());
 	}
-	// TODO: this looks kinda sussy actually
+	std::string	msgBody;
 	while (contentLength > 0)
 	{
 		ssize_t	bytes = recv(fd, buf, sizeof buf-1, 0);
-		contentLength -= bytes;
-		request.messageBody += buf;
+		if (bytes > 0)
+		{
+			buf[bytes] = '\0';
+			msgBody += buf;
+			contentLength -= bytes;
+		}
+		else break;
 	}
+	request.messageBody += msgBody;
+	// TODO: is this where we delete the fd? what if
+	// the connection is kept alive
 	epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, NULL);
 	return request;
 }

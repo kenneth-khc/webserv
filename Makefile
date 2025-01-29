@@ -6,7 +6,7 @@
 #    By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/01/28 00:32:19 by kecheong         ###   ########.fr        #
+#    Updated: 2025/01/29 22:41:16 by kecheong         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,12 +20,12 @@ CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes)
 src_dir := src
 dirs := $(src_dir) \
 		$(src_dir)/debug \
-		$(src_dir)/methods \
-		http			 \
-		http/src		 \
-		http/src/message \
-		http/src/coreABNF \
-		http/src/URI
+		$(src_dir)/methods
+		# http			 \
+		# http/src		 \
+		# http/src/message \
+		# http/src/coreABNF \
+		# http/src/URI
 
 srcs := $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))
 # For my own testing purposes
@@ -45,8 +45,11 @@ objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)
 
 all: $(NAME)
 
-$(NAME): $(objs)
-	$(CXX) $(CXXFLAGS) $(objs) -o $(NAME)
+$(NAME): $(objs) http/libhttp.a
+	$(CXX) $(CXXFLAGS) $(objs) http/libhttp.a -o $(NAME)
+
+http/libhttp.a:
+	make -C http/
 
 $(obj_dir):
 	mkdir -p $(obj_dir)

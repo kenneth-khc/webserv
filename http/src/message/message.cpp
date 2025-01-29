@@ -6,18 +6,16 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 12:41:48 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 06:15:01 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/29 22:38:35 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <string>
 #include "requestLine.hpp"
 #include "fields.hpp"
-#include "messageBody.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "ErrorCode.hpp"
-#include "debugUtils.hpp"
 
 Request	constructRequest(const std::string &line) {
 	Request		request;

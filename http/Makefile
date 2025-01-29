@@ -6,7 +6,7 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/25 20:30:46 by cteoh             #+#    #+#              #
-#    Updated: 2025/01/28 04:39:32 by cteoh            ###   ########.fr        #
+#    Updated: 2025/01/29 22:38:55 by kecheong         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,7 +29,7 @@ include_dir	:= $(addprefix -I, $(shell find include/ -type d))
 obj_dir		:= obj
 objs		:= $(srcs:%.cpp=$(obj_dir)/%.o)
 
-all: $(NAME) test
+all: $(NAME)
 
 test:
 	$(CXX) $(CXXFLAGS) tests.cpp $(NAME)

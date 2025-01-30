@@ -6,36 +6,33 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 21:23:33 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 22:21:46 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 #include "Response.hpp"
 
-Response::Response(void) : httpVersion(1.1) {
+Response::Response(void) : Message() {
+	this->httpVersion = 1.1;
 	this->headers.insert(std::make_pair("Server", SERVER_NAME));
 }
 
 Response::~Response(void) {}
 
 Response::Response(const Response &obj) :
-	httpVersion(obj.httpVersion),
+	Message(obj),
 	statusCode(obj.statusCode),
-	reasonPhrase(obj.reasonPhrase),
-	headers(obj.headers),
-	messageBody(obj.messageBody)
+	reasonPhrase(obj.reasonPhrase)
 {}
 
 Response&	Response::operator=(const Response& other)
 {
 	if (this == &other)
 		return (*this);
-	this->httpVersion = other.httpVersion;
+	Message::operator=(other);
 	this->statusCode = other.statusCode;
 	this->reasonPhrase = other.reasonPhrase;
-	this->headers = other.headers;
-	this->messageBody = other.messageBody;
 	return *this;
 }
 

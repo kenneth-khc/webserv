@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:13:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 21:09:26 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 22:33:41 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 #include "ErrorCode.hpp"
 #include "requestLine.hpp"
 
-void	getRequestLine(const std::string &line, Request &request) {
+void	extractRequestLineComponents(const std::string &line, Request &request) {
 	std::stringstream	stream(line);
 	std::string			str;
 

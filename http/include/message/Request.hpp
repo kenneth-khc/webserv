@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 11:17:02 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 22:37:27 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,29 +14,29 @@
 # define REQUEST_HPP
 
 # include <string>
-# include <map>
+# include "Message.hpp"
 
 # define NUM_OF_METHODS 6
 # define NUM_OF_VERSIONS 1
 
-class Request {
+class Request : public Message {
 	public:
 		static const std::string	methods[NUM_OF_METHODS];
 		static const float			supportedVersions[NUM_OF_VERSIONS];
 		
 		int			method;
 		std::string	requestTarget;
-		float		httpVersion;
-		std::map<std::string, std::string>	headers;
-		std::string	messageBody;
 
 		Request(void);
 		~Request(void);
 		Request(const Request &obj);
 		Request	&operator=(const Request &obj);
 	
-		bool		isValidMethod(const std::string &method);
-		bool		isSupportedVersion(const float &version);
+		bool	isValidMethod(const std::string &method);
+		bool	isSupportedVersion(const float &version);
+		void	parseRequestLine(std::string &line);
+		void	parseHeaders(std::string &line);
+		void	parseMessageBody(std::string &line);
 };
 
 enum METHODS {

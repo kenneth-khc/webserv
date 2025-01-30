@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/26 02:00:53 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 21:23:25 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 22:45:42 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ bool	isFieldValue(const std::string &line) {
 	return (true);
 }
 
-void	getFieldLine(const std::string &line, Request &request) {
+void	extractFieldLineComponents(const std::string &line, Request &request) {
 	static const std::string	values = " \t";
 
 	if (line.find(':') == std::string::npos)
@@ -74,5 +74,5 @@ void	getFieldLine(const std::string &line, Request &request) {
 
 	if (isFieldValue(str) == false)
 		throw BadRequest400();
-	request.headers.insert(std::make_pair(fieldName, str));
+	request.insert(fieldName, str);
 }

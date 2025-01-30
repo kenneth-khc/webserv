@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:13:16 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 04:56:57 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 22:34:01 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 # include <string>
 # include "Request.hpp"
 
-void	getRequestLine(const std::string &line, Request &request);
+void	extractRequestLineComponents(const std::string &line, Request &request);
 
 /******************/
 /* Request Target */

@@ -130,14 +130,25 @@ void	Server::processReadyEvents()
 		}
 		else if (ev.events & EPOLLIN)
 		{
-			Request		request = receiveRequest(ev.data.fd);
-			Response	response = handleRequest(request);
+			Request		request;
+			Response	response;
+			try
+			{
+				request = receiveRequest(ev.data.fd);
+				response = handleRequest(request);
+			}
+			catch (const Response& e)
+			{
+				response = e;
+			}
 			sendResponse(ev.data.fd, response);
 			epoll_ctl(epollFD, EPOLL_CTL_DEL, ev.data.fd, NULL);
 			close(ev.data.fd);
 		}
 	}
 }
+
+#include <fcntl.h>
 
 void	Server::acceptNewClient()
 {
@@ -147,6 +158,7 @@ void	Server::acceptNewClient()
 
 	dbg::println("Someone came in!");
 	int	clientFD = accept(listenerSocketFD, (sockaddr*)&clientAddr, &clientAddrLen);
+	fcntl(clientFD, F_SETFL, O_NONBLOCK);
 	++numClients;
 	dbg::printSocketAddr((sockaddr*)&clientAddr);
 	event.events = EPOLLIN;

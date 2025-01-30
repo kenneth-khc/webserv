@@ -44,6 +44,7 @@ Request	&Request::operator=(const Request &obj) {
 	Message::operator=(obj);
 	this->method = obj.method;
 	this->requestTarget = obj.requestTarget;
+	return *this;
 }
 
 bool	Request::isValidMethod(const std::string &method) {
@@ -83,15 +84,13 @@ void	Request::parseRequestLine(std::string &line) {
 
 void	Request::parseHeaders(std::string &line) {
 	std::string	str;
-	std::size_t	headerSectionTerminator = 0;
 	std::size_t	headerLineTerminator = 0;
 
-	headerSectionTerminator = line.find("\r\n\r\n");
-	if (headerSectionTerminator == std::string::npos)
-		throw Response(BadRequest400());
+	while (true) {
+		headerLineTerminator = line.find("\r\n");
+		if (headerLineTerminator == std::string::npos)
+			throw Response(BadRequest400());
 
-	headerLineTerminator = line.find("\r\n");
-	while (headerLineTerminator != headerSectionTerminator) {
 		str = line.substr(0, headerLineTerminator);
 
 		try {
@@ -100,13 +99,15 @@ void	Request::parseHeaders(std::string &line) {
 		catch (const ErrorCode &error) {
 			throw Response(error);
 		}
-
+		if (headerLineTerminator == line.find("\r\n\r\n"))
+			break ;
 		line = line.substr(headerLineTerminator + 2);
-		headerLineTerminator = line.find("\r\n");
-		if (headerLineTerminator == std::string::npos)
-			throw Response(BadRequest400());
 	}
-	line = line.substr(headerSectionTerminator + 4);
+	if (line[headerLineTerminator + 4] == '\0') {
+		line = "";
+		return ;
+	}
+	line = line.substr(headerLineTerminator + 4);
 }
 
 void	Request::parseMessageBody(std::string &line) {

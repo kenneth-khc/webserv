@@ -43,6 +43,7 @@ ErrorCode	&ErrorCode::operator=(const ErrorCode &obj) {
 	if (this == &obj)
 		return (*this);
 	Response::operator=(obj);
+	return *this;
 }
 
 /********************/

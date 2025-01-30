@@ -123,7 +123,7 @@ bool	is16BitsHexa(const std::string &line) {
 
 bool	isDecOctet(const std::string &line) {
 	std::stringstream	stream(line);
-	unsigned int		octetValue;
+	int		octetValue;
 
 	stream >> octetValue;
 	if (octetValue >= 0 && octetValue <= 255)

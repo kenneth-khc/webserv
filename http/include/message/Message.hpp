@@ -36,36 +36,36 @@ class Message {
 };
 
 template<typename type>
-type		Message::find(const std::string &key) const {}
+type		Message::find(const std::string&) const {return 0;}
 
-template<>
-std::string	Message::find(const std::string &key) const {
-	std::map<std::string, std::string>::const_iterator	it;
-
-	it = this->headers.find(key);
-	if (it == this->headers.end())
-		return ("");
-	return (it->second);
-}
-
-template<>
-int	Message::find(const std::string &key) const {
-	std::map<std::string, std::string>::const_iterator	it;
-
-	it = this->headers.find(key);
-	if (it == this->headers.end())
-		return (std::numeric_limits<int>::min());
-	return (std::atoi(it->second.c_str()));
-}
-
-template<>
-float	Message::find(const std::string &key) const {
-	std::map<std::string, std::string>::const_iterator	it;
-
-	it = this->headers.find(key);
-	if (it == this->headers.end())
-		return (std::numeric_limits<float>::min());
-	return (std::atof(it->second.c_str()));
-}
+/*template<>*/
+/*std::string	Message::find<std::string>(const std::string &key) const {*/
+/*	std::map<std::string, std::string>::const_iterator	it;*/
+/**/
+/*	it = this->headers.find(key);*/
+/*	if (it == this->headers.end())*/
+/*		return ("");*/
+/*	return (it->second);*/
+/*}*/
+/**/
+/*template<>*/
+/*int	Message::find<int>(const std::string &key) const {*/
+/*	std::map<std::string, std::string>::const_iterator	it;*/
+/**/
+/*	it = this->headers.find(key);*/
+/*	if (it == this->headers.end())*/
+/*		return (std::numeric_limits<int>::min());*/
+/*	return (std::atoi(it->second.c_str()));*/
+/*}*/
+/**/
+/*template<>*/
+/*float	Message::find<float>(const std::string &key) const {*/
+/*	std::map<std::string, std::string>::const_iterator	it;*/
+/**/
+/*	it = this->headers.find(key);*/
+/*	if (it == this->headers.end())*/
+/*		return (std::numeric_limits<float>::min());*/
+/*	return (std::atof(it->second.c_str()));*/
+/*}*/
 
 #endif

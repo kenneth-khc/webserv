@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:24:45 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/28 09:26:15 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/29 22:41:20 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,44 +17,84 @@
 #include "utils.hpp"
 #include "ErrorCode.hpp"
 
+#include "debugUtils.hpp"
+#include <iostream>
+#include <vector>
+
 // TODO: this belongs somewhere else
 Request	constructRequest(const std::string &line);
 
+
+static bool	endOfHeaderNotFound(const std::string& message)
+{
+	return message.find("\r\n\r\n") == message.npos;
+}
+
+static bool	endOfRequestLineFound(const std::string& message)
+{
+	return message.find("\r\n") != message.npos;
+}
+
+ssize_t	readIntoBuffer(std::string& message, int socketFD)
+{
+	std::vector<char>	vect;
+	const size_t		READ_SIZE = 1024;
+	vect.resize(READ_SIZE);
+	ssize_t	retval;
+
+	retval = recv(socketFD, &vect[0], READ_SIZE, 0);
+	if (retval > 0)
+	{
+		/*buf[retval] = '\0';*/
+		for (size_t i = 0; i < vect.size(); ++i)
+			message.push_back(vect[i]);
+	}
+	return retval;
+}
+
+// TODO: the receiving/processing here is all over the place and not well defined
 Request	Server::receiveRequest(int fd) const
 {
-	char		buf[1024] = {};
+	Request		request;
 	std::string	message;
-	int			retval;
+	ssize_t		bytes;
 
-	while ((retval = recv(fd, buf, sizeof buf-1, 0)) > 0)
+	while (!endOfRequestLineFound(message))
 	{
-		// TODO: better error handling
-		if (retval == -1)
+		bytes = readIntoBuffer(message, fd);
+		// TODO: errors
+	}
+	request.parseRequestLine(message);
+	while (endOfHeaderNotFound(message))
+	{
+		bytes = readIntoBuffer(message, fd);
+	}
+	request.parseHeaders(message);
+
+	// if there is a Content-Length field, there is a message body
+	std::string	messageBody;
+	int	bodyLength = request.find<int>("Content-Length");
+	if (bodyLength > 0)
+	{
+		messageBody += message;
+		bodyLength -= messageBody.size();
+	}
+	while (bodyLength > 0)
+	{
+		std::string	temp;
+		bytes = readIntoBuffer(temp, fd);
+		if (bytes < 0)
+			break;
+		if (bytes > 0)
 		{
-			error("recv failed");
+			messageBody += temp;
+			bodyLength -= bytes;
 		}
-		buf[retval] = '\0';
-		message += buf;
-		if (message.find("\r\n\r\n") != message.npos)
-			break ;
 	}
-
-	Request	request = constructRequest(message);
-
-	// TODO: writing and seeing this is pain
-	std::map<std::string,std::string>::iterator it = request.headers.find("Content-Length");
-	int	contentLength = 0;
-	if (it != request.headers.end())
-	{
-		contentLength = std::atoi(it->second.c_str());
-	}
-	// TODO: this looks kinda sussy actually
-	while (contentLength > 0)
-	{
-		ssize_t	bytes = recv(fd, buf, sizeof buf-1, 0);
-		contentLength -= bytes;
-		request.messageBody += buf;
-	}
+	request.parseMessageBody(messageBody);
+	std::cout << ">>> " << request.messageBody << '\n';
+	// TODO: is this where we delete the fd? what if
+	// the connection is kept alive
 	epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, NULL);
 	return request;
 }
@@ -96,16 +136,8 @@ Response	Server::handleRequest(const Request& request) const
 	return response;
 }
 
-void	Server::sendResponse(int socketFD, const Response& response) const
+void	Server::sendResponse(int socketFD, Response& response) const
 {
-	std::stringstream	ss;
-	std::string			message;
-
-	ss << "HTTP/" << response.httpVersion
-	   << " " << response.statusCode
-	   << " " << response.reasonPhrase << "\r\n" << "\r\n\r\n"
-	   << response.messageBody;
-
-	message = ss.str();
+	std::string	message = response.toString();
 	send(socketFD, message.c_str(), message.size(), 0);
 }

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 11:30:03 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 21:22:01 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,8 @@ const std::string &title)
 	this->httpVersion = httpVersion;
 	this->statusCode = statusCode;
 	this->reasonPhrase = reasonPhrase;
-	this->headers.insert(std::pair<std::string, std::string>("Content-Type", "application/problem+json"));
-	this->headers.insert(std::pair<std::string, std::string>("Content-Language", "en"));
+	this->headers.insert(std::make_pair("Content-Type", "application/problem+json"));
+	this->headers.insert(std::make_pair("Content-Language", "en"));
 	this->messageBody = "{\n\t\"title\": \"" + title + "\"\n}";
 }
 

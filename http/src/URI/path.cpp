@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:05:10 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 11:54:14 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 21:09:58 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,12 @@
 /* Path */
 /********/
 //	Serves to identify a resource within the scope of the URI's scheme and
-//	authority. It generally corresponds to the acutal file path in the web
+//	authority. It generally corresponds to the actual file path in the web
 //	server's root directory.
 
-//	
+//	Path that can be empty or begin with a '/'. This is checked when there is
+//	an authority component.
+//		http://example.com/hello/world
 bool	isPathAbEmpty(const std::string &line) {
 	std::stringstream	stream(line);
 	std::string			str;
@@ -34,11 +36,16 @@ bool	isPathAbEmpty(const std::string &line) {
 	return (true);
 }
 
+//	Path that begins with a '/' but not '//'. This is checked when there is no
+//	authority component.
+//		/hello/world
 bool	isPathAbsolute(const std::string &line) {
 	if (line[0] != '/')
 		return (false);
 	if (line.length() == 1)
 		return (true);
+	if (line[1] == '/')
+		return (false);
 
 	std::string	str = line.substr(1);
 	if (isPathRootless(str) == false)
@@ -46,6 +53,9 @@ bool	isPathAbsolute(const std::string &line) {
 	return (true);
 }
 
+//	Represents the path for URIs without scheme (starts without ':'). Can be
+//	considered as the relative path.
+//		hello/world
 bool	isPathNoScheme(const std::string &line) {
 	std::stringstream	stream(line);
 	std::string			str;
@@ -53,13 +63,16 @@ bool	isPathNoScheme(const std::string &line) {
 	std::getline(stream, str, '/');
 	if (isSegmentNZNC(str) == false)
 		return (false);
-	std::getline(stream, str);
+	std::getline(stream, str, '\0');
 	str = '/' + str;
 	if (isPathAbEmpty(str) == false)
 		return (false);
 	return (true);
 }
 
+//	Paths that do not start with '/' and contains reserved characters like ':'
+//	and '@'.
+//		mailto:user@example.com
 bool	isPathRootless(const std::string &line) {
 	std::stringstream	stream(line);
 	std::string			str;
@@ -67,7 +80,7 @@ bool	isPathRootless(const std::string &line) {
 	std::getline(stream, str, '/');
 	if (isSegmentNZ(str) == false)
 		return (false);
-	std::getline(stream, str);
+	std::getline(stream, str, '\0');
 	str = '/' + str;
 	if (isPathAbEmpty(str) == false)
 		return (false);
@@ -80,6 +93,8 @@ bool	isPathEmpty(const std::string &line) {
 	return (true);
 }
 
+//	Non-empty paths that must begin with a '/'. Used and checked within a
+//	request target of a request message.
 bool	isAbsolutePath(const std::string &line) {
 	if (line.length() == 0)
 		return (false);

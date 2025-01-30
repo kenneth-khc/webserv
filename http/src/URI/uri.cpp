@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:02:09 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 11:47:48 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 21:10:20 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ bool	isAbsoluteURI(const std::string &line) {
 	if (isHierPart(str) == false)
 		return (false);
 
-	if (!std::getline(stream, str))
+	if (!std::getline(stream, str, '\0'))
 		return (true);
 	if (isQuery(str) == false)
 		return (false);
@@ -93,7 +93,7 @@ bool	isHierPart(const std::string &line) {
 		std::getline(stream, str, '/');
 		if (isAuthority(str) == false)
 			return (false);
-		std::getline(stream, str);
+		std::getline(stream, str, '\0');
 		str = '/' + str;
 		if (isPathAbEmpty(str) == false)
 			return (false);
@@ -111,7 +111,7 @@ bool	isAuthority(const std::string &line) {
 	std::getline(stream, str, ':');
 	if (isHost(str) == false)
 		return (false);
-	if (!std::getline(stream, str))
+	if (!std::getline(stream, str, '\0'))
 		return (true);
 	if (isPort(str) == false)
 		return (false);

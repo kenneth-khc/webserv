@@ -13,6 +13,7 @@
 #include <fstream>
 #include "Server.hpp"
 #include "debugUtils.hpp"
+#include "MessageBody.hpp"
 #include <map>
 #include <string>
 
@@ -84,7 +85,7 @@ bool	uploadFile(const std::string& requestBody, std::string filename)
 	}
 	else
 	{
-		std::cerr << "Upload failed.\nConsidering check the upload destination.\n";
+		std::cerr << "Upload failed.\nConsider checking the upload destination.\n";
 		return false;
 	}
 }
@@ -111,6 +112,7 @@ std::string	getFilenameFromContentDisposition(const std::string& messageBody)
 
 void	Server::post(Response& response, const Request& request) const
 {
+	MessageBody	msgBody = request.messageBody;
 	ContentType	contentType = getContentType(request);
 	if (contentType.type == "multipart/form-data")
 	{

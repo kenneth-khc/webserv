@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:49:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/27 01:22:26 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 21:02:50 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include "terminalValues.hpp"
 #include "host.hpp"
 
+//	Subcomponent of the authority in a URI, identified by an IP address or a
+//	registered name
 bool	isHost(const std::string &line) {
 	if (isIPLiteral(line) == true)
 		return (true);
@@ -121,7 +123,7 @@ bool	is16BitsHexa(const std::string &line) {
 
 bool	isDecOctet(const std::string &line) {
 	std::stringstream	stream(line);
-	int					octetValue;
+	unsigned int		octetValue;
 
 	stream >> octetValue;
 	if (octetValue >= 0 && octetValue <= 255)

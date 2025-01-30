@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:30:37 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/27 01:26:13 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 11:33:09 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ bool	isScheme(const std::string &line);
 /*************/
 bool	isHierPart(const std::string &line);
 bool	isAuthority(const std::string &line);
-bool	isAbsolutePath(const std::string &line);
 bool	isPort(const std::string &line);
 
 /*********/

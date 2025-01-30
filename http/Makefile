@@ -12,7 +12,7 @@
 
 NAME		:= libhttp.a
 
-CXX			:= c++
+CXX			:= g++
 CXXFLAGS	= -Wall -Werror -Wextra -std=c++98 $(include_dir) -g3
 
 AR			:= ar -rcs

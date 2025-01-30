@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:02:42 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/25 21:41:54 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 04:38:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ bool	isPathAbsolute(const std::string &line);
 bool	isPathNoScheme(const std::string &line);
 bool	isPathRootless(const std::string &line);
 bool	isPathEmpty(const std::string &line);
+bool	isAbsolutePath(const std::string &line);
 
 bool	isSegment(const std::string &line);
 bool	isSegmentNZ(const std::string &line);

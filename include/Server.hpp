@@ -43,7 +43,7 @@ public:
 	void			head(Response&, const Request&) const;
 
 	std::string		getFileContents(const std::string&) const;
-	void			sendResponse(int socketFD, const Response&) const;
+	void			sendResponse(int socketFD, Response&) const;
 
 private:
 	int				epollFD; // fd of the epoll instance

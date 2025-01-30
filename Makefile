@@ -15,7 +15,7 @@
 NAME := webserv
 
 CXX := g++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes)
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes) -g3
 
 src_dir := src
 dirs := $(src_dir) \

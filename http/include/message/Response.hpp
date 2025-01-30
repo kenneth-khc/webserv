@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 05:23:20 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/30 22:20:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,23 +14,21 @@
 # define RESPONSE_HPP
 
 # include <string>
-# include <map>
+# include "Message.hpp"
 
 # define SERVER_NAME "42webserv"
 
-typedef struct Response {
-		float		httpVersion;
+class Response : public Message {
+	public:
 		int			statusCode;
 		std::string	reasonPhrase;
-		std::map<std::string, std::string>	headers;
-		std::string	messageBody;
 
 		Response(void);
+		~Response(void);
 		Response(const Response &obj);
-		const std::string	toString(void) const;
-
 		Response	&operator=(const Response &obj);
-	private:
-}	Response;
+
+		const std::string	toString(void) const;
+};
 
 #endif

@@ -19,15 +19,23 @@
 
 #include "debugUtils.hpp"
 #include <iostream>
+#include <vector>
 
 // TODO: this belongs somewhere else
 Request	constructRequest(const std::string &line);
 
+
+static bool	endOfHeaderNotFound(const std::string& message)
+{
+	return message.find("\r\n\r\n") == message.npos;
+}
+
+// TODO: the receiving/processing here is all over the place and not well defined
 Request	Server::receiveRequest(int fd) const
 {
-	char		buf[1024] = {};
-	std::string	message;
-	int			retval;
+	char				buf[1024] = {};
+	std::string			message;
+	int					retval;
 
 	while ((retval = recv(fd, buf, sizeof buf-1, 0)) > 0)
 	{
@@ -38,32 +46,50 @@ Request	Server::receiveRequest(int fd) const
 		}
 		buf[retval] = '\0';
 		message += buf;
+		// TODO: what if the client sends only the request line,
+		// now it breaks out of the loop because EWOULDBLOCK is returned from recv
+		// but logically, what should happen after?
 		if (message.find("\r\n\r\n") != message.npos)
 			break ;
 	}
-
-	Request	request = constructRequest(message);
-
-	// TODO: writing and seeing this is pain
-	std::map<std::string,std::string>::iterator it = request.headers.find("Content-Length");
-	int	contentLength = 0;
-	if (it != request.headers.end())
+	// HACK: this shouldn't be here, just a hack for now
+	while (endOfHeaderNotFound(message) &&
+		  (retval = recv(fd, buf, sizeof buf-1, 0) > 0))
 	{
-		contentLength = std::atoi(it->second.c_str());
+		buf[retval] = '\0';
+		message += buf;
 	}
-	std::string	msgBody;
-	while (contentLength > 0)
+	// if there is a Content-Length field, there is a message body
+	std::string				messageBody;
+	std::string::size_type	pos = message.find("Content-Length: ");
+	size_t					bodyLength = 0;
+	if (pos != message.npos)
+	{
+		std::string	numStr = message.substr(pos + sizeof "Content-Length:");
+		bodyLength = std::atoi(numStr.c_str());
+		messageBody = message.substr(message.find("\r\n\r\n")+4);
+	}
+	while (bodyLength > 0)
 	{
 		ssize_t	bytes = recv(fd, buf, sizeof buf-1, 0);
 		if (bytes > 0)
 		{
 			buf[bytes] = '\0';
-			msgBody += buf;
-			contentLength -= bytes;
+			messageBody += buf;
+			bodyLength -= bytes;
 		}
-		else break;
 	}
-	request.messageBody += msgBody;
+	message += messageBody;
+
+	// TODO: fix messageBody construction here
+	Request	request = constructRequest(message);
+
+	std::string::size_type	messageBodyStart = message.find("\r\n\r\n")+4;
+	if (messageBodyStart != message.npos)
+	{
+		request.messageBody = message.substr(messageBodyStart);
+	}
+
 	// TODO: is this where we delete the fd? what if
 	// the connection is kept alive
 	epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, NULL);
@@ -107,16 +133,8 @@ Response	Server::handleRequest(const Request& request) const
 	return response;
 }
 
-void	Server::sendResponse(int socketFD, const Response& response) const
+void	Server::sendResponse(int socketFD, Response& response) const
 {
-	std::stringstream	ss;
-	std::string			message;
-
-	ss << "HTTP/" << response.httpVersion
-	   << " " << response.statusCode
-	   << " " << response.reasonPhrase << "\r\n" << "\r\n\r\n"
-	   << response.messageBody;
-
-	message = ss.str();
+	std::string	message = response.toString();
 	send(socketFD, message.c_str(), message.size(), 0);
 }

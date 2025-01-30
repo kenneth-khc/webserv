@@ -65,21 +65,26 @@ ContentType	getContentType(const Request& request)
 }
 
 // TODO: make this work with all types of files instead of just text/plain
-bool	uploadFile(const std::string& requestBody, std::string filename)
+bool	uploadFile(const Request& request, const ContentType& contentType, std::string filename)
 {
-	size_t	fileContentStart = requestBody.find("\r\n\r\n") + 4;
-	std::string	fileContent = requestBody.data() + fileContentStart;
-	fileContent = fileContent.substr(0, fileContent.find("\r\n-"));
-
-	std::ofstream	outfile;
+	const std::string&	body = request.messageBody;
+	size_t	pos = body.find("\r\n\r\n") + 4;
+	size_t	end = body.find("\r\n--" + contentType.boundaryEnd);
+	size_t	contentSize = end - pos;
+	std::vector<char>	contents;
+	contents.resize(contentSize);
 	// TODO: route to proper upload destinations ??
 	std::string	uploadDest = "uploads/";
 	uploadDest += filename;
 	std::cout << "Uploading to " << uploadDest << '\n';
+	std::ofstream	outfile;
 	outfile.open(uploadDest.c_str());
 	if (outfile)
 	{
-		outfile << fileContent;
+		for (; pos < end; ++pos)
+		{
+			outfile << request.messageBody[pos];
+		}
 		std::cout << "Uploaded " << uploadDest << '\n';
 		return true;
 	}
@@ -117,7 +122,7 @@ void	Server::post(Response& response, const Request& request) const
 	if (contentType.type == "multipart/form-data")
 	{
 		std::string	filename = getFilenameFromContentDisposition(request.messageBody);
-		if (uploadFile(request.messageBody, filename))
+		if (uploadFile(request, contentType, filename))
 		{
 			response.statusCode = 200;
 			response.reasonPhrase = "OK";

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 05:13:08 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/30 11:17:02 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,8 @@
 # define NUM_OF_METHODS 6
 # define NUM_OF_VERSIONS 1
 
-typedef struct Request {
+class Request {
+	public:
 		static const std::string	methods[NUM_OF_METHODS];
 		static const float			supportedVersions[NUM_OF_VERSIONS];
 		
@@ -30,13 +31,13 @@ typedef struct Request {
 		std::string	messageBody;
 
 		Request(void);
+		~Request(void);
 		Request(const Request &obj);
+		Request	&operator=(const Request &obj);
+	
 		bool		isValidMethod(const std::string &method);
 		bool		isSupportedVersion(const float &version);
-	private:
-		Request	&operator=(const Request &obj);
-	private:
-}	Request;
+};
 
 enum METHODS {
 	GET,

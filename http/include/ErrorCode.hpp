@@ -6,10 +6,10 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:25:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/27 22:03:34 by cteoh            ###   ########.fr       */
-/*   Updated: 2025/01/28 05:02:34 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/30 11:31:04 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #ifndef ERRORCODE_HPP
 # define ERRORCODE_HPP
@@ -19,25 +19,35 @@
 # include "Response.hpp"
 
 class ErrorCode : public std::exception, public Response {
-		ErrorCode	&operator=(const ErrorCode &obj);
-		ErrorCode(void);
-
-	protected:
-		~ErrorCode(void) throw();
-		ErrorCode(const ErrorCode &obj);
-		ErrorCode(float httpVersion, int statusCode, std::string reasonPhrase);
-		ErrorCode(float httpVersion, int statusCode, std::string reasonPhrase, const std::string &title);
-
 	public:
 		std::string	title;
+
+		ErrorCode(void);
+		ErrorCode(float httpVersion, int statusCode, std::string reasonPhrase);
+		ErrorCode(float httpVersion, int statusCode, std::string reasonPhrase, const std::string &title);
+		~ErrorCode(void) throw();
+		ErrorCode(const ErrorCode &obj);
+		ErrorCode	&operator=(const ErrorCode &obj);
 };
 
+/********************/
+/* Client Error 4XX */
+/********************/
 class BadRequest400 : public ErrorCode {
 	public:
 		BadRequest400(void);
 		BadRequest400(std::string title);
 };
 
+class NotFound404 : public ErrorCode {
+	public:
+		NotFound404(void);
+		NotFound404(std::string title);
+};
+
+/********************/
+/* Server Error 5XX */
+/********************/
 class NotImplemented501 : public ErrorCode {
 	public:
 		NotImplemented501(void);
@@ -48,11 +58,6 @@ class VersionNotSupported505 : public ErrorCode {
 	public:
 		VersionNotSupported505(void);
 		VersionNotSupported505(std::string title);
-};
-
-class NotFound404 : public ErrorCode {
-	public:
-		NotFound404(void);
 };
 
 #endif

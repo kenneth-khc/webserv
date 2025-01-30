@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 05:24:59 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/30 11:21:38 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,16 +17,20 @@ Response::Response(void) : httpVersion(1.1) {
 	this->headers.insert(std::pair<std::string, std::string>("Server", SERVER_NAME));
 }
 
+Response::~Response(void) {}
+
 Response::Response(const Response &obj) :
 	httpVersion(obj.httpVersion),
 	statusCode(obj.statusCode),
 	reasonPhrase(obj.reasonPhrase),
 	headers(obj.headers),
-	messageBody(obj.messageBody)	
+	messageBody(obj.messageBody)
 {}
 
 Response&	Response::operator=(const Response& other)
 {
+	if (this == &other)
+		return (*this);
 	this->httpVersion = other.httpVersion;
 	this->statusCode = other.statusCode;
 	this->reasonPhrase = other.reasonPhrase;

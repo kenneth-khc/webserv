@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/28 05:23:20 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/30 11:16:27 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,8 @@
 
 # define SERVER_NAME "42webserv"
 
-typedef struct Response {
+class Response {
+	public:
 		float		httpVersion;
 		int			statusCode;
 		std::string	reasonPhrase;
@@ -26,11 +27,11 @@ typedef struct Response {
 		std::string	messageBody;
 
 		Response(void);
+		~Response(void);
 		Response(const Response &obj);
-		const std::string	toString(void) const;
-
 		Response	&operator=(const Response &obj);
-	private:
-}	Response;
+
+		const std::string	toString(void) const;
+};
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:49:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 21:02:50 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/31 19:01:22 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,7 +123,7 @@ bool	is16BitsHexa(const std::string &line) {
 
 bool	isDecOctet(const std::string &line) {
 	std::stringstream	stream(line);
-	int		octetValue;
+	int					octetValue;
 
 	stream >> octetValue;
 	if (octetValue >= 0 && octetValue <= 255)

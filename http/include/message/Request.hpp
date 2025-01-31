@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 22:37:27 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/31 16:32:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,6 @@ class Request : public Message {
 		bool	isSupportedVersion(const float &version);
 		void	parseRequestLine(std::string &line);
 		void	parseHeaders(std::string &line);
-		void	parseMessageBody(std::string &line);
 };
 
 enum METHODS {

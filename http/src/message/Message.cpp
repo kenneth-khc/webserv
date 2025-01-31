@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:32:28 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 23:05:49 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/01/31 13:06:44 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,34 +37,4 @@ void	Message::insert(const std::string &key, const std::string &value) {
 
 std::string	Message::operator[](const std::string &key) {
 	return (this->headers[key]);
-}
-
-template<>
-std::string	Message::find<std::string>(const std::string &key) const {
-	std::map<std::string, std::string>::const_iterator	it;
-
-	it = this->headers.find(key);
-	if (it == this->headers.end())
-		return ("");
-	return (it->second);
-}
-
-template<>
-int	Message::find<int>(const std::string &key) const {
-	std::map<std::string, std::string>::const_iterator	it;
-
-	it = this->headers.find(key);
-	if (it == this->headers.end())
-		return (std::numeric_limits<int>::min());
-	return (std::atoi(it->second.c_str()));
-}
-
-template<>
-float	Message::find<float>(const std::string &key) const {
-	std::map<std::string, std::string>::const_iterator	it;
-
-	it = this->headers.find(key);
-	if (it == this->headers.end())
-		return (std::numeric_limits<float>::min());
-	return (std::atof(it->second.c_str()));
 }

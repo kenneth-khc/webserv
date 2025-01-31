@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Handler.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:24:45 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/29 22:41:20 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/31 16:32:23 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ Request	Server::receiveRequest(int fd) const
 			bodyLength -= bytes;
 		}
 	}
-	request.parseMessageBody(messageBody);
+	request.messageBody = messageBody;
 	std::cout << ">>> " << request.messageBody << '\n';
 	// TODO: is this where we delete the fd? what if
 	// the connection is kept alive

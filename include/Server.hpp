@@ -15,8 +15,14 @@
 
 #include <string>
 #include <sys/epoll.h>
+#include <sys/socket.h>
+#include <vector>
+#include <vector>
 #include "Request.hpp"
 #include "Response.hpp"
+#include "Logger.hpp"
+
+class	Logger;
 
 class	Server
 {
@@ -59,6 +65,10 @@ private:
 
 	std::map<std::string,std::string>	directoryMappings;
 
+	std::map<int, sockaddr_storage>	clients;
+
+	friend class Logger;
+	Logger			logger;
 
 	/* Disallow copying a server */
 	Server(Server const&);

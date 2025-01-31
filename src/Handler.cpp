@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:24:45 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/29 22:41:20 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/31 14:36:38 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,9 @@ static bool	endOfHeaderNotFound(const std::string& message)
 	return message.find("\r\n\r\n") == message.npos;
 }
 
-static bool	endOfRequestLineFound(const std::string& message)
+static bool	endOfRequestLineNotFound(const std::string& message)
 {
-	return message.find("\r\n") != message.npos;
+	return message.find("\r\n") == message.npos;
 }
 
 ssize_t	readIntoBuffer(std::string& message, int socketFD)
@@ -59,7 +59,7 @@ Request	Server::receiveRequest(int fd) const
 	std::string	message;
 	ssize_t		bytes;
 
-	while (!endOfRequestLineFound(message))
+	while (endOfRequestLineNotFound(message))
 	{
 		bytes = readIntoBuffer(message, fd);
 		// TODO: errors
@@ -92,10 +92,10 @@ Request	Server::receiveRequest(int fd) const
 		}
 	}
 	request.parseMessageBody(messageBody);
-	std::cout << ">>> " << request.messageBody << '\n';
 	// TODO: is this where we delete the fd? what if
 	// the connection is kept alive
-	epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, NULL);
+	
+	/*epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, NULL);*/
 	return request;
 }
 

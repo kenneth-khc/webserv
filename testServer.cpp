@@ -26,7 +26,6 @@ int	main()
 	std::cout << "Server is running...\n";
 	while (1)
 	{
-		dbg::println("Polling...");
 		server.epollWait();
 		server.processReadyEvents();
 	}

@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/28 09:29:16 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/01/31 14:36:32 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void	Server::startListening()
 	{
 		error("no valid address found");
 	}
-	dbg::printAddrInfos(localhost);
+	/*dbg::printAddrInfos(localhost);*/
 
 	listenerSocketFD = socket(localhost->ai_family,
 							  localhost->ai_socktype | SOCK_NONBLOCK, 0);
@@ -114,8 +114,8 @@ void	Server::epollWait()
 		perror("epw");
 		error("epoll_wait failed");
 	}
-	std::cout << "epoll_wait() returned with " << numReadyEvents
-			  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
+	/*std::cout << "epoll_wait() returned with " << numReadyEvents*/
+	/*		  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");*/
 }
 
 void	Server::processReadyEvents()
@@ -135,7 +135,9 @@ void	Server::processReadyEvents()
 			try
 			{
 				request = receiveRequest(ev.data.fd);
+				logger.logRequest(*this, request, ev.data.fd);
 				response = handleRequest(request);
+				logger.logResponse(*this, response, ev.data.fd);
 			}
 			catch (const Response& e)
 			{
@@ -143,6 +145,7 @@ void	Server::processReadyEvents()
 			}
 			sendResponse(ev.data.fd, response);
 			epoll_ctl(epollFD, EPOLL_CTL_DEL, ev.data.fd, NULL);
+			clients.erase(clients.find(ev.data.fd));
 			close(ev.data.fd);
 		}
 	}
@@ -156,12 +159,12 @@ void	Server::acceptNewClient()
 	socklen_t			clientAddrLen = sizeof clientAddr;
 	epoll_event			event;
 
-	dbg::println("Someone came in!");
 	int	clientFD = accept(listenerSocketFD, (sockaddr*)&clientAddr, &clientAddrLen);
 	fcntl(clientFD, F_SETFL, O_NONBLOCK);
 	++numClients;
-	dbg::printSocketAddr((sockaddr*)&clientAddr);
+	/*dbg::printSocketAddr((sockaddr*)&clientAddr);*/
 	event.events = EPOLLIN;
 	event.data.fd = clientFD;
+	clients.insert(std::make_pair(clientFD, clientAddr));
 	epoll_ctl(epollFD, EPOLL_CTL_ADD, clientFD, &event);
 }

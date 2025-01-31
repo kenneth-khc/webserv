@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:13:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 22:33:41 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/02 15:37:21 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,6 @@ void	extractRequestLineComponents(const std::string &line, Request &request) {
 	std::getline(stream, str, ' ');
 	if (isToken(str) == false)
 		throw BadRequest400();
-	if (request.isValidMethod(str) == false)
-		throw NotImplemented501();
 
 	std::getline(stream, str, ' ');
 	if (isRequestTarget(str) == false)
@@ -41,6 +39,8 @@ void	extractRequestLineComponents(const std::string &line, Request &request) {
 	if (std::isdigit(str[0]) == 0 || str[1] != '.' || std::isdigit(str[2]) == 0)
 		throw BadRequest400();
 	std::stringstream(str) >> request.httpVersion;
+	if (request.isValidMethod(str) == false)
+		throw NotImplemented501();
 	if (request.isSupportedVersion(request.httpVersion) == false)
 		throw VersionNotSupported505();
 }

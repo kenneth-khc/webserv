@@ -6,11 +6,37 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:32:28 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/31 13:06:44 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/01 03:43:21 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "ErrorCode.hpp"
 #include "Message.hpp"
+
+const std::string	Message::allowedDuplicateHeaders[NUM_OF_HEADERS] = {
+	"Accept",
+	"Accept-Encoding",
+	"Accept-Language",
+	"Accept-Ranges",
+	"Allow",
+	"Authentication-Info",
+	"Cache-Control",
+	"Connection",
+	"Content-Encoding",
+	"Content-Language",
+	"Expect",
+	"If-Match",
+	"If-None-Match",
+	"Proxy-Authenticate",
+	"Proxy-Aunthetication-Info",
+	"TE",
+	"Trailer",
+	"Transfer-Encoding",
+	"Upgrade",
+	"Vary",
+	"Via",
+	"WWW-Authenticate"
+};
 
 Message::Message(void) {}
 
@@ -32,7 +58,22 @@ Message	&Message::operator=(const Message &obj) {
 }
 
 void	Message::insert(const std::string &key, const std::string &value) {
-	this->headers.insert(std::make_pair(key, value));
+	std::map<std::string, std::string>::iterator	it = this->headers.begin();
+
+	it = this->headers.find(key);
+	if (it == this->headers.end()) {
+		this->headers.insert(std::make_pair(key, value));
+		return ;	
+	}
+	else {
+		for (int i = 0; i < NUM_OF_HEADERS; i++) {
+			if (allowedDuplicateHeaders[i] == key) {
+				it->second += ", " + value;
+				return ;
+			}
+		}
+		throw BadRequest400();
+	}
 }
 
 std::string	Message::operator[](const std::string &key) {

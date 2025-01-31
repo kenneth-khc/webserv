@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:29:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/31 12:07:44 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/02 15:33:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,11 @@
 # include <string>
 # include <map>
 
+# define NUM_OF_HEADERS 22
+
 class Message {
 	public:
+		static const std::string	allowedDuplicateHeaders[NUM_OF_HEADERS];
 		float		httpVersion;
 		std::map<std::string, std::string>	headers;
 		std::string	messageBody;

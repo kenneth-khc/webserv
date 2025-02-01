@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 22:52:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/01 13:57:52 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,9 @@ Request::~Request(void) {}
 Request::Request(const Request &obj) : 
 	Message(obj),
 	method(obj.method),
-	requestTarget(obj.requestTarget)
+	requestTarget(obj.requestTarget),
+	socketFD(obj.socketFD),
+	srcAddress(obj.srcAddress)
 {}
 
 Request	&Request::operator=(const Request &obj) {
@@ -44,6 +46,8 @@ Request	&Request::operator=(const Request &obj) {
 	Message::operator=(obj);
 	this->method = obj.method;
 	this->requestTarget = obj.requestTarget;
+	this->socketFD = obj.socketFD;
+	this->srcAddress = obj.srcAddress;
 	return *this;
 }
 

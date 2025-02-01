@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:24:45 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/31 14:36:38 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/01 12:44:43 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,9 +47,34 @@ ssize_t	readIntoBuffer(std::string& message, int socketFD)
 	{
 		/*buf[retval] = '\0';*/
 		for (size_t i = 0; i < vect.size(); ++i)
+		{
+			std::cout << vect[i];
+			std::flush(std::cout);
 			message.push_back(vect[i]);
+		}
 	}
 	return retval;
+}
+
+ssize_t	Server::receiveBytes(Client& client)
+{
+	ssize_t	bytes = recv(client.socketFD,
+						 &client.messageBuffer[0],
+						 client.messageBuffer.size(),
+						 0);
+	//
+	// TODO: fix where this belongs
+	client.request.socketFD = client.socketFD;
+	client.request.srcAddress = client.address;
+
+	if (bytes > 0)
+	{
+		for (size_t i = 0; i < client.messageBuffer.size(); ++i)
+		{
+			client.message.push_back(client.messageBuffer[i]);
+		}
+	}
+	return bytes;
 }
 
 // TODO: the receiving/processing here is all over the place and not well defined
@@ -62,12 +87,21 @@ Request	Server::receiveRequest(int fd) const
 	while (endOfRequestLineNotFound(message))
 	{
 		bytes = readIntoBuffer(message, fd);
+		std::cout << "bytes: " << bytes << '\n';
 		// TODO: errors
+		if (bytes < 0)
+		{
+			throw Response(BadRequest400());
+		}
 	}
 	request.parseRequestLine(message);
 	while (endOfHeaderNotFound(message))
 	{
 		bytes = readIntoBuffer(message, fd);
+		if (bytes < 0)
+		{
+			throw Response(BadRequest400());
+		}
 	}
 	request.parseHeaders(message);
 
@@ -139,5 +173,7 @@ Response	Server::handleRequest(const Request& request) const
 void	Server::sendResponse(int socketFD, Response& response) const
 {
 	std::string	message = response.toString();
+	std::cout << "before send\n";
 	send(socketFD, message.c_str(), message.size(), 0);
+	std::cout << "after send\n";
 }

@@ -23,7 +23,9 @@ Response::~Response(void) {}
 Response::Response(const Response &obj) :
 	Message(obj),
 	statusCode(obj.statusCode),
-	reasonPhrase(obj.reasonPhrase)
+	reasonPhrase(obj.reasonPhrase),
+	socketFD(obj.socketFD),
+	destAddress(obj.destAddress)
 {}
 
 Response&	Response::operator=(const Response& other)
@@ -33,6 +35,8 @@ Response&	Response::operator=(const Response& other)
 	Message::operator=(other);
 	this->statusCode = other.statusCode;
 	this->reasonPhrase = other.reasonPhrase;
+	this->socketFD = other.socketFD;
+	this->destAddress = other.destAddress;
 	return *this;
 }
 

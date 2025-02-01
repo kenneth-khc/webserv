@@ -25,8 +25,8 @@ class	Response;
 class	Logger
 {
 public:
-	void	logRequest(const Server&, Request&, int clientFD) const;
-	void	logResponse(const Server&, Response&, int clientFD) const;
+	void	logRequest(const Server&, Request&) const;
+	void	logResponse(const Server&, Response&) const;
 
 private:
 	static const char*	GREEN;

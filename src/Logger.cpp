@@ -24,6 +24,7 @@ const char*	Logger::GREEN = "\e[0;32m";
 const char*	Logger::YELLOW = "\e[0;33m";
 const char*	Logger::CRESET = "\e[0m";
 
+#if 0
 static sockaddr*
 getClientSocketAddress(const std::map<int,sockaddr_storage>& clients, int clientFD)
 {
@@ -38,11 +39,14 @@ getClientSocketAddress(const std::map<int,sockaddr_storage>& clients, int client
 		return NULL;
 	}
 }
+#endif
 
 // TODO: clean this up nicely
-void	Logger::logRequest(const Server& server, Request& request, int clientFD) const
+void	Logger::logRequest(const Server& server, Request& request) const
 {
-	sockaddr*	client = getClientSocketAddress(server.clients, clientFD);
+	/*sockaddr*	client = getClientSocketAddress(server.clients, clientFD);*/
+
+	sockaddr*	client = (sockaddr*)&request.srcAddress;
 	std::cout << YELLOW;
 	if (client->sa_family == AF_INET)
 	{
@@ -77,9 +81,10 @@ void	Logger::logRequest(const Server& server, Request& request, int clientFD) co
 	std::cout << "\n\n";
 } 
 
-void	Logger::logResponse(const Server& server, Response& response, int clientFD) const
+void	Logger::logResponse(const Server& server, Response& response) const
 {
-	sockaddr*	client = getClientSocketAddress(server.clients, clientFD);
+	/*sockaddr*	client = getClientSocketAddress(server.clients, clientFD);*/
+	sockaddr*	client = (sockaddr*)&response.destAddress;
 	std::cout << YELLOW;
 	if (client->sa_family == AF_INET)
 	{

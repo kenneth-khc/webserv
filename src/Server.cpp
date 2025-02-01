@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/31 14:36:32 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/01 09:47:46 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,9 @@ void	Server::epollWait()
 	/*std::cout << "epoll_wait() returned with " << numReadyEvents*/
 	/*		  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");*/
 }
+#include <fcntl.h>
 
+#if 0
 void	Server::processReadyEvents()
 {
 	for (int i = 0; i < numReadyEvents; ++i)
@@ -151,8 +153,6 @@ void	Server::processReadyEvents()
 	}
 }
 
-#include <fcntl.h>
-
 void	Server::acceptNewClient()
 {
 	sockaddr_storage	clientAddr = {};
@@ -167,4 +167,47 @@ void	Server::acceptNewClient()
 	event.data.fd = clientFD;
 	clients.insert(std::make_pair(clientFD, clientAddr));
 	epoll_ctl(epollFD, EPOLL_CTL_ADD, clientFD, &event);
+
+	timeval	timeout;
+	timeout.tv_sec = 10;
+	timeout.tv_usec = 0;
+	setsockopt(clientFD, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout);
+}
+#endif
+
+void	Server::processReadyEvents()
+{
+	for (int i = 0; i < numReadyEvents; ++i)
+	{
+		const epoll_event&	ev = readyEvents[i];
+
+		// TODO: look at multiple servers
+		if (ev.data.fd == listenerSocketFD)
+		{
+			acceptNewClient();
+		}
+		else if (ev.events & EPOLLIN)
+		{
+			Client&	client = clients[ev.data.fd];
+			receiveBytes(client);
+		}
+	}
+}
+
+void	Server::acceptNewClient()
+{
+	Client	client;
+
+	client.addressLen = static_cast<socklen_t>(sizeof client.address);
+	client.socketFD = accept(listenerSocketFD, (sockaddr*)&client.address,
+						  &client.addressLen);
+	fcntl(client.socketFD, F_SETFL, O_NONBLOCK);
+	++numClients;
+	
+	epoll_event	event;
+	event.events = EPOLLIN;
+	event.data.fd = client.socketFD;
+	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socketFD, &event);
+
+	clients.insert(std::make_pair(client.socketFD, client));
 }

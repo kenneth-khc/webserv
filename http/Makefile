@@ -13,7 +13,7 @@
 NAME		:= libhttp.a
 
 CXX			:= g++
-CXXFLAGS	= -Wall -Werror -Wextra -std=c++98 $(include_dir) -g3
+CXXFLAGS	= -Wall -Werror -Wextra -std=c++98 $(include_dir) -g3 -fsanitize=address,undefined
 
 AR			:= ar -rcs
 

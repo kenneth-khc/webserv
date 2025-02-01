@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 14:00:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/31 14:36:25 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/02 04:06:01 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,29 +24,11 @@ const char*	Logger::GREEN = "\e[0;32m";
 const char*	Logger::YELLOW = "\e[0;33m";
 const char*	Logger::CRESET = "\e[0m";
 
-#if 0
-static sockaddr*
-getClientSocketAddress(const std::map<int,sockaddr_storage>& clients, int clientFD)
-{
-	std::map<int,sockaddr_storage>::const_iterator	it = clients.find(clientFD);
-	if (it != clients.end())
-	{
-		const sockaddr_storage&	clientSocket = it->second;
-		return (sockaddr*)&clientSocket;
-	}
-	else
-	{
-		return NULL;
-	}
-}
-#endif
-
 // TODO: clean this up nicely
 void	Logger::logRequest(const Server& server, Request& request) const
 {
-	/*sockaddr*	client = getClientSocketAddress(server.clients, clientFD);*/
-
 	sockaddr*	client = (sockaddr*)&request.srcAddress;
+
 	std::cout << YELLOW;
 	if (client->sa_family == AF_INET)
 	{
@@ -83,8 +65,8 @@ void	Logger::logRequest(const Server& server, Request& request) const
 
 void	Logger::logResponse(const Server& server, Response& response) const
 {
-	/*sockaddr*	client = getClientSocketAddress(server.clients, clientFD);*/
 	sockaddr*	client = (sockaddr*)&response.destAddress;
+
 	std::cout << YELLOW;
 	if (client->sa_family == AF_INET)
 	{

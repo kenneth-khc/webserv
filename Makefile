@@ -6,7 +6,7 @@
 #    By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/01/29 22:41:16 by kecheong         ###   ########.fr        #
+#    Updated: 2025/02/02 04:26:39 by kecheong         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,12 +15,13 @@
 NAME := webserv
 
 CXX := g++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes) -g3
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes) -g3 -fsanitize=address,undefined
 
 src_dir := src
 dirs := $(src_dir) \
 		$(src_dir)/debug \
-		$(src_dir)/methods
+		$(src_dir)/methods \
+		$(src_dir)/server
 		# http			 \
 		# http/src		 \
 		# http/src/message \
@@ -29,7 +30,7 @@ dirs := $(src_dir) \
 
 srcs := $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))
 # For my own testing purposes
-srcs += testServer.cpp
+srcs += main.cpp
 include_dir := include/ 
 
 includes := -I include/ \

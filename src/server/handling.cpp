@@ -1,20 +1,38 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   testServer.cpp                                     :+:      :+:    :+:   */
+/*   handling.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/01 12:41:00 by kecheong         ###   ########.fr       */
+/*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
+/*   Updated: 2025/02/02 04:17:30 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include "Server.hpp"
-#include <sys/epoll.h>
 #include <unistd.h>
-#include "debugUtils.hpp"
+#include "Server.hpp"
+#include "ErrorCode.hpp"
+
+ssize_t	Server::receiveBytes(Client& client)
+{
+	ssize_t	bytes = recv(client.socketFD,
+						 &client.messageBuffer[0],
+						 client.messageBuffer.size(), 0);
+
+	// TODO: fix where this belongs
+	client.request.socketFD = client.socketFD;
+	client.request.srcAddress = client.address;
+
+	if (bytes > 0)
+	{
+		for (size_t i = 0; i < client.messageBuffer.size(); ++i)
+		{
+			client.message.push_back(client.messageBuffer[i]);
+		}
+	}
+	return bytes;
+}
 
 static bool	endOfRequestLineFound(const std::string& message)
 {
@@ -80,26 +98,38 @@ void	Server::processReadyRequests()
 	}
 }
 
-int	main()
+Response	Server::handleRequest(const Request& request) const
 {
-	Server	server;
+	Response	response;
 
-	server.startListening();
-	server.initEpoll();
-
-	std::cout << "Server is running...\n";
-	while (1)
+	try
 	{
-		server.epollWait();
-		server.processReadyEvents();
-		try
+		if (request.method == GET)
 		{
-			server.processMessages();
-			server.processReadyRequests();
-			server.generateResponses();
+			get(response, request);
 		}
-		catch (const Response& e)
+		else if (request.method == POST)
 		{
+			post(response, request);
+		}
+		else if (request.method == PUT)
+		{
+			put(response, request);
+		}
+		else if (request.method == DELETE)
+		{
+			delete_(response, request);
+		}
+		else if (request.method == HEAD)
+		{
+			head(response, request);
 		}
 	}
+	catch (const ErrorCode& e)
+	{
+		response.httpVersion = e.httpVersion;
+		response.statusCode = e.statusCode;
+		response.reasonPhrase = e.reasonPhrase;
+	}
+	return response;
 }

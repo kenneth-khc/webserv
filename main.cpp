@@ -6,13 +6,14 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/02 04:27:43 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/02 05:25:01 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 #include "Server.hpp"
 #include <sys/epoll.h>
+#include "ErrorCode.hpp"
 #include <unistd.h>
 
 int	main()
@@ -33,8 +34,9 @@ int	main()
 			server.processReadyRequests();
 			server.generateResponses();
 		}
-		catch (const Response& e)
+		catch (const ErrorCode& e)
 		{
+			std::cout << e.what() << '\n';
 		}
 	}
 }

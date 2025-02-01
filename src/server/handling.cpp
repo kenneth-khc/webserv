@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/02 04:17:30 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/02 05:56:50 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ ssize_t	Server::receiveBytes(Client& client)
 
 	if (bytes > 0)
 	{
-		for (size_t i = 0; i < client.messageBuffer.size(); ++i)
+		for (ssize_t i = 0; i < bytes; ++i)
 		{
 			client.message.push_back(client.messageBuffer[i]);
 		}
@@ -44,25 +44,53 @@ static bool	endOfHeaderFound(const std::string& message)
 	return message.find("\r\n\r\n") != message.npos;
 }
 
+#include <iostream>
 void	Server::processMessages()
 {
+	// TODO: get all ready clients instead of just the first one
 	Client&		client = clients[readyEvents[0].data.fd];
 	Request&	request = client.request;
 
+	if (client.socketFD == listenerSocketFD)
+		return ;
 	if (!client.requestLineFound && endOfRequestLineFound(client.message))
 	{
 		request.parseRequestLine(client.message);
 		client.requestLineFound = true;
 	}
-	if (client.requestLineFound && endOfHeaderFound(client.message))
+	if (client.requestLineFound &&
+		!client.headersFound &&
+		endOfHeaderFound(client.message))
 	{
 		request.parseHeaders(client.message);
 		client.headersFound = true;
 	}
 	if (client.requestLineFound && client.headersFound)
 	{
-		readyRequests.push(request);
-		logger.logRequest(*this, request);
+		int	bodyLength = request.find<int>("Content-Length");
+		if (bodyLength == std::numeric_limits<int>::min())
+			bodyLength = 0;
+
+		request.parseMessageBody(client.message);
+		if (client.message.size() == (size_t)bodyLength)
+		{
+			readyRequests.push(request);
+			logger.logRequest(*this, request);
+		}
+	}
+}
+
+void	Server::processReadyRequests()
+{
+	while (!readyRequests.empty())
+	{
+		Request&	request = readyRequests.front();
+		Response	response = handleRequest(request);
+
+		response.socketFD = request.socketFD;
+		response.destAddress = request.srcAddress;
+		readyResponses.push(response);
+		readyRequests.pop();
 	}
 }
 
@@ -81,20 +109,6 @@ void	Server::generateResponses()
 		epoll_ctl(epollFD, EPOLL_CTL_DEL, response.socketFD, 0);
 		clients.erase(clients.find(response.socketFD));
 		readyResponses.pop();
-	}
-}
-
-void	Server::processReadyRequests()
-{
-	while (!readyRequests.empty())
-	{
-		Request&	request = readyRequests.front();
-		Response	response = handleRequest(request);
-
-		response.socketFD = request.socketFD;
-		response.destAddress = request.srcAddress;
-		readyResponses.push(response);
-		readyRequests.pop();
 	}
 }
 
@@ -125,7 +139,7 @@ Response	Server::handleRequest(const Request& request) const
 			head(response, request);
 		}
 	}
-	catch (const ErrorCode& e)
+	catch (const Response& e)
 	{
 		response.httpVersion = e.httpVersion;
 		response.statusCode = e.statusCode;

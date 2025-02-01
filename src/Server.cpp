@@ -41,9 +41,10 @@ Server::~Server()
 {
 	delete[] readyEvents;
 }
-
+#include <iostream>
 void	Server::epollWait()
 {
+	std::cout << "Polling...\n";
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, -1);
 	if (numReadyEvents == -1)
 	{
@@ -87,6 +88,5 @@ void	Server::acceptNewClient()
 	event.events = EPOLLIN;
 	event.data.fd = client.socketFD;
 	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socketFD, &event);
-
 	clients.insert(std::make_pair(client.socketFD, client));
 }

@@ -38,6 +38,7 @@ void	Server::get(Response& response, const Request& request) const
 			response.statusCode = 200;
 			response.reasonPhrase = "OK";
 			response.messageBody = getFileContents(file);
+			response.headers.insert(std::make_pair("Connection", "close"));
 		}
 	}
 	else

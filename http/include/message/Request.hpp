@@ -14,6 +14,7 @@
 # define REQUEST_HPP
 
 # include <string>
+# include <sys/socket.h>
 # include "Message.hpp"
 
 # define NUM_OF_METHODS 6
@@ -26,6 +27,8 @@ class Request : public Message {
 		
 		int			method;
 		std::string	requestTarget;
+		int					socketFD;
+		sockaddr_storage	srcAddress;
 
 		Request(void);
 		~Request(void);

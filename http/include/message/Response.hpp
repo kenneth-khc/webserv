@@ -14,6 +14,7 @@
 # define RESPONSE_HPP
 
 # include <string>
+# include <sys/socket.h>
 # include "Message.hpp"
 
 # define SERVER_NAME "42webserv"
@@ -22,6 +23,8 @@ class Response : public Message {
 	public:
 		int			statusCode;
 		std::string	reasonPhrase;
+		int					socketFD;
+		sockaddr_storage	destAddress;
 
 		Response(void);
 		~Response(void);

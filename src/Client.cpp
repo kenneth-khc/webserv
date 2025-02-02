@@ -1,33 +1,32 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   testServer.cpp                                     :+:      :+:    :+:   */
+/*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/19 17:52:51 by kecheong         ###   ########.fr       */
+/*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
+/*   Updated: 2025/02/02 04:50:08 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
-#include "Server.hpp"
-#include "debugUtils.hpp"
+#include "Client.hpp"
 
-void	server();
+// TODO: limit request size based on config file. now defaulted to 1 mb
+const size_t	Client::MAX_REQUEST_SIZE = 1 * 1024 * 1024;
 
-int	main()
+Client::Client():
+socketFD(),
+address(),
+addressLen(),
+messageBuffer(),
+message(),
+request(),
+requestLineFound(false),
+headersFound(false),
+hasBody(true),
+bodyFound(false)
 {
-	Server	server;
-
-	server.startListening();
-	server.initEpoll();
-
-	std::cout << "Server is running...\n";
-	while (1)
-	{
-		dbg::println("Polling...");
-		server.epollWait();
-		server.processReadyEvents();
-	}
+	messageBuffer.resize(1024);
 }

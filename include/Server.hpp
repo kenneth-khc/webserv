@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/28 05:50:37 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/01 09:43:51 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,15 @@
 
 #include <string>
 #include <sys/epoll.h>
+#include <sys/socket.h>
+#include <queue>
+#include <vector>
 #include "Request.hpp"
 #include "Response.hpp"
+#include "Logger.hpp"
+#include "Client.hpp"
+
+class	Logger;
 
 class	Server
 {
@@ -30,6 +37,11 @@ public:
 	void			epollWait();
 	void			acceptNewClient();
 	void			processReadyEvents();
+
+	ssize_t			receiveBytes(Client&);
+	void			processMessages();
+	void			processReadyRequests();
+	void			generateResponses();
 
 	/* HTTP requests */
 	Request			receiveRequest(int fd) const;
@@ -59,6 +71,14 @@ private:
 
 	std::map<std::string,std::string>	directoryMappings;
 
+	std::map<int, Client>	clients;
+
+	friend class Logger;
+	Logger			logger;
+
+	// TODO: 
+	std::queue<Request>		readyRequests;
+	std::queue<Response>	readyResponses;
 
 	/* Disallow copying a server */
 	Server(Server const&);

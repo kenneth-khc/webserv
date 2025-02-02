@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/30 01:35:20 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/02 05:56:39 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ std::string	getFilenameFromContentDisposition(const std::string& messageBody)
 
 void	Server::post(Response& response, const Request& request) const
 {
-	MessageBody	msgBody = request.messageBody;
+	/*MessageBody	msgBody = request.messageBody;*/
 	ContentType	contentType = getContentType(request);
 	if (contentType.type == "multipart/form-data")
 	{

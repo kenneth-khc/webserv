@@ -6,11 +6,10 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/28 09:29:16 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/01 09:47:46 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/epoll.h>
@@ -20,10 +19,9 @@
 #include <cstdio>
 #include <string>
 #include <unistd.h>
-#include "debugUtils.hpp"
+#include <fcntl.h>
 #include "utils.hpp"
 #include "Server.hpp"
-#include "Response.hpp"
 
 /* TODO: Configure the server based on the config file */
 Server::Server():
@@ -43,125 +41,52 @@ Server::~Server()
 {
 	delete[] readyEvents;
 }
-
-void	Server::startListening()
-{
-	addrinfo*	localhost = NULL;
-	addrinfo	requirements = {};
-	requirements.ai_family = AF_INET;
-	requirements.ai_flags |= AI_CANONNAME | AI_PASSIVE;
-	requirements.ai_socktype = SOCK_STREAM;
-
-	int	retval = getaddrinfo(hostName.data(), toString(portNum).data(),
-				 &requirements, &localhost);
-	if (retval != 0)
-	{
-		error(gai_strerror(retval));
-	}
-	else if (localhost == NULL)
-	{
-		error("no valid address found");
-	}
-	dbg::printAddrInfos(localhost);
-
-	listenerSocketFD = socket(localhost->ai_family,
-							  localhost->ai_socktype | SOCK_NONBLOCK, 0);
-	if (listenerSocketFD == -1)
-	{
-	// TODO: do we throw exceptions?
-		error("socket failed");
-	}
-	int	yes = 1;
-	retval = setsockopt(listenerSocketFD, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
-	if (retval != 0)
-	{
-		perror("setsockopt");
-		error("setsockopt failed");
-	}
-	retval = bind(listenerSocketFD, localhost->ai_addr, sizeof *localhost->ai_addr);
-	if (retval != 0)
-	{
-		perror("bind");
-		error("bind failed");
-	}
-	retval = listen(listenerSocketFD, 1);
-	if (retval != 0)
-	{
-		error("listen failed");
-	}
-	freeaddrinfo(localhost);
-}
-
-void	Server::initEpoll()
-{
-	epollFD = epoll_create(1);
-	if (epollFD == -1)
-	{
-		error("epoll_create failed");
-	}
-
-	epoll_event	event = {};
-	event.events |= EPOLLIN;
-	event.data.fd = listenerSocketFD;
-	epoll_ctl(epollFD, EPOLL_CTL_ADD, listenerSocketFD, &event);
-}
-
+#include <iostream>
 void	Server::epollWait()
 {
+	std::cout << "Polling...\n";
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, -1);
 	if (numReadyEvents == -1)
 	{
 		perror("epw");
 		error("epoll_wait failed");
 	}
-	std::cout << "epoll_wait() returned with " << numReadyEvents
-			  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
+	/*std::cout << "epoll_wait() returned with " << numReadyEvents*/
+	/*		  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");*/
 }
 
 void	Server::processReadyEvents()
 {
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
-		epoll_event const&	ev = readyEvents[i];
+		const epoll_event&	ev = readyEvents[i];
 
+		// TODO: look at multiple servers
 		if (ev.data.fd == listenerSocketFD)
 		{
 			acceptNewClient();
 		}
 		else if (ev.events & EPOLLIN)
 		{
-			Request		request;
-			Response	response;
-			try
-			{
-				request = receiveRequest(ev.data.fd);
-				response = handleRequest(request);
-			}
-			catch (const Response& e)
-			{
-				response = e;
-			}
-			sendResponse(ev.data.fd, response);
-			epoll_ctl(epollFD, EPOLL_CTL_DEL, ev.data.fd, NULL);
-			close(ev.data.fd);
+			Client&	client = clients[ev.data.fd];
+			receiveBytes(client);
 		}
 	}
 }
 
-#include <fcntl.h>
-
 void	Server::acceptNewClient()
 {
-	sockaddr_storage	clientAddr = {};
-	socklen_t			clientAddrLen = sizeof clientAddr;
-	epoll_event			event;
+	Client	client;
 
-	dbg::println("Someone came in!");
-	int	clientFD = accept(listenerSocketFD, (sockaddr*)&clientAddr, &clientAddrLen);
-	fcntl(clientFD, F_SETFL, O_NONBLOCK);
+	client.addressLen = static_cast<socklen_t>(sizeof client.address);
+	client.socketFD = accept(listenerSocketFD, (sockaddr*)&client.address,
+						  &client.addressLen);
+	fcntl(client.socketFD, F_SETFL, O_NONBLOCK);
 	++numClients;
-	dbg::printSocketAddr((sockaddr*)&clientAddr);
+	
+	epoll_event	event;
 	event.events = EPOLLIN;
-	event.data.fd = clientFD;
-	epoll_ctl(epollFD, EPOLL_CTL_ADD, clientFD, &event);
+	event.data.fd = client.socketFD;
+	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socketFD, &event);
+	clients.insert(std::make_pair(client.socketFD, client));
 }

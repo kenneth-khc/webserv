@@ -6,14 +6,13 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/01 13:57:52 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/01 03:05:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 #include "requestLine.hpp"
 #include "fields.hpp"
-#include "messageBody.hpp"
 #include "ErrorCode.hpp"
 #include "Request.hpp"
 
@@ -89,12 +88,13 @@ void	Request::parseRequestLine(std::string &line) {
 void	Request::parseHeaders(std::string &line) {
 	std::string	str;
 	std::size_t	headerLineTerminator = 0;
+	std::size_t	headerSectionTerminator = line.find("\r\n\r\n");
+
+	if (headerSectionTerminator == std::string::npos)
+		throw (Response(BadRequest400()));
 
 	while (true) {
-		headerLineTerminator = line.find("\r\n");
-		if (headerLineTerminator == std::string::npos)
-			throw Response(BadRequest400());
-
+		headerLineTerminator = line.find("\r\n", headerLineTerminator);
 		str = line.substr(0, headerLineTerminator);
 
 		try {
@@ -103,28 +103,14 @@ void	Request::parseHeaders(std::string &line) {
 		catch (const ErrorCode &error) {
 			throw Response(error);
 		}
-		if (headerLineTerminator == line.find("\r\n\r\n"))
+
+		headerLineTerminator += 2;
+		if (headerLineTerminator >= headerSectionTerminator)
 			break ;
-		line = line.substr(headerLineTerminator + 2);
 	}
 	if (line[headerLineTerminator + 4] == '\0') {
 		line = "";
 		return ;
 	}
 	line = line.substr(headerLineTerminator + 4);
-}
-
-void	Request::parseMessageBody(std::string &line) {
-	if (line[0] == '\0')
-		return ;
-
-	try {
-		if (isMessageBody(line) == false)
-			throw BadRequest400();
-		else
-			this->messageBody = line;
-	}
-	catch (const ErrorCode &error) {
-		throw Response(error);
-	}
 }

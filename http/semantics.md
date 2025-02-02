@@ -81,7 +81,7 @@
 |field-value|*field-content||✅|
 |field-content|field-vchar [ 1*( SP / HTAB / field-vchar ) field-vchar]||✅|
 |field-vchar|VCHAR / obs-text||✅|
-|message-body|*OCTET||✅|
+|message-body|*OCTET||❌|
 
 ## Headers
 ### Connection

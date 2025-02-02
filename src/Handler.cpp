@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   Handler.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:24:45 by kecheong          #+#    #+#             */
 /*   Updated: 2025/02/02 04:27:38 by kecheong         ###   ########.fr       */
@@ -60,7 +60,15 @@ Request	Server::receiveRequest(int fd) const
 			bodyLength -= bytes;
 		}
 	}
+<<<<<<< HEAD
 	request.parseMessageBody(messageBody);
+||||||| 1429036
+	request.parseMessageBody(messageBody);
+	std::cout << ">>> " << request.messageBody << '\n';
+=======
+	request.messageBody = messageBody;
+	std::cout << ">>> " << request.messageBody << '\n';
+>>>>>>> http
 	// TODO: is this where we delete the fd? what if
 	// the connection is kept alive
 	

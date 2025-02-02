@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:29:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 23:05:51 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/02 15:33:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,11 @@
 # include <string>
 # include <map>
 
+# define NUM_OF_HEADERS 22
+
 class Message {
 	public:
+		static const std::string	allowedDuplicateHeaders[NUM_OF_HEADERS];
 		float		httpVersion;
 		std::map<std::string, std::string>	headers;
 		std::string	messageBody;
@@ -35,7 +38,34 @@ class Message {
 		std::string	operator[](const std::string &key);
 };
 
-template<typename type>
-type		Message::find(const std::string&) const {return 0;}
+template<>
+inline std::string	Message::find<std::string>(const std::string &key) const {
+	std::map<std::string, std::string>::const_iterator	it;
+
+	it = this->headers.find(key);
+	if (it == this->headers.end())
+		return ("");
+	return (it->second);
+}
+
+template<>
+inline int	Message::find<int>(const std::string &key) const {
+	std::map<std::string, std::string>::const_iterator	it;
+
+	it = this->headers.find(key);
+	if (it == this->headers.end())
+		return (std::numeric_limits<int>::min());
+	return (std::atoi(it->second.c_str()));
+}
+
+template<>
+inline float	Message::find<float>(const std::string &key) const {
+	std::map<std::string, std::string>::const_iterator	it;
+
+	it = this->headers.find(key);
+	if (it == this->headers.end())
+		return (std::numeric_limits<float>::min());
+	return (std::atof(it->second.c_str()));
+}
 
 #endif

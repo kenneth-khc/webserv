@@ -6,7 +6,7 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/25 20:30:46 by cteoh             #+#    #+#              #
-#    Updated: 2025/01/29 22:38:55 by kecheong         ###   ########.fr        #
+#    Updated: 2025/01/31 16:31:44 by cteoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ AR			:= ar -rcs
 src_dir 	:= src src/URI src/message
 dirs		:= $(src_dir)
 
-full_srcs	:= $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))
+full_srcs	:= $(foreachmessage-bo dir, $(dirs), $(wildcard $(dir)/*.cpp))
 srcs		:= $(notdir $(full_srcs))
 vpath %.cpp $(shell find src/ -type d | tr '\n' : | awk '{print substr($$1, 0, length($$1)-1)}')
 

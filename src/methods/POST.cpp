@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   POST.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/02 05:56:39 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/04 03:13:00 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,8 +124,7 @@ void	Server::post(Response& response, const Request& request) const
 		std::string	filename = getFilenameFromContentDisposition(request.messageBody);
 		if (uploadFile(request, contentType, filename))
 		{
-			response.statusCode = 200;
-			response.reasonPhrase = "OK";
+			response.setStatusCode(Response::OK);
 			// TODO: generate location dynamically
 			std::string	location = "http://localhost:8000/upload/" + filename;
 			response.headers.insert(std::make_pair("Location", location));

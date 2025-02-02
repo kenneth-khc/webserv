@@ -3,23 +3,26 @@
 /*                                                        :::      ::::::::   */
 /*   GET.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/28 09:29:04 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/04 03:58:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h>
+#include <sys/stat.h>
 #include <fstream>
 #include "Response.hpp"
 #include "Server.hpp"
 #include "debugUtils.hpp"
 #include "ErrorCode.hpp"
+#include "ifModified.hpp"
 
 void	Server::get(Response& response, const Request& request) const
 {
 	std::string	file = request.requestTarget;
+	struct stat	statbuf;
 
 	if (file == "/")
 	{
@@ -31,14 +34,17 @@ void	Server::get(Response& response, const Request& request) const
 	{
 		file = file.substr(1, file.npos);
 	}
-	if (access(file.c_str(), F_OK) == 0)
+	if (stat(file.c_str(), &statbuf) == 0)
 	{
-		if (access(file.c_str(), R_OK) == 0)
+		if (processIfModifiedHeader(request["If-Modified-Since"], statbuf.st_mtim) == true)
 		{
-			response.statusCode = 200;
-			response.reasonPhrase = "OK";
+			response.setStatusCode(Response::NOT_MODIFIED);
+			response.insert("Last-Modified", convertLastModifiedToHTTPDate(statbuf.st_mtim));
+		}
+		else if (access(file.c_str(), R_OK) == 0)
+		{
+			response.setStatusCode(Response::OK);
 			response.messageBody = getFileContents(file);
-			response.headers.insert(std::make_pair("Connection", "close"));
 		}
 	}
 	else

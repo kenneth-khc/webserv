@@ -3,16 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   handling.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/02 05:56:50 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/04 04:03:27 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h>
 #include "Server.hpp"
 #include "ErrorCode.hpp"
+#include "connection.hpp"
+#include "date.hpp"
 
 ssize_t	Server::receiveBytes(Client& client)
 {
@@ -71,7 +73,7 @@ void	Server::processMessages()
 		if (bodyLength == std::numeric_limits<int>::min())
 			bodyLength = 0;
 
-		request.parseMessageBody(client.message);
+		request.messageBody = client.message;
 		if (client.message.size() == (size_t)bodyLength)
 		{
 			readyRequests.push(request);
@@ -138,12 +140,12 @@ Response	Server::handleRequest(const Request& request) const
 		{
 			head(response, request);
 		}
+		processConnectionHeader(request, response);
+		response.insert("Date", getCurrentTimeAsHTTPDate());
 	}
-	catch (const Response& e)
+	catch (const ErrorCode& e)
 	{
-		response.httpVersion = e.httpVersion;
-		response.statusCode = e.statusCode;
-		response.reasonPhrase = e.reasonPhrase;
+		response = e;
 	}
 	return response;
 }

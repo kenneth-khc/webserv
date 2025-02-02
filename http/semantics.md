@@ -100,25 +100,25 @@
 ### Date
 |Rule|Value|Description|Check|
 |-|-|-|-|
-|Date|HTTP-date|||
-|HTTP-date|IMF-fixdate / obs-date|||
-|IMF-fixdate|day-name "," SP date1 SP time-of-day SP GMT|||
-|day-name|%x4D.6F.6E / %x54.75.65 / %x57.65.64 / %x54.68.75 / %x46.72.69 / %x53.61.74 / %x53.75.6E|Mon / Tue / Wed / Thu / Fri / Sat / Sun||
-|date1|day SP month SP year|||
-|day|2DIGIT|||
-|month|%x4A.61.6E / %x46.65.62 / %x4D.61.72 / %x41.70.72 / %x4D.61.79 / %x4A.75.6E / %x4A.75.6C / %x41.75.67 / %x53.65.70 / %x4F.63.74 / %x4E.6F.76 / %x44.65.63|Jan / Feb / Mar / Apr / May / Jun / Jul / Aug / Sep / Oct / Nov / Dec||
-|year|4DIGIT|||
-|time-of-day|hour ":" minute ":" second|||
-|hour|2DIGIT|||
-|minute|2DIGIT|||
-|second|2DIGIT|||
-|GMT|%x47.4D.54|GMT||
-|obs-date|rfc850-date / asctime-date|||
-|rfc850-date|day-name-1 "," SP date2 SP time-of-day SP GMT||
-|day-name-1|%x4D.6F.6E.64.61.79 / %x54.75.65.73.64.61.79 / %x57.65.64.6E.65.73.64.61.79 / %x54.68.75.72.73.64.61.79 / %x46.72.69.64.61.79 / %x53.61.74.75.72.64.61.79 / %x53.75.6E.64.61.79|Monday / Tuesday / Wednesday / Thursday / Friday / Saturday / Sunday||
-|date2|day "-" month "-" 2DIGIT|||
-|asctime-date|day-name SP date3 SP time-of-day SP year|||
-|date3|month SP ( 2DIGIT / ( SP DIGIT ) )|||
+|Date|HTTP-date||✅|
+|HTTP-date|IMF-fixdate / obs-date||✅|
+|IMF-fixdate|day-name "," SP date1 SP time-of-day SP GMT||✅|
+|day-name|%x4D.6F.6E / %x54.75.65 / %x57.65.64 / %x54.68.75 / %x46.72.69 / %x53.61.74 / %x53.75.6E|Mon / Tue / Wed / Thu / Fri / Sat / Sun|✅|
+|date1|day SP month SP year||✅|
+|day|2DIGIT||✅|
+|month|%x4A.61.6E / %x46.65.62 / %x4D.61.72 / %x41.70.72 / %x4D.61.79 / %x4A.75.6E / %x4A.75.6C / %x41.75.67 / %x53.65.70 / %x4F.63.74 / %x4E.6F.76 / %x44.65.63|Jan / Feb / Mar / Apr / May / Jun / Jul / Aug / Sep / Oct / Nov / Dec|✅|
+|year|4DIGIT||✅|
+|time-of-day|hour ":" minute ":" second||✅|
+|hour|2DIGIT||✅|
+|minute|2DIGIT||✅|
+|second|2DIGIT||✅|
+|GMT|%x47.4D.54|GMT|✅|
+|obs-date|rfc850-date / asctime-date||✅|
+|rfc850-date|day-name-1 "," SP date2 SP time-of-day SP GMT|✅|
+|day-name-1|%x4D.6F.6E.64.61.79 / %x54.75.65.73.64.61.79 / %x57.65.64.6E.65.73.64.61.79 / %x54.68.75.72.73.64.61.79 / %x46.72.69.64.61.79 / %x53.61.74.75.72.64.61.79 / %x53.75.6E.64.61.79|Monday / Tuesday / Wednesday / Thursday / Friday / Saturday / Sunday|✅|
+|date2|day "-" month "-" 2DIGIT||✅|
+|asctime-date|day-name SP date3 SP time-of-day SP year||✅|
+|date3|month SP ( 2DIGIT / ( SP 1DIGIT ) )||✅|
 
 ### Host
 |Rule|Value|Description|Check|

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/31 16:32:28 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/02 23:30:35 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,10 +25,11 @@ class Request : public Message {
 		static const std::string	methods[NUM_OF_METHODS];
 		static const float			supportedVersions[NUM_OF_VERSIONS];
 		
-		int			method;
-		std::string	requestTarget;
+		int					method;
+		std::string			requestTarget;
 		int					socketFD;
 		sockaddr_storage	srcAddress;
+		int					flags;
 
 		Request(void);
 		~Request(void);
@@ -39,6 +40,11 @@ class Request : public Message {
 		bool	isSupportedVersion(const float &version);
 		void	parseRequestLine(std::string &line);
 		void	parseHeaders(std::string &line);
+
+		enum {
+			IFMODIFIED = 1,
+			CONNECTION = 1 << 1
+		};
 };
 
 enum METHODS {

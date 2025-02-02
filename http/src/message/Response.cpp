@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 22:21:46 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/04 11:21:41 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ Response&	Response::operator=(const Response& other)
 const std::string	Response::toString(void) const {
 	std::stringstream	stream;
 	std::string			str;
-	
+
 	stream << "HTTP/" << this->httpVersion << ' ';
 	stream << this->statusCode << ' ';
 	stream << this->reasonPhrase << "\r\n";
@@ -58,7 +58,20 @@ const std::string	Response::toString(void) const {
 
 	if (this->messageBody.length() != 0)
 		stream << this->messageBody;
-	
+
 	std::getline(stream, str, '\0');
 	return (str);
+}
+
+void	Response::setStatusCode(int statusCode) {
+	this->statusCode = statusCode;
+
+	switch (statusCode) {
+		case 200:
+			this->reasonPhrase = "OK";
+			break ;
+		case 304:
+			this->reasonPhrase = "Not Modified";
+			break ;
+	}
 }

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:29:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/02 18:42:40 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/02 23:57:42 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,8 @@ class Message {
 		template<typename type>
 		type		find(const std::string &key) const;
 		void		insert(const std::string &key, const std::string &value);
-		std::string	operator[](const std::string &key);
+		std::string	&operator[](const std::string &key);
+		const std::string	&operator[](const std::string &key) const;
 };
 
 template<>

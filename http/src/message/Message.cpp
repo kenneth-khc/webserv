@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:32:28 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/01 03:43:21 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/03 00:00:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,10 @@ void	Message::insert(const std::string &key, const std::string &value) {
 	}
 }
 
-std::string	Message::operator[](const std::string &key) {
-	return (this->headers[key]);
+std::string	&Message::operator[](const std::string &key) {
+	return (this->headers.at(key));
+}
+
+const std::string	&Message::operator[](const std::string &key) const {
+	return (this->headers.at(key));
 }

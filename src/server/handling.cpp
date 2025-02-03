@@ -71,7 +71,7 @@ void	Server::processMessages()
 		if (bodyLength == std::numeric_limits<int>::min())
 			bodyLength = 0;
 
-		request.parseMessageBody(client.message);
+		request.messageBody = client.message;
 		if (client.message.size() == (size_t)bodyLength)
 		{
 			readyRequests.push(request);

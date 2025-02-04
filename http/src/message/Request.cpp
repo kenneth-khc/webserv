@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/02 18:45:12 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/04 18:21:41 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ Request::Request(void) : Message() {}
 
 Request::~Request(void) {}
 
-Request::Request(const Request &obj) : 
+Request::Request(const Request &obj) :
 	Message(obj),
 	method(obj.method),
 	requestTarget(obj.requestTarget),

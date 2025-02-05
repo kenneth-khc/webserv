@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/04 03:58:28 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 13:32:41 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "debugUtils.hpp"
 #include "ErrorCode.hpp"
 #include "ifModified.hpp"
+#include "contentType.hpp"
 
 void	Server::get(Response& response, const Request& request) const
 {
@@ -36,7 +37,7 @@ void	Server::get(Response& response, const Request& request) const
 	}
 	if (stat(file.c_str(), &statbuf) == 0)
 	{
-		if (processIfModifiedHeader(request["If-Modified-Since"], statbuf.st_mtim) == true)
+		if (processIfModifiedHeader(request["If-Modified-Since"].value, statbuf.st_mtim) == true)
 		{
 			response.setStatusCode(Response::NOT_MODIFIED);
 			response.insert("Last-Modified", convertLastModifiedToHTTPDate(statbuf.st_mtim));

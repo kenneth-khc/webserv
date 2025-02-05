@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/04 04:03:27 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 13:31:19 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,12 +69,10 @@ void	Server::processMessages()
 	}
 	if (client.requestLineFound && client.headersFound)
 	{
-		int	bodyLength = request.find<int>("Content-Length");
-		if (bodyLength == std::numeric_limits<int>::min())
-			bodyLength = 0;
+		Optional<int>	bodyLength = request.find< Optional<int> >("Content-Length");
 
 		request.messageBody = client.message;
-		if (client.message.size() == (size_t)bodyLength)
+		if (client.message.size() == (size_t)bodyLength.value)
 		{
 			readyRequests.push(request);
 			logger.logRequest(*this, request);
@@ -105,7 +103,7 @@ void	Server::generateResponses()
 
 		std::string	formattedResponse = response.toString();
 		send(response.socketFD, formattedResponse.c_str(), formattedResponse.size(), 0);
-		
+
 		// TODO: is this where we close the connection?
 		close(response.socketFD);
 		epoll_ctl(epollFD, EPOLL_CTL_DEL, response.socketFD, 0);
@@ -120,23 +118,23 @@ Response	Server::handleRequest(const Request& request) const
 
 	try
 	{
-		if (request.method == GET)
+		if (request.method == Request::GET)
 		{
 			get(response, request);
 		}
-		else if (request.method == POST)
+		else if (request.method == Request::POST)
 		{
 			post(response, request);
 		}
-		else if (request.method == PUT)
+		else if (request.method == Request::PUT)
 		{
 			put(response, request);
 		}
-		else if (request.method == DELETE)
+		else if (request.method == Request::DELETE)
 		{
 			delete_(response, request);
 		}
-		else if (request.method == HEAD)
+		else if (request.method == Request::HEAD)
 		{
 			head(response, request);
 		}

@@ -6,10 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:32:28 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/03 00:00:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 03:40:24 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <stdexcept>
 #include "ErrorCode.hpp"
 #include "Message.hpp"
 
@@ -63,7 +64,7 @@ void	Message::insert(const std::string &key, const std::string &value) {
 	it = this->headers.find(key);
 	if (it == this->headers.end()) {
 		this->headers.insert(std::make_pair(key, value));
-		return ;	
+		return ;
 	}
 	else {
 		for (int i = 0; i < NUM_OF_HEADERS; i++) {
@@ -76,10 +77,20 @@ void	Message::insert(const std::string &key, const std::string &value) {
 	}
 }
 
-std::string	&Message::operator[](const std::string &key) {
-	return (this->headers.at(key));
+Optional<std::string>	Message::operator[](const std::string &key) {
+	try {
+		return (this->headers.at(key));
+	}
+	catch (const std::out_of_range &e) {
+		return (Optional<std::string>());
+	}
 }
 
-const std::string	&Message::operator[](const std::string &key) const {
-	return (this->headers.at(key));
+const Optional<std::string>	Message::operator[](const std::string &key) const {
+	try {
+		return (this->headers.at(key));
+	}
+	catch (const std::out_of_range &e) {
+		return (Optional<std::string>());
+	}
 }

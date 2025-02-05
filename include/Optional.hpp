@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Optional.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 06:04:17 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/03 08:58:09 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/05 04:53:20 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,10 +71,12 @@ exists(other.exists)
 template <typename T>
 Optional<T>::~Optional()
 {
-	if (exists)
-	{
-		value.~T();
-	}
+	//	TODO: may lead to double-free in certain cases (std::cout << " | " << request
+	//	["User-Agent"].value << CRESET;).
+	// if (exists)
+	// {
+	// 	value.~T();
+	// }
 }
 
 template <typename T>

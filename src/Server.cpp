@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/01 09:47:46 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/04 22:34:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 
 /* TODO: Configure the server based on the config file */
 Server::Server():
+map("mime.types"),
 epollFD(-1),
 hostName("localhost"),
 portNum(8000),
@@ -32,7 +33,7 @@ listenerSocketFD(-1),
 numClients(0),
 maxEvents(1),
 readyEvents(NULL),
-numReadyEvents(0) 
+numReadyEvents(0)
 {
 	readyEvents = new epoll_event[maxEvents];
 }
@@ -83,7 +84,7 @@ void	Server::acceptNewClient()
 						  &client.addressLen);
 	fcntl(client.socketFD, F_SETFL, O_NONBLOCK);
 	++numClients;
-	
+
 	epoll_event	event;
 	event.events = EPOLLIN;
 	event.data.fd = client.socketFD;

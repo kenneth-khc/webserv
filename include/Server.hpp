@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/01 09:43:51 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/04 22:30:42 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include "Response.hpp"
 #include "Logger.hpp"
 #include "Client.hpp"
+#include "MediaType.hpp"
 
 class	Logger;
 
@@ -42,6 +43,9 @@ public:
 	void			processMessages();
 	void			processReadyRequests();
 	void			generateResponses();
+
+	//	TODO: Change access specifier?
+	MediaType		map;
 
 	/* HTTP requests */
 	Request			receiveRequest(int fd) const;
@@ -76,7 +80,7 @@ private:
 	friend class Logger;
 	Logger			logger;
 
-	// TODO: 
+	// TODO:
 	std::queue<Request>		readyRequests;
 	std::queue<Response>	readyResponses;
 

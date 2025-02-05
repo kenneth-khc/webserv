@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 14:56:09 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 14:56:31 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ void	Server::get(Response& response, const Request& request) const
 		{
 			response.setStatusCode(Response::OK);
 			response.messageBody = getFileContents(file);
+			constructContentTypeHeader(file, map, response);
 		}
 		response.insert("Last-Modified", convertLastModifiedToHTTPDate(statbuf.st_mtim));
 	}

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 01:27:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/04 11:20:35 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 05:19:23 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ bool	processIfModifiedHeader(const std::string &dateSince, const struct timespec
 
 std::string	convertLastModifiedToHTTPDate(const struct timespec &lastModified) {
 	std::tm	*lastModifiedInUTC = std::gmtime(&lastModified.tv_sec);
-	char	buffer[sizeof("DAY, DD MM YYYY HH:MM:SS")];
+	char	buffer[sizeof("DAY, DD MM YYYY HH:MM:SS") + 1];
 	std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S", lastModifiedInUTC);
 
 	return (std::string(buffer) + " GMT");

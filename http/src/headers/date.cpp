@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 02:14:54 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/04 11:21:16 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 04:57:42 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ bool	isIMFFixDate(const std::string &date, std::tm &time) {
 	if (isTimeOfDay(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str))
+	if (!std::getline(stream, str, '\0'))
 		return (false);
 	if (str != "GMT")
 		return (false);
@@ -88,10 +88,11 @@ bool	isDateOne(const std::string &date, std::tm &time) {
 	if (isMonth(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str))
+	if (!std::getline(stream, str, '\0'))
 		return (false);
 	if (isYear(str, time) == false)
 		return (false);
+	return (true);
 }
 
 bool	isDay(const std::string &day, std::tm &time) {
@@ -147,7 +148,7 @@ bool	isTimeOfDay(const std::string &timeOfDay, std::tm &time) {
 	if (isMinute(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str))
+	if (!std::getline(stream, str, '\0'))
 		return (false);
 	if (isSecond(str, time) == false)
 		return (false);
@@ -211,7 +212,7 @@ bool	isRFC850Date(const std::string &date, std::tm &time) {
 		return (false);
 	if (!std::getline(stream, str, ' '))
 		return (false);
-	if (isDateTwo(str, time) == false);
+	if (isDateTwo(str, time) == false)
 		return (false);
 
 	if (!std::getline(stream, str, ' '))
@@ -219,7 +220,7 @@ bool	isRFC850Date(const std::string &date, std::tm &time) {
 	if (isTimeOfDay(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str))
+	if (!std::getline(stream, str, '\0'))
 		return (false);
 	if (str != "GMT")
 		return (false);
@@ -255,7 +256,7 @@ bool	isDateTwo(const std::string &date, std::tm &time) {
 	if (isMonth(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str))
+	if (!std::getline(stream, str, '\0'))
 		return (false);
 	if (str.length() != 2)
 		return (false);
@@ -290,7 +291,7 @@ bool	isASCTimeDate(const std::string &date, std::tm &time) {
 	if (isTimeOfDay(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str))
+	if (!std::getline(stream, str, '\0'))
 		return (false);
 	if (isYear(str, time) == false)
 		return (false);
@@ -306,7 +307,7 @@ bool	isDateThree(const std::string &date, std::tm &time) {
 	if (isMonth(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str))
+	if (!std::getline(stream, str, '\0'))
 		return (false);
 	if (str[0] == ' ')
 		str = str.substr(1);
@@ -322,7 +323,7 @@ std::string	getCurrentTimeAsHTTPDate(void) {
 	std::time_t	currTime = std::time(NULL);
 	std::tm		*currTimeInUTC = std::gmtime(&currTime);
 
-	char	buffer[sizeof("DAY, DD MM YYYY HH:MM:SS")];
+	char	buffer[sizeof("DAY, DD MM YYYY HH:MM:SS") + 1];
 	std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S", currTimeInUTC);
 
 	return (std::string(buffer) + " GMT");

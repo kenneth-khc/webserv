@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 13:32:41 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 14:56:09 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,13 +40,13 @@ void	Server::get(Response& response, const Request& request) const
 		if (processIfModifiedHeader(request["If-Modified-Since"].value, statbuf.st_mtim) == true)
 		{
 			response.setStatusCode(Response::NOT_MODIFIED);
-			response.insert("Last-Modified", convertLastModifiedToHTTPDate(statbuf.st_mtim));
 		}
 		else if (access(file.c_str(), R_OK) == 0)
 		{
 			response.setStatusCode(Response::OK);
 			response.messageBody = getFileContents(file);
 		}
+		response.insert("Last-Modified", convertLastModifiedToHTTPDate(statbuf.st_mtim));
 	}
 	else
 	{

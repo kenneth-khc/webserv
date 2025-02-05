@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/02 23:30:35 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 13:16:51 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class Request : public Message {
 	public:
 		static const std::string	methods[NUM_OF_METHODS];
 		static const float			supportedVersions[NUM_OF_VERSIONS];
-		
+
 		int					method;
 		std::string			requestTarget;
 		int					socketFD;
@@ -35,25 +35,25 @@ class Request : public Message {
 		~Request(void);
 		Request(const Request &obj);
 		Request	&operator=(const Request &obj);
-	
+
 		bool	isValidMethod(const std::string &method);
 		bool	isSupportedVersion(const float &version);
 		void	parseRequestLine(std::string &line);
 		void	parseHeaders(std::string &line);
 
-		enum {
+		enum Methods {
+			GET,
+			HEAD,
+			POST,
+			PUT,
+			OPTIONS,
+			DELETE
+		};
+
+		enum HeaderFlags {
 			IFMODIFIED = 1,
 			CONNECTION = 1 << 1
 		};
-};
-
-enum METHODS {
-	GET,
-	HEAD,
-	POST,
-	PUT,
-	OPTIONS,
-	DELETE
 };
 
 #endif

@@ -6,10 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:32:28 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 03:40:24 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 17:21:31 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <sstream>
 #include <stdexcept>
 #include "ErrorCode.hpp"
 #include "Message.hpp"
@@ -64,12 +65,33 @@ void	Message::insert(const std::string &key, const std::string &value) {
 	it = this->headers.find(key);
 	if (it == this->headers.end()) {
 		this->headers.insert(std::make_pair(key, value));
-		return ;
 	}
 	else {
 		for (int i = 0; i < NUM_OF_HEADERS; i++) {
 			if (allowedDuplicateHeaders[i] == key) {
 				it->second += ", " + value;
+				return ;
+			}
+		}
+		throw BadRequest400();
+	}
+}
+
+void	Message::insert(const std::string &key, const int &value) {
+	std::map<std::string, std::string>::iterator	it = this->headers.begin();
+	std::stringstream								stream;
+	std::string										str;
+
+	it = this->headers.find(key);
+	stream << value;
+	std::getline(stream, str, '\0');
+	if (it == this->headers.end()) {
+		this->headers.insert(std::make_pair(key, str));
+	}
+	else {
+		for (int i = 0; i < NUM_OF_HEADERS; i++) {
+			if (allowedDuplicateHeaders[i] == key) {
+				it->second += ", " + str;
 				return ;
 			}
 		}

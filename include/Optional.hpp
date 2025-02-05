@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 06:04:17 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 04:53:20 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 20:20:57 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,15 +129,15 @@ void	Optional<T>::reset()
 template <typename T>
 template <typename U>
 Optional<T>	Optional<T>::value_or(const U& defaultValue) const
+{
+	if (exists)
 	{
-		if (exists)
-		{
-			return value;
-		}
-		else
-		{
-			return defaultValue;
-		}
+		return value;
 	}
+	else
+	{
+		return defaultValue;
+	}
+}
 
 #endif

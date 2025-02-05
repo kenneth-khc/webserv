@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 01:09:40 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 05:22:23 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 16:40:53 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ Response &response) {
 	Optional<std::string>	mediaType = map[extension];
 
 	if (mediaType.exists == false)
-		return ;
-	response.insert("Content-Type", mediaType.value);
+		response.insert("Content-Type", "application/octet-stream");
+	else
+		response.insert("Content-Type", mediaType.value);
 }

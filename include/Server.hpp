@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/04 22:30:42 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 20:12:44 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,8 @@ public:
 	void			generateResponses();
 
 	//	TODO: Change access specifier?
+	//	Only include a server-wide mapping for now..,
+	//	Nginx allows defining in different http, server, and location blocks
 	MediaType		map;
 
 	/* HTTP requests */

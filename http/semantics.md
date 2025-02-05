@@ -1,7 +1,7 @@
 # Basic Core HTTP Semantics
 ## Core Rules
 |Rule|Value|Description|Check|
-|-|-|-|-|
+|-|-|-|:-:|
 |ALPHA|%x41-5A / %x61-7A|A-Z / a-z|✅(std::isalpha)|
 |BIT|"0" / "1"|||
 |BWS|OWS|Bad White Space and Optional White Space||
@@ -29,7 +29,7 @@
 
 ## URI Rules
 |Rule|Value|Description|Check|
-|-|-|-|-|
+|-|-|-|:-:|
 |URI|scheme ":" hier-part [ "?" query ][ "#" fragment ]|||
 |scheme|ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )||✅|
 |hier-part|"//" authority path-abempty / path-absolute / path-rootless / path-empty|abempty: begins with "/" or is empty / absolute: begins with "/" but not "//" / rootless: begins with a segment / empty: zero characters|✅|
@@ -61,7 +61,7 @@
 
 ## General Message Rules
 |Rule|Value|Description|Check|
-|-|-|-|-|
+|-|-|-|:-:|
 |HTTP-message|start-line CRLF *( field-line CRLF ) CRLF [ message-body ]||❕|
 |start-line|request-line / status-line|||
 |request-line|method SP request-target SP HTTP-version||✅|
@@ -86,20 +86,20 @@
 ## Headers
 ### Connection
 |Rule|Value|Description|Check|
-|-|-|-|-|
+|-|-|-|:-:|
 |Connection|[ connection-option *( OWS "," OWS connection-option ) ]|||
 |connection-option|token|||
 
 ### Content
 |Rule|Value|Description|Check|
-|-|-|-|-|
+|-|-|-|:-:|
 |Content-Language|[ language-tag *( OWS "," OWS language-tag ) ]|||
 |Content-Length|1*DIGIT|||
 |Content-Type|media-type|||
 
 ### Date
 |Rule|Value|Description|Check|
-|-|-|-|-|
+|-|-|-|:-:|
 |Date|HTTP-date||✅|
 |HTTP-date|IMF-fixdate / obs-date||✅|
 |IMF-fixdate|day-name "," SP date1 SP time-of-day SP GMT||✅|
@@ -122,22 +122,22 @@
 
 ### Host
 |Rule|Value|Description|Check|
-|-|-|-|-|
+|-|-|-|:-:|
 |Host|host [ ":" port ]|||
 
 ### Last-Modified
 |Rule|Value|Description|Check|
-|-|-|-|-|
+|-|-|-|:-:|
 |Last-Modified|HTTP-date|||
 
 ### Server
 |Rule|Value|Description|Check|
-|-|-|-|-|
+|-|-|-|:-:|
 |Server|product *( RWS ( product / comment ) )|||
 
 ### User-Agent
 |Rule|Value|Description|Check|
-|-|-|-|-|
+|-|-|-|:-:|
 |User-Agent|product *( RWS ( product / comment ) )|||
 |product|token [ "/" product-version ]|||
 |product-version|token|||
@@ -147,7 +147,7 @@
 
 ### Cookies
 |Rule|Value|Description|Check|
-|-|-|-|-|
+|-|-|-|:-:|
 |Set-Cookie|set-cookie-setting|||
 |set-cookie-setting|cookie-pair *( ";" SP cookie-av )|||
 |cookie-pair|cookie-name "=" cookie-value|||

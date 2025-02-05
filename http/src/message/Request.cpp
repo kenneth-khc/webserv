@@ -6,13 +6,13 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 04:22:18 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 17:41:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 #include "requestLine.hpp"
-#include "fields.hpp"
+#include "requestFields.hpp"
 #include "ErrorCode.hpp"
 #include "Request.hpp"
 

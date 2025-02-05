@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 03:55:29 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/04 03:55:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 04:01:53 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,6 @@
 # include "Request.hpp"
 # include "Response.hpp"
 
-void	processConnectionHeader(const Request &request, Response &response);
+void	constructConnectionHeader(const Request &request, Response &response);
 
 #endif

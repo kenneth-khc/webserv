@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 13:31:19 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 13:31:35 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,7 @@ Response	Server::handleRequest(const Request& request) const
 		{
 			head(response, request);
 		}
-		processConnectionHeader(request, response);
+		constructConnectionHeader(request, response);
 		response.insert("Date", getCurrentTimeAsHTTPDate());
 	}
 	catch (const ErrorCode& e)

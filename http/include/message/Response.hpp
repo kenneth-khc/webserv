@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/04 03:15:04 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 05:10:12 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ class Response : public Message {
 		void				setStatusCode(int statusCode);
 
 		enum HeaderFlags {
-			CONNECTION = 1
+			CONNECTION_KEEP_ALIVE = 1
 		};
 
 		enum StatusCodes {

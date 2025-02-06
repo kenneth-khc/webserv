@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 03:55:57 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/04 04:01:33 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/06 18:25:25 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,5 @@ bool	isDayNameOne(const std::string &day, std::tm &time);
 bool	isDateTwo(const std::string &date, std::tm &time);
 bool	isASCTimeDate(const std::string &date, std::tm &time);
 bool	isDateThree(const std::string &date, std::tm &time);
-
-std::string	getCurrentTimeAsHTTPDate(void);
 
 #endif

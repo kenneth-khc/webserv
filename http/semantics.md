@@ -164,3 +164,11 @@
 |path-value|<any CHAR except CTLs or ";">|||
 |secure-av|"Secure"|||
 |httponly-av|"HttpOnly"|||
+
+### Entity Tag
+|Rule|Value|Description|Check|
+|-|-|-|:-:|
+|ETag|entity-tag|||
+|entity-tag|[ weak ] opaque-tag|||
+|opaque-tag|DQUOTE *etagc DQUOTE|||
+|etagc|%x21 / %x23-7E / obs-text|VCHAR except double quotes, plus obs-text||

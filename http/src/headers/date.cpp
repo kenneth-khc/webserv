@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 02:14:54 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 04:57:42 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/06 18:45:22 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -317,14 +317,4 @@ bool	isDateThree(const std::string &date, std::tm &time) {
 	}
 	time.tm_mday = std::atoi(str.c_str());
 	return (true);
-}
-
-std::string	getCurrentTimeAsHTTPDate(void) {
-	std::time_t	currTime = std::time(NULL);
-	std::tm		*currTimeInUTC = std::gmtime(&currTime);
-
-	char	buffer[sizeof("DAY, DD MM YYYY HH:MM:SS") + 1];
-	std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S", currTimeInUTC);
-
-	return (std::string(buffer) + " GMT");
 }

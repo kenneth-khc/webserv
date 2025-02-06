@@ -6,19 +6,21 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 17:21:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/06 22:31:56 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fstream>
-#include "Response.hpp"
 #include "Server.hpp"
-#include "debugUtils.hpp"
+#include "Response.hpp"
 #include "ErrorCode.hpp"
-#include "ifModified.hpp"
+#include "Time.hpp"
+#include "debugUtils.hpp"
+#include "preconditions.hpp"
 #include "contentType.hpp"
+#include "etag.hpp"
 
 void	Server::get(Response& response, const Request& request) const
 {
@@ -37,7 +39,7 @@ void	Server::get(Response& response, const Request& request) const
 	}
 	if (stat(file.c_str(), &statbuf) == 0)
 	{
-		if (processIfModifiedHeader(request["If-Modified-Since"].value, statbuf.st_mtim) == true)
+		if (processIfModifiedHeader(request, statbuf.st_mtim) == false)
 		{
 			response.setStatusCode(Response::NOT_MODIFIED);
 		}
@@ -48,7 +50,8 @@ void	Server::get(Response& response, const Request& request) const
 			response.insert("Content-Length", response.messageBody.length());
 			constructContentTypeHeader(file, map, response);
 		}
-		response.insert("Last-Modified", convertLastModifiedToHTTPDate(statbuf.st_mtim));
+		constructETagHeader(statbuf.st_mtim, request.find< Optional<int> >("Content-Length"));
+		response.insert("Last-Modified", Time::printHTTPDate(statbuf.st_mtim));
 	}
 	else
 	{

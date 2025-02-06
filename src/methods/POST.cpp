@@ -117,30 +117,10 @@ std::string	getFilenameFromContentDisposition(const std::string& messageBody)
 
 void	Server::post(Response& response, const Request& request) const
 {
-	/*MessageBody	msgBody = request.messageBody;*/
-	ContentType	contentType = getContentType(request);
-	if (contentType.type == "multipart/form-data")
-	{
-		std::string	filename = getFilenameFromContentDisposition(request.messageBody);
-		if (uploadFile(request, contentType, filename))
-		{
-			response.statusCode = 200;
-			response.reasonPhrase = "OK";
-			// TODO: generate location dynamically
-			std::string	location = "http://localhost:8000/upload/" + filename;
-			response.headers.insert(std::make_pair("Location", location));
-			// TODO: regenerate the page/link to created resource after POSTing
-			response.messageBody = getFileContents("html/form.html");
-		}
-	}
-	return ;
+	(void)response;
+	MessageBody	msgBody(request);
+
+	response.statusCode = 400;
+	response.reasonPhrase = "OK";
 }
-
-
-
-
-
-
-
-
 

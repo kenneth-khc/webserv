@@ -1,29 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils.hpp                                          :+:      :+:    :+:   */
+/*   testString.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/19 17:26:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 23:42:11 by kecheong         ###   ########.fr       */
+/*   Created: 2025/02/06 18:55:12 by kecheong          #+#    #+#             */
+/*   Updated: 2025/02/06 19:09:05 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#include <iostream>
+#include "String.hpp"
 
-#include <string>
-#include <sstream>
-
-void	error(const std::string& errmsg);
-
-template <typename Type>
-std::string	toString(Type const& t)
+int	main()
 {
-	std::stringstream	ss;
-	ss << t;
-	return ss.str();
-}
+	String	s("Hello World");
 
-#endif
+	s.consumeUntil("rld");
+	std::cout << s.match(String("ld"), 1) << '\n';
+
+}

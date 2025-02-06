@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:26:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/30 21:47:09 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/05 23:15:19 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,12 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "String.hpp"
+#include "Request.hpp"
 
 class	MessageBodyChunk
 {
+public:
 	std::map<std::string,std::string>	contentDisposition;
 	std::string	contentType;
 	std::string	content;
@@ -28,12 +31,24 @@ class	MessageBodyChunk
 class	MessageBody
 {
 public:
-	MessageBody(const std::string&);
+	MessageBody(const Request&);
+	void	parseMultipartFormData();
 
+private:
+	String							contentType;
+	String							dashBoundary;
+	String							closeBoundary;
+	String							body;
 	std::vector<MessageBodyChunk>	chunks;
-	std::string						boundary;
-	std::string						boundaryEnd;
 
 };
+
+bool	isCR(char c);
+bool	isLF(char c);
+bool	isCRLF(const std::string& s);
+bool	isSpace(char c);
+bool	isHTab(char c);
+bool	isWhiteSpace(char c);
+bool	isLinearWhiteSpace(const std::string& s);
 
 #endif

@@ -116,6 +116,7 @@ Response	Server::handleRequest(const Request& request) const
 {
 	Response	response;
 
+	/*const_cast<Request&>(request).method = POST;*/
 	try
 	{
 		if (request.method == GET)

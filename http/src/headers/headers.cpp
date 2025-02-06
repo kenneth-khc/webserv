@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 17:47:44 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 18:23:19 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/06 18:51:27 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,20 +20,18 @@ const std::string &fieldValue)
 	static const std::string	headers[NUM_OF_MANDATORY_HEADERS] = {
 		"host"
 	};
-	static bool					(*const checkFunctions[NUM_OF_MANDATORY_HEADERS])(const std::string &) = {
+	static bool					(*const funcs[NUM_OF_MANDATORY_HEADERS])(const std::string &) = {
 		isAuthority
 	};
 
 	for (std::size_t i = 0; i < fieldName.length(); i++)
 		fieldName[i] = std::tolower(fieldName[i]);
 
-	int i = 0;
-	while (i < NUM_OF_MANDATORY_HEADERS) {
-		if (fieldName == headers[i])
-			break ;
-		i++;
+	for (int i = 0; i < NUM_OF_MANDATORY_HEADERS; i++) {
+		if (fieldName == headers[i]) {
+			if (funcs[i](fieldValue) == false)
+				return (false);
+		}
 	}
-	if (i == NUM_OF_MANDATORY_HEADERS)
-		return (true);
-	return (checkFunctions[i](fieldValue));
+	return (true);
 }

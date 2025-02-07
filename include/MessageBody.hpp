@@ -22,9 +22,9 @@
 class	MessageBodyChunk
 {
 public:
-	std::map<std::string,std::string>	contentDisposition;
-	std::string	contentType;
-	std::string	content;
+	std::map<String,String>	contentDisposition;
+	String					contentType;
+	String					content;
 
 };
 

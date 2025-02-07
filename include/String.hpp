@@ -16,12 +16,14 @@
 #include <iostream>
 #include <string>
 #include <exception>
+#include <vector>
 #include "Optional.hpp"
 
 /* Custom String object that wraps around std::string to provide us with 
  * facilities that help with parsing a std::string */
 
 using std::string;
+using std::vector;
 
 struct	Predicate;
 
@@ -35,6 +37,8 @@ public:
 	String(const std::string&);
 	String(const String&);
 	bool					operator==(const std::string&) const;
+	bool					operator==(const String&) const;
+	bool					operator==(const char*) const;
 	String&					operator=(const String&);
 	char&					operator[](size_type);
 	const char&				operator[](size_type) const;
@@ -63,9 +67,15 @@ public:
 
 	bool		consumeIf(char);
 	bool		consumeIf(bool(*p)(char));
-	bool		consumeIf(Predicate&);
+	bool		consumeIf(const Predicate&);
 	bool		consumeUntil(const std::string&);
-	bool		consumeIfUntil(Predicate&, const std::string&);
+	bool		consumeIfUntil(const Predicate&, const std::string&);
+
+	vector<String>	split() const;
+	vector<String>	split(const std::string& delimiters) const;
+	String			trim(const String& set);
+	String			trim(const String& set) const;
+
 
 private:
 	string	str;

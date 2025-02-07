@@ -40,6 +40,16 @@ bool	String::operator==(const std::string& rhs) const
 	return str == rhs;
 }
 
+bool	String::operator==(const String& rhs) const
+{
+	return str == rhs.str;
+}
+
+bool	String::operator==(const char* rhs) const
+{
+	return operator==(std::string(rhs));
+}
+
 String&	String::operator=(const String& other)
 {
 	str = other.str;
@@ -262,7 +272,7 @@ bool	String::consumeIf(bool (*p)(char))
 	return false;
 }
 
-bool	String::consumeIf(Predicate& pred)
+bool	String::consumeIf(const Predicate& pred)
 {
 	if (!str.empty() && pred(str[0]))
 	{
@@ -286,7 +296,7 @@ bool	String::consumeUntil(const std::string& expected)
 	}
 }
 
-bool	String::consumeIfUntil(Predicate& pred, const std::string& expected)
+bool	String::consumeIfUntil(const Predicate& pred, const std::string& expected)
 {
 	Optional<size_type>	pos = find(expected);
 	if (!pos.exists)
@@ -304,4 +314,76 @@ bool	String::consumeIfUntil(Predicate& pred, const std::string& expected)
 		}
 	}
 	return true;
+}
+
+vector<String>	String::split() const
+{
+	vector<String>	strings;
+	std::string		s = str;
+
+	for (std::string::iterator it = s.begin(); it != s.end(); ++it)
+	{
+		String	singleCharToken = std::string(1, *it);
+		strings.push_back(singleCharToken);
+	}
+	return strings;
+}
+
+vector<String>	String::split(const std::string& delimiters) const
+{
+	vector<String>	strings;
+	std::string		s = str;
+
+	while (s.length() != 0)
+	{
+		size_type	delimiterPos = s.find_first_of(delimiters);
+		String		token = s.substr(0, delimiterPos);
+		if (token.length() > 0)
+		{
+			strings.push_back(token);
+		}
+		s.erase(0, token.length()+1);
+	}
+	return strings;
+}
+
+String	String::trim(const String& set)
+{
+	if (str.empty())
+	{
+		return str;
+	}
+	size_type	start = 0;
+	while (set.find(str[start]).exists)
+	{
+		++start;
+	}
+	size_type	end = str.size()-1;
+	while (set.find(str[end]).exists)
+	{
+		--end;
+	}
+	size_type	len = (end + 1) - start;
+	str = str.substr(start, len);
+	return str;
+}
+
+String	String::trim(const String& set) const
+{
+	if (str.empty())
+	{
+		return str;
+	}
+	size_type	start = 0;
+	while (set.find(str[start]).exists)
+	{
+		++start;
+	}
+	size_type	end = str.size()-1;
+	while (set.find(str[end]).exists)
+	{
+		--end;
+	}
+	size_type	len = (end + 1) - start;
+	return str.substr(start, len);
 }

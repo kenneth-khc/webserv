@@ -109,7 +109,16 @@ void	MessageBody::parseMultipartFormData()
 {
 	while (!body.consume(closeBoundary))
 	{
-		body.consume(dashBoundary);
+		try
+		{
+			body.consume(dashBoundary);
+			body.consumeIfUntil(Predicate(" \t"), "\r\n");
+			body.consume("\r\n");
 
+		}
+		catch (const std::exception& e)
+		{
+
+		}
 	}
 }

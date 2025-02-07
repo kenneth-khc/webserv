@@ -11,8 +11,9 @@
 /* ************************************************************************** */
 
 #include <iostream>
-#include "String.hpp"
+#include <sstream>
 #include <stdexcept>
+#include "String.hpp"
 
 template <typename Type>
 std::string	String::toStdString(const Type& T)
@@ -33,6 +34,11 @@ str(str) { }
 
 String::String(const String& other):
 str(other.str) { }
+
+bool	String::operator==(const std::string& rhs) const
+{
+	return str == rhs;
+}
 
 String&	String::operator=(const String& other)
 {
@@ -119,7 +125,7 @@ String::size_type	String::length() const
 }
 
 Optional<String::size_type>
-String::find(const std::string& expected, size_type offset)
+String::find(const std::string& expected, size_type offset) const
 {
 	String::size_type	pos = str.find(expected, offset);
 	if (pos == str.npos)
@@ -133,7 +139,21 @@ String::find(const std::string& expected, size_type offset)
 }
 
 Optional<String::size_type>
-String::findAfter(const std::string& expected, size_type offset)
+String::find(const char& c, size_type offset) const
+{
+	String::size_type	pos = str.find(c, offset);
+	if (pos == str.npos)
+	{
+		return makeNone<size_type>();
+	}
+	else
+	{
+		return makeOptional(pos);
+	}
+}
+
+Optional<String::size_type>
+String::findAfter(const std::string& expected, size_type offset) const
 {
 	Optional<size_type>	pos = find(expected, offset);
 	if (pos.exists)
@@ -146,27 +166,24 @@ String::findAfter(const std::string& expected, size_type offset)
 bool	String::match(const String& expected, size_type offset)
 {
 	return str.compare(offset, expected.length(), expected.str) == 0;
-	/*for (size_t i = 0; i < expected.size(); ++i, ++offset)*/
-	/*{*/
-	/*	if (str[offset] != expected[i])*/
-	/*	{*/
-	/*		return false;*/
-	/*	}*/
-	/*}*/
-	/*return true;*/
 }
 
 bool	String::match(const std::string& expected, size_type offset)
 {
 	return str.compare(offset, expected.length(), expected) == 0;
-	/*for (size_t i = 0; i < expected.size(); ++i, ++offset)*/
-	/*{*/
-	/*	if (str[offset] != expected[i])*/
-	/*	{*/
-	/*		return false;*/
-	/*	}*/
-	/*}*/
-	/*return true;*/
+}
+
+bool	String::consume()
+{
+	if (!str.empty())
+	{
+		str.erase(0, 1);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool	String::consume(const char* cStr)
@@ -210,11 +227,46 @@ bool	String::consume(const String& expected)
 	}
 }
 
+Predicate::Predicate(const std::string& str):
+match(str) { }
+
+bool	Predicate::operator()(const char& c) const
+{
+	if (match.find(c).exists)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 bool	String::consumeIf(char c)
 {
 	if (!str.empty() && str[0] == c)
 	{
-		str.erase(0, 1);
+		consume();
+		return true;
+	}
+	return false;
+}
+
+bool	String::consumeIf(bool (*p)(char))
+{
+	if (!str.empty() && p(str[0]))
+	{
+		consume();
+		return true;
+	}
+	return false;
+}
+
+bool	String::consumeIf(Predicate& pred)
+{
+	if (!str.empty() && pred(str[0]))
+	{
+		consume();
 		return true;
 	}
 	return false;
@@ -232,4 +284,24 @@ bool	String::consumeUntil(const std::string& expected)
 	{
 		return false;
 	}
+}
+
+bool	String::consumeIfUntil(Predicate& pred, const std::string& expected)
+{
+	Optional<size_type>	pos = find(expected);
+	if (!pos.exists)
+	{
+		throw ExpectedNotFound();
+	}
+	else
+	{
+		for (size_t i = 0; i < pos.value; ++i)
+		{
+			if (consumeIf(pred) == false)
+			{
+				throw UnexpectedCharacter();
+			}
+		}
+	}
+	return true;
 }

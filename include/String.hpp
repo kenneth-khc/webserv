@@ -39,6 +39,7 @@ public:
 	bool					operator==(const std::string&) const;
 	bool					operator==(const String&) const;
 	bool					operator==(const char*) const;
+	bool					operator<(const String&) const;
 	String&					operator=(const String&);
 	char&					operator[](size_type);
 	const char&				operator[](size_type) const;
@@ -48,17 +49,20 @@ public:
 	String					operator+(const String&);
 	String&					operator+=(const String&);
 	friend std::ostream&	operator<<(std::ostream&, const String&);
+	operator	std::string() const;
 
 	char&				at(size_type);
 	const char&			at(size_type) const;
 	size_type			size() const;
 	size_type			length() const;
-	Optional<size_type>	find(const std::string&, size_type = 0) const;
 	Optional<size_type>	find(const char&, size_type = 0) const;
+	Optional<size_type>	find(const std::string&, size_type = 0) const;
+	Optional<size_type>	find(const String&, size_type = 0) const;
+	String				substr(size_type pos = 0, size_type n = npos) const;
 
 	Optional<size_type>	findAfter(const std::string&, size_type = 0) const;
 	bool				match(const String&, size_type = 0);
-	bool				match(const std::string&, size_type = 0);
+	/*bool				match(const std::string&, size_type = 0);*/
 
 	bool		consume();
 	bool		consume(const char*);
@@ -68,7 +72,8 @@ public:
 	bool		consumeIf(char);
 	bool		consumeIf(bool(*p)(char));
 	bool		consumeIf(const Predicate&);
-	bool		consumeUntil(const std::string&);
+	String		consumeUntil(const std::string&);
+	String		consumeUntil(const String&);
 	bool		consumeIfUntil(const Predicate&, const std::string&);
 
 	vector<String>	split() const;
@@ -78,7 +83,8 @@ public:
 
 
 private:
-	string	str;
+	string					str;
+	const static size_type	npos = std::string::npos;
 
 	template <typename Type>
 	static std::string	toStdString(const Type& T);

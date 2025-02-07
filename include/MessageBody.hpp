@@ -19,13 +19,16 @@
 #include "String.hpp"
 #include "Request.hpp"
 
+using std::map;
+
 class	MessageBodyChunk
 {
 public:
-	std::map<String,String>	contentDisposition;
-	String					contentType;
-	String					content;
+	map<String,String>	contentDisposition;
+	String				contentType;
+	String				content;
 
+	void	extractKeyValue(const String&);
 };
 
 class	MessageBody
@@ -34,21 +37,14 @@ public:
 	MessageBody(const Request&);
 	void	parseMultipartFormData();
 
-private:
-	String							contentType;
-	String							dashBoundary;
-	String							closeBoundary;
-	String							body;
 	std::vector<MessageBodyChunk>	chunks;
 
+private:
+	map<String,String>	urlEncodedKeyValues;
+	String				contentType;
+	String				dashBoundary;
+	String				closeBoundary;
+	String				body;
 };
-
-bool	isCR(char c);
-bool	isLF(char c);
-bool	isCRLF(const std::string& s);
-bool	isSpace(char c);
-bool	isHTab(char c);
-bool	isWhiteSpace(char c);
-bool	isLinearWhiteSpace(const std::string& s);
 
 #endif

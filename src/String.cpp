@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 23:46:23 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/08 06:08:56 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,11 @@ bool	String::operator==(const String& rhs) const
 bool	String::operator==(const char* rhs) const
 {
 	return operator==(std::string(rhs));
+}
+
+bool	String::operator<(const String& rhs) const
+{
+	return str < rhs.str;
 }
 
 String&	String::operator=(const String& other)
@@ -135,6 +140,20 @@ String::size_type	String::length() const
 }
 
 Optional<String::size_type>
+String::find(const char& c, size_type offset) const
+{
+	String::size_type	pos = str.find(c, offset);
+	if (pos == str.npos)
+	{
+		return makeNone<size_type>();
+	}
+	else
+	{
+		return makeOptional(pos);
+	}
+}
+
+Optional<String::size_type>
 String::find(const std::string& expected, size_type offset) const
 {
 	String::size_type	pos = str.find(expected, offset);
@@ -148,18 +167,20 @@ String::find(const std::string& expected, size_type offset) const
 	}
 }
 
-Optional<String::size_type>
-String::find(const char& c, size_type offset) const
+String::operator std::string() const
 {
-	String::size_type	pos = str.find(c, offset);
-	if (pos == str.npos)
-	{
-		return makeNone<size_type>();
-	}
-	else
-	{
-		return makeOptional(pos);
-	}
+	return str;
+}
+
+Optional<String::size_type>
+String::find(const String& expected, size_type offset) const
+{
+	return find(std::string(expected), offset);
+}
+
+String	String::substr(size_type pos, size_type n) const
+{
+	return str.substr(pos, n);
 }
 
 Optional<String::size_type>
@@ -178,10 +199,10 @@ bool	String::match(const String& expected, size_type offset)
 	return str.compare(offset, expected.length(), expected.str) == 0;
 }
 
-bool	String::match(const std::string& expected, size_type offset)
-{
-	return str.compare(offset, expected.length(), expected) == 0;
-}
+/*bool	String::match(const std::string& expected, size_type offset)*/
+/*{*/
+/*	return str.compare(offset, expected.length(), expected) == 0;*/
+/*}*/
 
 bool	String::consume()
 {
@@ -282,17 +303,33 @@ bool	String::consumeIf(const Predicate& pred)
 	return false;
 }
 
-bool	String::consumeUntil(const std::string& expected)
+String	String::consumeUntil(const std::string& expected)
 {
 	Optional<size_type>	pos = find(expected);
 	if (pos.exists)
 	{
+		String	consuming = str.substr(0, pos.value);
 		str = str.substr(pos.value);
-		return true;
+		return consuming;
 	}
 	else
 	{
-		return false;
+		return "";
+	}
+}
+
+String	String::consumeUntil(const String& expected)
+{
+	Optional<size_type>	pos = find(expected);
+	if (pos.exists)
+	{
+		String	consuming = str.substr(0, pos.value);
+		str = str.substr(pos.value);
+		return consuming;
+	}
+	else
+	{
+		return "";
 	}
 }
 

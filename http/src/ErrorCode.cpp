@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 21:22:01 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/07 22:31:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,11 +50,11 @@ ErrorCode	&ErrorCode::operator=(const ErrorCode &obj) {
 /* Client Error 4XX */
 /********************/
 //	400 Bad Request
-BadRequest400::BadRequest400(void) : 
+BadRequest400::BadRequest400(void) :
 	ErrorCode(1.1, 400, "Bad Request")
 {}
 
-BadRequest400::BadRequest400(std::string title) : 
+BadRequest400::BadRequest400(std::string title) :
 	ErrorCode(1.1, 400, "Bad Request", title)
 {}
 
@@ -67,23 +67,31 @@ NotFound404::NotFound404(std::string title) :
 	ErrorCode(1.1, 404, "Not Found", title)
 {}
 
+PreconditionFailed412::PreconditionFailed412(void) :
+	ErrorCode(1.1, 412, "Precondition Failed")
+{}
+
+PreconditionFailed412::PreconditionFailed412(std::string title) :
+	ErrorCode(1.1, 412, title)
+{}
+
 /********************/
 /* Server Error 5XX */
 /********************/
 //	501 Not Implemented
-NotImplemented501::NotImplemented501(void) : 
+NotImplemented501::NotImplemented501(void) :
 	ErrorCode(1.1, 501, "Not Implemented")
 {}
 
-NotImplemented501::NotImplemented501(std::string title) : 
+NotImplemented501::NotImplemented501(std::string title) :
 	ErrorCode(1.1, 501, "Not Implemented", title)
 {}
 
 //	505 Version Not Supported
-VersionNotSupported505::VersionNotSupported505(void) : 
+VersionNotSupported505::VersionNotSupported505(void) :
 	ErrorCode(1.1, 505, "Version Not Supported")
 {}
 
-VersionNotSupported505::VersionNotSupported505(std::string title) : 
+VersionNotSupported505::VersionNotSupported505(std::string title) :
 	ErrorCode(1.1, 505, "Version Not Supported", title)
 {}

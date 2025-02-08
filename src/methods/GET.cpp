@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/06 22:31:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/08 03:57:06 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ void	Server::get(Response& response, const Request& request) const
 	}
 	if (stat(file.c_str(), &statbuf) == 0)
 	{
-		if (processIfModifiedHeader(request, statbuf.st_mtim) == false)
+		if (processPreconditions(request, statbuf) == false)
 		{
 			response.setStatusCode(Response::NOT_MODIFIED);
 		}
@@ -47,10 +47,10 @@ void	Server::get(Response& response, const Request& request) const
 		{
 			response.setStatusCode(Response::OK);
 			response.messageBody = getFileContents(file);
-			response.insert("Content-Length", response.messageBody.length());
+			response.insert("Content-Length", statbuf.st_size);
 			constructContentTypeHeader(file, map, response);
 		}
-		constructETagHeader(statbuf.st_mtim, request.find< Optional<int> >("Content-Length"));
+		response.insert("ETag", constructETagHeader(statbuf.st_mtim, statbuf.st_size));
 		response.insert("Last-Modified", Time::printHTTPDate(statbuf.st_mtim));
 	}
 	else

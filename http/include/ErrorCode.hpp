@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:25:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 11:31:04 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/07 22:31:50 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,12 @@ class NotFound404 : public ErrorCode {
 	public:
 		NotFound404(void);
 		NotFound404(std::string title);
+};
+
+class PreconditionFailed412 : public ErrorCode {
+	public:
+		PreconditionFailed412(void);
+		PreconditionFailed412(std::string title);
 };
 
 /********************/

@@ -7,7 +7,7 @@
 |BWS|OWS|Bad White Space and Optional White Space||
 |CHAR|%x01-7F|ASCII Character||
 |CR|%x0D|Carriage Return|✅|
-|CRLF|CR LF|CR Line Feed||
+|CRLF|CR LF|CR Line Feed|❕|
 |DIGIT|%x30-39|0 - 9|✅(std::isdigit)|
 |DQUOTE|%x22|Double Quote|✅|
 |HEXDIG|DIGIT / "A" / "B" / "C" / "D" / "E" / "F"||✅(std::isxdigit)|
@@ -16,7 +16,7 @@
 |LWSP|*( WSP / CRLF WSP )|Linear White Space||
 |obs-text|%x80-FF||✅|
 |OCTET|%x00-FF||❕|
-|OWS|*( SP / HTAB )|||
+|OWS|*( SP / HTAB )||❕|
 |pct-encoded|"%" HEXDIG HEXDIG||✅|
 |RWS|1*( SP / HTAB )|Required White Space||
 |SP|%x20||✅|
@@ -123,7 +123,7 @@
 ### Host
 |Rule|Value|Description|Check|
 |-|-|-|:-:|
-|Host|host [ ":" port ]|||
+|Host|host [ ":" port ]||❕|
 
 ### Last-Modified
 |Rule|Value|Description|Check|
@@ -168,7 +168,17 @@
 ### Entity Tag
 |Rule|Value|Description|Check|
 |-|-|-|:-:|
-|ETag|entity-tag|||
-|entity-tag|[ weak ] opaque-tag|||
-|opaque-tag|DQUOTE *etagc DQUOTE|||
-|etagc|%x21 / %x23-7E / obs-text|VCHAR except double quotes, plus obs-text||
+|ETag|entity-tag||✅|
+|entity-tag|[ weak ] opaque-tag||✅|
+|opaque-tag|DQUOTE *etagc DQUOTE||✅|
+|etagc|%x21 / %x23-7E / obs-text|VCHAR except double quotes, plus obs-text|✅|
+
+### If-None-Match
+|Rule|Value|Description|Check|
+|-|-|-|:-:|
+|If-None-Match|"*" / #entity-tag||❕|
+
+### If-Modified-Since
+|Rule|Value|Description|Check|
+|-|-|-|:-:|
+|If-Modified-Since|HTTP-date||❕|

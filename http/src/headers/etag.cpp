@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 18:09:22 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/06 22:14:58 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/07 22:49:04 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include "terminalValues.hpp"
 #include "etag.hpp"
 
-bool	isETag(const std::string &line) {
+bool	isETagHeader(const std::string &line) {
 	if (isEntityTag(line) == false)
 		return (false);
 	return (true);
@@ -32,6 +32,7 @@ bool	isEntityTag(const std::string &line) {
 
 	if (isOpaqueTag(opaqueTag) == false)
 		return (false);
+	return (true);
 }
 
 bool	isOpaqueTag(const std::string &line) {
@@ -47,7 +48,7 @@ bool	isOpaqueTag(const std::string &line) {
 
 bool	isEntityTagCharacter(const std::string &line) {
 	for (std::size_t i = 0; i < line.length(); i++) {
-		if (line[i] != '"' && std::isgraph(line[i]) != 0 || isObsoleteText(line[i]))
+		if ((line[i] != '"' && std::isgraph(line[i]) != 0) || isObsoleteText(line[i]))
 			continue ;
 		return (false);
 	}
@@ -65,4 +66,23 @@ std::string	constructETagHeader(const struct timespec &lastModified, Optional<in
 	stream << '"';
 	std::getline(stream, etag, '\0');
 	return (etag);
+}
+
+bool	compareETagStrong(const std::string &etagOne, const std::string &etagTwo) {
+	if (etagOne == etagTwo)
+		return (true);
+	else
+		return (false);
+}
+
+bool	compareETagWeak(std::string etagOne, std::string etagTwo) {
+	if (etagOne.length() > 2 && etagOne[0] == 'W' && etagOne[1] == '/')
+		etagOne = etagOne.substr(2);
+	if (etagTwo.length() > 2 && etagTwo[0] == 'W' && etagTwo[1] == '/')
+		etagTwo = etagTwo.substr(2);
+
+	if (etagOne == etagTwo)
+		return (true);
+	else
+		return (false);
 }

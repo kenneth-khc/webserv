@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 03:55:57 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/06 18:25:25 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/08 12:43:51 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 # define NUM_OF_DAYS 7
 # define NUM_OF_MONTHS 12
 
-bool	isDate(const std::string &date, std::tm &time);
+bool	isDateHeader(const std::string &date);
 bool	isHTTPDate(const std::string &date, std::tm &time);
 bool	isIMFFixDate(const std::string &date, std::tm &time);
 bool	isDayName(const std::string &day, std::tm &time);

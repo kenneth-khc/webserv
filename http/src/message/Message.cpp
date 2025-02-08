@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:32:28 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 17:21:31 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/07 17:45:29 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,28 +16,28 @@
 #include "Message.hpp"
 
 const std::string	Message::allowedDuplicateHeaders[NUM_OF_HEADERS] = {
-	"Accept",
-	"Accept-Encoding",
-	"Accept-Language",
-	"Accept-Ranges",
-	"Allow",
-	"Authentication-Info",
-	"Cache-Control",
-	"Connection",
-	"Content-Encoding",
-	"Content-Language",
-	"Expect",
-	"If-Match",
-	"If-None-Match",
-	"Proxy-Authenticate",
-	"Proxy-Aunthetication-Info",
-	"TE",
-	"Trailer",
-	"Transfer-Encoding",
-	"Upgrade",
-	"Vary",
-	"Via",
-	"WWW-Authenticate"
+	"accept",
+	"accept-encoding",
+	"accept-language",
+	"accept-ranges",
+	"allow",
+	"authentication-info",
+	"cache-control",
+	"connection",
+	"content-encoding",
+	"content-language",
+	"expect",
+	"if-match",
+	"if-none-match",
+	"proxy-authenticate",
+	"proxy-aunthetication-info",
+	"te",
+	"trailer",
+	"transfer-encoding",
+	"upgrade",
+	"vary",
+	"via",
+	"www-authenticate"
 };
 
 Message::Message(void) {}
@@ -57,6 +57,12 @@ Message	&Message::operator=(const Message &obj) {
 	this->headers = obj.headers;
 	this->messageBody = obj.messageBody;
 	return (*this);
+}
+
+std::string	Message::stringToLower(std::string str) {
+	for (std::size_t i = 0; i < str.length(); i++)
+		str[i] = std::tolower(str[i]);
+	return (str);
 }
 
 void	Message::insert(const std::string &key, const std::string &value) {
@@ -100,8 +106,10 @@ void	Message::insert(const std::string &key, const int &value) {
 }
 
 Optional<std::string>	Message::operator[](const std::string &key) {
+	std::string	lowercaseKey = Message::stringToLower(key);
+
 	try {
-		return (this->headers.at(key));
+		return (this->headers.at(lowercaseKey));
 	}
 	catch (const std::out_of_range &e) {
 		return (Optional<std::string>());
@@ -109,8 +117,10 @@ Optional<std::string>	Message::operator[](const std::string &key) {
 }
 
 const Optional<std::string>	Message::operator[](const std::string &key) const {
+	std::string	lowercaseKey = Message::stringToLower(key);
+
 	try {
-		return (this->headers.at(key));
+		return (this->headers.at(lowercaseKey));
 	}
 	catch (const std::out_of_range &e) {
 		return (Optional<std::string>());

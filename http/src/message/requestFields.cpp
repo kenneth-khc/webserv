@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/26 02:00:53 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 17:46:27 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/07 19:34:32 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ bool	isFieldValue(const std::string &line) {
 }
 
 void	extractFieldLineComponents(const std::string &line, Request &request) {
-	static const std::string	values = " \t";
+	static const std::string	optionalWhiteSpaces = " \t";
 
 	if (line.find(':') == std::string::npos)
 		throw BadRequest400();
@@ -69,13 +69,14 @@ void	extractFieldLineComponents(const std::string &line, Request &request) {
 	if (str.find("\r\n ") != std::string::npos || str.find("\r\n\t") != std::string::npos)
 		throw BadRequest400("Invalid use of obsolete line folding in field value.");
 
-	std::size_t	frontPos = str.find_first_not_of(values);
-	std::size_t	backPos = str.find_last_not_of(values);
-	str = str.substr(frontPos, backPos + 1);
+	std::size_t	frontPos = str.find_first_not_of(optionalWhiteSpaces);
+	std::size_t	backPos = str.find_last_not_of(optionalWhiteSpaces);
+	str = str.substr(frontPos, backPos + 1 - frontPos);
 
 	if (isFieldValue(str) == false)
 		throw BadRequest400();
 	if (checkMandatoryHeaders(fieldName, str) == false)
 		throw BadRequest400();
+	fieldName = Request::stringToLower(fieldName);
 	request.insert(fieldName, str);
 }

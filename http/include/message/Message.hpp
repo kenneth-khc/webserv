@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:29:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 17:19:22 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/08 12:43:23 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,8 @@ class Message {
 		~Message(void);
 		Message(const Message &obj);
 		Message	&operator=(const Message &obj);
+
+		static std::string	stringToLower(std::string str);
 
 		template<typename type>
 		type	find(const std::string &key) const;

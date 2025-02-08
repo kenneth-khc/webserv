@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 02:14:54 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/06 18:45:22 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/08 03:04:26 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,9 @@
 #include <cstdlib>
 #include "date.hpp"
 
-bool	isDate(const std::string &date, std::tm &time) {
+bool	isDateHeader(const std::string &date) {
+	std::tm	time = {};
+
 	if (isHTTPDate(date, time) == true)
 		return (true);
 	return (false);
@@ -33,6 +35,7 @@ bool	isHTTPDate(const std::string &date, std::tm &time) {
 bool	isIMFFixDate(const std::string &date, std::tm &time) {
 	std::stringstream	stream(date);
 	std::string			str;
+	std::string			buffer;
 
 	if (!std::getline(stream, str, ','))
 		return (false);
@@ -43,7 +46,14 @@ bool	isIMFFixDate(const std::string &date, std::tm &time) {
 		return (false);
 	if (!std::getline(stream, str, ' '))
 		return (false);
-	if (isDateOne(str, time) == false)
+	buffer = str;
+	if (!std::getline(stream, str, ' '))
+		return (false);
+	buffer += ' ' + str;
+	if (!std::getline(stream, str, ' '))
+		return (false);
+	buffer += ' ' + str;
+	if (isDateOne(buffer, time) == false)
 		return (false);
 
 	if (!std::getline(stream, str, ' '))
@@ -79,7 +89,8 @@ bool	isDateOne(const std::string &date, std::tm &time) {
 	std::stringstream	stream(date);
 	std::string			str;
 
-	std::getline(stream, str, ' ');
+	if (!std::getline(stream, str, ' '))
+		return (false);
 	if (isDay(str, time) == false)
 		return (false);
 
@@ -275,6 +286,7 @@ bool	isDateTwo(const std::string &date, std::tm &time) {
 bool	isASCTimeDate(const std::string &date, std::tm &time) {
 	std::stringstream	stream(date);
 	std::string			str;
+	std::string			buffer;
 
 	if (!std::getline(stream, str, ' '))
 		return (false);
@@ -283,7 +295,16 @@ bool	isASCTimeDate(const std::string &date, std::tm &time) {
 
 	if (!std::getline(stream, str, ' '))
 		return (false);
-	if (isDateThree(str, time) == false)
+	buffer = str;
+	if (!std::getline(stream, str, ' '))
+		return (false);
+	if (str.length() == 0) {
+		if (!std::getline(stream, str, ' '))
+			return (false);
+		buffer += ' ';
+	}
+	buffer += ' ' + str;
+	if (isDateThree(buffer, time) == false)
 		return (false);
 
 	if (!std::getline(stream, str, ' '))

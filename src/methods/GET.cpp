@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/08 03:57:06 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/08 21:22:46 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,11 +55,12 @@ void	Server::get(Response& response, const Request& request) const
 	}
 	else
 	{
-		response.messageBody = getFileContents("html/error404.html");
-		throw NotFound404();
+		//	TODO: include headers just like a normal GET request
+		throw NotFound404(getFileContents("html/error404.html"));
 	}
 }
 
+//	TODO: move into Response
 std::string	Server::getFileContents(const std::string& file) const
 {
 	std::ifstream	filestream(file.c_str());

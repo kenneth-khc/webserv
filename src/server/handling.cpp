@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/06 17:52:01 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/08 21:53:19 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,9 +106,12 @@ void	Server::generateResponses()
 		send(response.socketFD, formattedResponse.c_str(), formattedResponse.size(), 0);
 
 		// TODO: is this where we close the connection?
-		close(response.socketFD);
-		epoll_ctl(epollFD, EPOLL_CTL_DEL, response.socketFD, 0);
-		clients.erase(clients.find(response.socketFD));
+		if (response.flags & Response::CONNECTION_CLOSE)
+		{
+			close(response.socketFD);
+			epoll_ctl(epollFD, EPOLL_CTL_DEL, response.socketFD, 0);
+			clients.erase(clients.find(response.socketFD));
+		}
 		readyResponses.pop();
 	}
 }

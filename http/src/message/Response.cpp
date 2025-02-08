@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/04 11:21:41 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/08 19:21:51 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 Response::Response(void) : Message() {
 	this->httpVersion = 1.1;
 	this->headers.insert(std::make_pair("Server", SERVER_NAME));
+	this->flags = 0;
 }
 
 Response::~Response(void) {}
@@ -25,7 +26,8 @@ Response::Response(const Response &obj) :
 	statusCode(obj.statusCode),
 	reasonPhrase(obj.reasonPhrase),
 	socketFD(obj.socketFD),
-	destAddress(obj.destAddress)
+	destAddress(obj.destAddress),
+	flags(obj.flags)
 {}
 
 Response&	Response::operator=(const Response& other)
@@ -37,6 +39,7 @@ Response&	Response::operator=(const Response& other)
 	this->reasonPhrase = other.reasonPhrase;
 	this->socketFD = other.socketFD;
 	this->destAddress = other.destAddress;
+	this->flags = other.flags;
 	return *this;
 }
 

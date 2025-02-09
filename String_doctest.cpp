@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 18:55:12 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/07 17:14:57 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/10 01:12:59 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,14 +40,14 @@ TEST_CASE("String")
 
 	SUBCASE("Erasing")
 	{
-		CHECK(myString.consume());
+		CHECK(myString.consume().value == 'H');
 		stdString.erase(0,1);
 		CHECK(myString == stdString);
 	}
 
 	SUBCASE("Erasing until a !")
 	{
-		CHECK(myString.consumeUntil("!"));
+		CHECK(myString.consumeUntil("!").value == "Hello");
 		CHECK(myString == "!");
 		CHECK(myString.size() == 1);
 	}
@@ -59,14 +59,14 @@ TEST_CASE("String erasing")
 
 	SUBCASE("Erase until \r\n")
 	{
-		CHECK(s.consumeUntil("\r\n"));
+		CHECK(s.consumeUntil("\r\n").value == "----abcde");
 		CHECK(s == "\r\n");
 		CHECK(s.size() == 2);
 	}
 
 	SUBCASE("Erase until something that isn't there")
 	{
-		CHECK(s.consumeUntil("ababa") == false);
+		CHECK(s.consumeUntil("ababa").value == "");
 		CHECK(s == "----abcde\r\n");
 	}
 
@@ -79,7 +79,7 @@ TEST_CASE("String erasing")
 		CHECK(s == "---abcde\r\n");
 
 		Predicate	p("-");
-		CHECK(s.consumeIfUntil(p, "a"));
+		CHECK(s.consumeIfUntil(p, "a") == "---");
 		CHECK(s == "abcde\r\n");
 	}
 }

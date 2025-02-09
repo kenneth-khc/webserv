@@ -9,3 +9,4 @@ ubuntu_cgi_tester
 obj/
 uploads/
 *.txt
+a.out

@@ -6,119 +6,123 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:41:42 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 23:14:18 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/08 06:12:07 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <string>
 #include <cctype>
-#include "MessageBody.hpp"
-#include <iostream>
-#include <debugUtils.hpp>
 #include <utility>
+#include "MessageBody.hpp"
+#include "ErrorCode.hpp"
 #include "Request.hpp"
-
-size_t	findAfter(const std::string& str, const std::string& substr)
-{
-	std::string::size_type	pos = str.find(substr);
-	if (pos != str.npos)
-	{
-		return pos + substr.length();
-	}
-	else
-	{
-		return pos;
-	}
-}
-
-bool	consume(std::string& message, const std::string& expected)
-{
-	if (message.find(expected) == 0)
-	{
-		message = message.substr(expected.length());
-		return true;
-	}
-	else
-	{
-		throw std::exception();
-		return false;
-	}
-}
-
-bool	skipTransportPadding(std::string& message)
-{
-	for (size_t i = 0; i < message.size(); ++i)
-	{
-		if (message[i] == '\r' && message[i+1] == '\n')
-		{
-			message = message.substr(i+2);
-			return true;
-		}
-		if (!std::isspace(message[i]))
-		{
-			return false;
-		}
-	}
-	return false;
-}
-
-#include "Optional.hpp"
-using std::pair;
-using std::string;
-
-Optional< pair<string,string> >	extractKeyValue(std::string& message)
-{
-	std::string	key;
-	std::string	value;
-
-	std::string::size_type	equalPos = message.find('=');
-	if (equalPos != message.npos)
-	{
-		key = message.substr(0, equalPos);
-		std::string::size_type	end = message.find_first_of(";\r\n");
-		value = message.substr(equalPos+1, end-equalPos-1);
-		if (value[0] == '"' && value[value.length()-1] == '"')
-		{
-			value = value.substr(1, value.length()-2);
-		}
-		return makeOptional(std::make_pair(key, value));
-	}
-	return makeNone<std::pair<string,string> >();
-}
+#include "String.hpp"
 
 /* Extract a MessageBody from a Request */
 MessageBody::MessageBody(const Request& request):
 body(request.messageBody)
 {
-	const std::string&	field = request.find<std::string>("Content-Type");
-	if (field == "application/x-www-form-urlencoded")
+	String	contentTypeField = request.find<std::string>("Content-Type");
+	if (contentTypeField.match("application/x-www-form-urlencoded"))
 	{
-		contentType = "application/x-www-form-urlencoded";
+		parseURLEncoded();
 	}
-	else // "multipart/form-data"
+	// TODO: more content types ?
+	else if (contentTypeField.match("multipart/form-data"))
 	{
-		contentType = field.substr(0, field.find(';'));
-		const std::string	boundary = field.substr(findAfter(field, "boundary="));
-		dashBoundary = "--" + boundary;
-		closeBoundary =  boundary + "--";
-		parseMultipartFormData();
+		parseMultipartFormData(contentTypeField);
 	}
 }
 
-void	MessageBody::parseMultipartFormData()
+void	MessageBody::parseURLEncoded()
 {
-	while (!body.consume(closeBoundary))
+	contentType = "application/x-www-form-urlencoded";
+	std::vector<String>	keyValuePairs = body.split("&");
+	for (std::vector<String>::iterator it = keyValuePairs.begin();
+		 it != keyValuePairs.end(); ++it)
+	{
+		std::vector<String>	splitted = it->split("=");
+		String&	key = splitted[0];
+		String&	value = splitted[1];
+		urlEncodedKeyValues.insert(std::make_pair(key, value));
+	}
+}
+
+void	MessageBody::parseMultipartFormData(String& field)
+{
+	contentType = field.consumeUntil(";").value_or("");
+	Optional<String::size_type>	boundaryPos = field.findAfter("boundary=");
+	if (!boundaryPos.exists)
+	{
+		throw BadRequest400();
+	}
+	const std::string	boundary = field.substr(boundaryPos.value);
+	dashBoundary = "--" + boundary;
+	closeBoundary =  dashBoundary + "--";
+
+	while (!body.match(closeBoundary))
 	{
 		try
 		{
+			MessageBodyPart	part;
 			body.consume(dashBoundary);
 			body.consumeIfUntil(Predicate(" \t"), "\r\n");
 			body.consume("\r\n");
-
+			while (!body.match("\r\n"))
+			{
+				Optional<String>	headerLine = body.consumeUntil("\r\n");
+				if (headerLine.exists)
+				{
+					part.extractKeyValue(headerLine.value);
+				}
+				body.consume("\r\n");
+			}
+			// end of headers found
+			body.consume("\r\n");
+			part.content = body.consumeUntil("\r\n" + dashBoundary).value_or("");
+			parts.push_back(part);
+			body.consume("\r\n");
 		}
 		catch (const std::exception& e)
 		{
-
+			throw BadRequest400();
 		}
 	}
+	body.consume(closeBoundary);
+	body.consumeIfUntil(Predicate(" \t"), "\r\n");
+	body.consume("\r\n");
 }
+
+// TODO: what to do with the stored header values?
+void	MessageBodyPart::extractKeyValue(const String& headerLine)
+{
+	std::vector<String>	tokens = headerLine.split(":; ");
+
+	if (tokens[0] == "Content-Disposition")
+	{
+		for (size_t i = 1; i < tokens.size(); ++i)
+		{
+			Optional<String::size_type>	equalPos = tokens[i].find("=");
+			if (equalPos.exists)
+			{
+				std::vector<String>	splitted = tokens[i].split("=");
+				String&	key = splitted[0];
+				String&	value = splitted[1];
+				if (value[0] == '"' && value[value.size()-1] == '"')
+				{
+					value = value.substr(1, value.size()-2);
+				}
+				contentDisposition.insert(std::make_pair(key, value));
+			}
+			else
+			{
+				contentDisposition.insert(std::make_pair("type", tokens[i]));
+			}
+		}
+	}
+	else if (tokens[0] == "Content-Type")
+	{
+		contentType = tokens[1];
+	}
+}
+

@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 23:46:23 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/08 06:08:56 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,7 @@
 #include <sstream>
 #include <stdexcept>
 #include "String.hpp"
-
-template <typename Type>
-std::string	String::toStdString(const Type& T)
-{
-	std::stringstream	ss;
-	ss << T;
-	return ss.str();
-}
+#include "Optional.hpp"
 
 String::String():
 str("") { }
@@ -35,19 +28,14 @@ str(str) { }
 String::String(const String& other):
 str(other.str) { }
 
-bool	String::operator==(const std::string& rhs) const
-{
-	return str == rhs;
-}
-
 bool	String::operator==(const String& rhs) const
 {
 	return str == rhs.str;
 }
 
-bool	String::operator==(const char* rhs) const
+bool	String::operator<(const String& rhs) const
 {
-	return operator==(std::string(rhs));
+	return str < rhs.str;
 }
 
 String&	String::operator=(const String& other)
@@ -81,14 +69,30 @@ const char*	String::operator+(size_type offset) const
 	return &str[offset];
 }
 
-String	String::operator+(const String& other)
+String	String::operator+(const String& rhs)
 {
-	return String(str + other.str);
+	return String(str + rhs.str);
 }
 
-String&	String::operator+=(const String& other)
+String	String::operator+(const char* rhs)
 {
-	str += other.str;
+	return *this + String(rhs);
+}
+
+String	operator+(const char* lhs, const String& rhs)
+{
+	return String(lhs) + rhs;
+}
+
+String&	String::operator+=(const String& rhs)
+{
+	str += rhs.str;
+	return *this;
+}
+
+String&	String::operator+=(char rhs)
+{
+	str += rhs;
 	return *this;
 }
 
@@ -134,22 +138,18 @@ String::size_type	String::length() const
 	return str.length();
 }
 
-Optional<String::size_type>
-String::find(const std::string& expected, size_type offset) const
+bool	String::empty() const
 {
-	String::size_type	pos = str.find(expected, offset);
-	if (pos == str.npos)
-	{
-		return makeNone<size_type>();
-	}
-	else
-	{
-		return makeOptional(pos);
-	}
+	return str.empty();
+}
+
+String::operator std::string() const
+{
+	return str;
 }
 
 Optional<String::size_type>
-String::find(const char& c, size_type offset) const
+String::find(char c, size_type offset) const
 {
 	String::size_type	pos = str.find(c, offset);
 	if (pos == str.npos)
@@ -163,7 +163,26 @@ String::find(const char& c, size_type offset) const
 }
 
 Optional<String::size_type>
-String::findAfter(const std::string& expected, size_type offset) const
+String::find(const String& expected, size_type offset) const
+{
+	size_type	pos = str.find(expected, offset);
+	if (pos == str.npos)
+	{
+		return makeNone<size_type>();
+	}
+	else
+	{
+		return makeOptional(pos);
+	}
+}
+
+String	String::substr(size_type pos, size_type n) const
+{
+	return str.substr(pos, n);
+}
+
+Optional<String::size_type>
+String::findAfter(const String& expected, size_type offset) const
 {
 	Optional<size_type>	pos = find(expected, offset);
 	if (pos.exists)
@@ -178,62 +197,31 @@ bool	String::match(const String& expected, size_type offset)
 	return str.compare(offset, expected.length(), expected.str) == 0;
 }
 
-bool	String::match(const std::string& expected, size_type offset)
+Optional<char>	String::consume()
 {
-	return str.compare(offset, expected.length(), expected) == 0;
-}
-
-bool	String::consume()
-{
-	if (!str.empty())
+	if (empty())
 	{
+		return makeNone<char>();
+	}
+	else
+	{
+		char	consumed = str[0];
 		str.erase(0, 1);
-		return true;
-	}
-	else
-	{
-		return false;
+		return makeOptional(consumed);
 	}
 }
 
-bool	String::consume(const char* cStr)
-{
-	std::string	expected(cStr);
-
-	if (match(expected))
-	{
-		str = str.substr(expected.length());
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-bool	String::consume(const std::string& expected)
+Optional<String>	String::consume(const String& expected)
 {
 	if (match(expected))
 	{
+		String	consuming = str.substr(0, expected.length());
 		str = str.substr(expected.length());
-		return true;
+		return makeOptional(consuming);
 	}
 	else
 	{
-		return false;
-	}
-}
-
-bool	String::consume(const String& expected)
-{
-	if (match(expected))
-	{
-		str = str.substr(expected.length());
-		return true;
-	}
-	else
-	{
-		return false;
+		return makeNone<String>();
 	}
 }
 
@@ -262,41 +250,32 @@ bool	String::consumeIf(char c)
 	return false;
 }
 
-bool	String::consumeIf(bool (*p)(char))
-{
-	if (!str.empty() && p(str[0]))
-	{
-		consume();
-		return true;
-	}
-	return false;
-}
-
-bool	String::consumeIf(const Predicate& pred)
+Optional<char>	String::consumeIf(const Predicate& pred)
 {
 	if (!str.empty() && pred(str[0]))
 	{
-		consume();
-		return true;
+		char	consumed = consume().value;
+		return makeOptional(consumed);
 	}
-	return false;
+	return makeNone<char>();
 }
 
-bool	String::consumeUntil(const std::string& expected)
+Optional<String>	String::consumeUntil(const String& expected)
 {
 	Optional<size_type>	pos = find(expected);
 	if (pos.exists)
 	{
+		String	consumed = str.substr(0, pos.value);
 		str = str.substr(pos.value);
-		return true;
+		return consumed;
 	}
 	else
 	{
-		return false;
+		return makeNone<String>();
 	}
 }
 
-bool	String::consumeIfUntil(const Predicate& pred, const std::string& expected)
+String	String::consumeIfUntil(const Predicate& pred, const String& expected)
 {
 	Optional<size_type>	pos = find(expected);
 	if (!pos.exists)
@@ -305,15 +284,21 @@ bool	String::consumeIfUntil(const Predicate& pred, const std::string& expected)
 	}
 	else
 	{
+		String	consumedString;
 		for (size_t i = 0; i < pos.value; ++i)
 		{
-			if (consumeIf(pred) == false)
+			Optional<char>	consumed = consumeIf(pred);
+			if (consumed.exists)
+			{
+				consumedString += consumed.value;
+			}
+			else
 			{
 				throw UnexpectedCharacter();
 			}
 		}
+		return consumedString;
 	}
-	return true;
 }
 
 vector<String>	String::split() const
@@ -329,7 +314,7 @@ vector<String>	String::split() const
 	return strings;
 }
 
-vector<String>	String::split(const std::string& delimiters) const
+vector<String>	String::split(const String& delimiters) const
 {
 	vector<String>	strings;
 	std::string		s = str;
@@ -387,3 +372,12 @@ String	String::trim(const String& set) const
 	size_type	len = (end + 1) - start;
 	return str.substr(start, len);
 }
+
+template <typename Type>
+std::string	String::toStdString(const Type& T)
+{
+	std::stringstream	ss;
+	ss << T;
+	return ss.str();
+}
+

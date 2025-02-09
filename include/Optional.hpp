@@ -36,9 +36,11 @@ public:
 
 	Optional&	operator=(const T&);
 	Optional	operator()(const T&);
+	operator	bool() const;
+
 	void		reset();
 	template <typename U>
-	Optional	value_or(const U& defaultValue) const;
+	T	value_or(const U& defaultValue) const;
 
 };
 
@@ -69,20 +71,13 @@ exists(other.exists)
 }
 
 template <typename T>
-Optional<T>::~Optional()
-{
-	if (exists)
-	{
-		value.~T();
-	}
-}
+Optional<T>::~Optional() { }
 
 template <typename T>
 Optional<T>	Optional<T>::operator()(const T& thing)
 {
 	if (exists)
 	{
-		value.~T();
 		exists = false;
 	}
 	value = thing;
@@ -94,11 +89,16 @@ Optional<T>&	Optional<T>::operator=(const T& thing)
 {
 	if (exists)
 	{
-		value.~T();
 		exists = false;
 	}
 	value = thing;
 	exists = true;
+}
+
+template <typename T>
+Optional<T>::operator bool() const
+{
+	return exists;
 }
 
 template <typename T>
@@ -118,7 +118,6 @@ void	Optional<T>::reset()
 {
 	if (exists)
 	{
-		value.~T();
 		exists = false;
 	}
 }
@@ -126,16 +125,16 @@ void	Optional<T>::reset()
 
 template <typename T>
 template <typename U>
-Optional<T>	Optional<T>::value_or(const U& defaultValue) const
+T	Optional<T>::value_or(const U& defaultValue) const
+{
+	if (exists)
 	{
-		if (exists)
-		{
-			return value;
-		}
-		else
-		{
-			return defaultValue;
-		}
+		return value;
 	}
+	else
+	{
+		return static_cast<T>(defaultValue);
+	}
+}
 
 #endif

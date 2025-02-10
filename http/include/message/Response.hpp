@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/08 18:53:26 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 05:21:48 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ class Response : public Message {
 
 		const std::string	toString(void) const;
 		void				setStatusCode(int statusCode);
+		void				getFileContents(const std::string &file);
 
 		enum HeaderFlags {
 			CONNECTION_CLOSE = 1

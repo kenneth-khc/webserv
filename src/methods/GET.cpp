@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/08 21:22:46 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 06:01:30 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void	Server::get(Response& response, const Request& request) const
 	if (file == "/")
 	{
 		//TODO: try all index pages
-		file = "html/index.html";
+		file = "html/index/index.html";
 	}
 	// TODO: map directories properly
 	if (file[0] == '/')
@@ -46,7 +46,7 @@ void	Server::get(Response& response, const Request& request) const
 		else if (access(file.c_str(), R_OK) == 0)
 		{
 			response.setStatusCode(Response::OK);
-			response.messageBody = getFileContents(file);
+			response.getFileContents(file);
 			response.insert("Content-Length", statbuf.st_size);
 			constructContentTypeHeader(file, map, response);
 		}
@@ -55,23 +55,6 @@ void	Server::get(Response& response, const Request& request) const
 	}
 	else
 	{
-		//	TODO: include headers just like a normal GET request
-		throw NotFound404(getFileContents("html/error404.html"));
+		throw NotFound404();
 	}
 }
-
-//	TODO: move into Response
-std::string	Server::getFileContents(const std::string& file) const
-{
-	std::ifstream	filestream(file.c_str());
-	std::string		fileContents;
-	std::string		str;
-
-	while (std::getline(filestream, str))
-	{
-		fileContents += str;
-		fileContents += "\n";
-	}
-	return fileContents;
-}
-

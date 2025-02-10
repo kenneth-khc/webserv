@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 19:05:34 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/06 17:08:44 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 05:42:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,14 @@ class MediaType {
 		MediaType(void);
 		MediaType(const MediaType &obj);
 		MediaType	&operator=(const MediaType &obj);
+
+		class MIMETypesNotFound : public std::exception {
+			public:
+				MIMETypesNotFound(void);
+				~MIMETypesNotFound(void) throw();
+				const char	*what(void) const throw();
+		};
+
 	public:
 		std::map<std::string, std::string>	map;
 

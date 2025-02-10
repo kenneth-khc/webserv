@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 19:16:30 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 03:41:33 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 05:41:33 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ MediaType::MediaType(const std::string &file) {
 	std::string					extension;
 
 	if (ifs.is_open() == false)
-		throw 1;
+		throw MIMETypesNotFound();
 	std::getline(ifs, str);
 	while (std::getline(ifs, str, ';')) {
 		startPos = str.find_first_not_of(whiteSpaces);
@@ -81,4 +81,12 @@ const Optional<std::string>	MediaType::operator[](const std::string &key) const 
 	catch (const std::out_of_range &e) {
 		return (Optional<std::string>());
 	}
+}
+
+MediaType::MIMETypesNotFound::MIMETypesNotFound(void) {}
+
+MediaType::MIMETypesNotFound::~MIMETypesNotFound(void) throw() {}
+
+const char	*MediaType::MIMETypesNotFound::what(void) const throw() {
+	return ("Unable to locate mime.types file");
 }

@@ -6,16 +6,17 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/08 19:21:51 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 06:05:36 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <fstream>
 #include <sstream>
 #include "Response.hpp"
 
 Response::Response(void) : Message() {
 	this->httpVersion = 1.1;
-	this->headers.insert(std::make_pair("Server", SERVER_NAME));
+	this->insert("Server", SERVER_NAME);
 	this->flags = 0;
 }
 
@@ -77,4 +78,18 @@ void	Response::setStatusCode(int statusCode) {
 			this->reasonPhrase = "Not Modified";
 			break ;
 	}
+}
+
+void	Response::getFileContents(const std::string& file)
+{
+	std::ifstream	filestream(file.c_str());
+	std::string		fileContents;
+	std::string		str;
+
+	while (std::getline(filestream, str))
+	{
+		fileContents += str;
+		fileContents += "\n";
+	}
+	messageBody = fileContents;
 }

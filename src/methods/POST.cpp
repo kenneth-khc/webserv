@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/04 03:13:00 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 05:50:29 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,9 +127,9 @@ void	Server::post(Response& response, const Request& request) const
 			response.setStatusCode(Response::OK);
 			// TODO: generate location dynamically
 			std::string	location = "http://localhost:8000/upload/" + filename;
-			response.headers.insert(std::make_pair("Location", location));
+			response.insert("Location", location);
 			// TODO: regenerate the page/link to created resource after POSTing
-			response.messageBody = getFileContents("html/form.html");
+			response.getFileContents("html/form.html");
 		}
 	}
 	return ;

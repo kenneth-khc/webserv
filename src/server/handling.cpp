@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/11 03:38:17 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 05:29:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,7 @@ void	Server::processReadyRequests()
 		readyRequests.pop();
 	}
 }
+
 void	Server::generateResponses()
 {
 	while (!readyResponses.empty())
@@ -148,12 +149,12 @@ Response	Server::handleRequest(const Request& request) const
 		{
 			head(response, request);
 		}
-		constructConnectionHeader(request, response);
-		response.insert("Date", Time::printHTTPDate());
 	}
 	catch (const ErrorCode& e)
 	{
 		response = e;
 	}
+	constructConnectionHeader(request, response);
+	response.insert("Date", Time::printHTTPDate());
 	return response;
 }

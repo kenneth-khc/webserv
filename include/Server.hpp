@@ -55,6 +55,7 @@ public:
 	void			head(Response&, const Request&) const;
 
 	std::string		getFileContents(const std::string&) const;
+	void			generateDirectoryListing(Response&, const std::string&) const;
 	void			sendResponse(int socketFD, Response&) const;
 
 private:

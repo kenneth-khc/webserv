@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/26 02:00:53 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/07 19:34:32 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 03:12:51 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,8 +75,8 @@ void	extractFieldLineComponents(const std::string &line, Request &request) {
 
 	if (isFieldValue(str) == false)
 		throw BadRequest400();
+	fieldName = Request::stringToLower(fieldName);
 	if (checkMandatoryHeaders(fieldName, str) == false)
 		throw BadRequest400();
-	fieldName = Request::stringToLower(fieldName);
 	request.insert(fieldName, str);
 }

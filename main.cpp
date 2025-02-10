@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/02 05:25:01 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/11 02:49:34 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,17 +26,20 @@ int	main()
 	std::cout << "Server is running...\n";
 	while (1)
 	{
-		server.epollWait();
-		server.processReadyEvents();
-		try
+		if (server.epollWait() != 0)
 		{
-			server.processMessages();
-			server.processReadyRequests();
-			server.generateResponses();
+			server.processReadyEvents();
+			try
+			{
+				server.processMessages();
+				server.processReadyRequests();
+				server.generateResponses();
+			}
+			catch (const ErrorCode& e)
+			{
+				std::cout << e.what() << '\n';
+			}
 		}
-		catch (const ErrorCode& e)
-		{
-			std::cout << e.what() << '\n';
-		}
+		server.monitorConnections();
 	}
 }

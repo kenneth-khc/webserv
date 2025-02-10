@@ -6,12 +6,13 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 23:43:39 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/08 21:27:58 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/10 15:38:02 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 #include <string>
+#include "Server.hpp"
 #include "Optional.hpp"
 #include "connection.hpp"
 
@@ -31,7 +32,7 @@ void	constructConnectionHeader(const Request &request, Response &response) {
 		std::string			timeout;
 		std::stringstream	stream;
 
-		stream << TIMEOUT_VALUE;
+		stream << Server::timeoutValue;
 		std::getline(stream, timeout, '\0');
 		timeout = "timeout=" + timeout;
 		response.insert("Connection", "keep-alive");

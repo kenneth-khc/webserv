@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 20:12:44 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 03:32:52 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ public:
 	/* Server configuration, initialization, event loop */
 	void			startListening();
 	void			initEpoll();
-	void			epollWait();
+	int				epollWait();
 	void			acceptNewClient();
 	void			processReadyEvents();
 
@@ -43,6 +43,8 @@ public:
 	void			processMessages();
 	void			processReadyRequests();
 	void			generateResponses();
+
+	void			monitorConnections();
 
 	//	TODO: Change access specifier?
 	//	Only include a server-wide mapping for now..,
@@ -62,6 +64,10 @@ public:
 
 	std::string		getFileContents(const std::string&) const;
 	void			sendResponse(int socketFD, Response&) const;
+
+	//	TODO: Change access specifier?
+	/* Server-wide connection timeout value in seconds */
+	static const unsigned int	timeoutValue;
 
 private:
 	int				epollFD; // fd of the epoll instance

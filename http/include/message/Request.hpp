@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 13:16:51 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 03:24:10 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,11 +48,6 @@ class Request : public Message {
 			PUT,
 			OPTIONS,
 			DELETE
-		};
-
-		enum HeaderFlags {
-			IFMODIFIED = 1,
-			CONNECTION = 1 << 1
 		};
 };
 

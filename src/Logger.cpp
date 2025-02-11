@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Logger.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 14:00:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/02 04:06:01 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/05 20:16:38 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,9 +59,9 @@ void	Logger::logRequest(const Server& server, Request& request) const
 		}
 	}
 	std::cout << ' ' << request.requestTarget << ' ' << "HTTP/" << request.httpVersion;
-	std::cout << " | " << request["User-Agent"] << CRESET;
+	std::cout << " | " << request["User-Agent"].value << CRESET;
 	std::cout << "\n\n";
-} 
+}
 
 void	Logger::logResponse(const Server& server, Response& response) const
 {

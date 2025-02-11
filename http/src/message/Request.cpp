@@ -6,13 +6,13 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/01 03:05:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/05 17:41:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 #include "requestLine.hpp"
-#include "fields.hpp"
+#include "requestFields.hpp"
 #include "ErrorCode.hpp"
 #include "Request.hpp"
 
@@ -31,7 +31,7 @@ Request::Request(void) : Message() {}
 
 Request::~Request(void) {}
 
-Request::Request(const Request &obj) : 
+Request::Request(const Request &obj) :
 	Message(obj),
 	method(obj.method),
 	requestTarget(obj.requestTarget),
@@ -88,14 +88,15 @@ void	Request::parseRequestLine(std::string &line) {
 void	Request::parseHeaders(std::string &line) {
 	std::string	str;
 	std::size_t	headerLineTerminator = 0;
+	std::size_t	headerLineStart = 0;
 	std::size_t	headerSectionTerminator = line.find("\r\n\r\n");
 
 	if (headerSectionTerminator == std::string::npos)
 		throw (Response(BadRequest400()));
 
 	while (true) {
-		headerLineTerminator = line.find("\r\n", headerLineTerminator);
-		str = line.substr(0, headerLineTerminator);
+		headerLineTerminator = line.find("\r\n", headerLineStart);
+		str = line.substr(headerLineStart, headerLineTerminator - headerLineStart);
 
 		try {
 			extractFieldLineComponents(str, *this);
@@ -104,13 +105,13 @@ void	Request::parseHeaders(std::string &line) {
 			throw Response(error);
 		}
 
-		headerLineTerminator += 2;
-		if (headerLineTerminator >= headerSectionTerminator)
+		headerLineStart = headerLineTerminator + 2;
+		if (headerLineStart >= headerSectionTerminator)
 			break ;
 	}
-	if (line[headerLineTerminator + 4] == '\0') {
+	if (line[headerLineStart + 2] == '\0') {
 		line = "";
 		return ;
 	}
-	line = line.substr(headerLineTerminator + 4);
+	line = line.substr(headerLineStart + 2);
 }

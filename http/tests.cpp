@@ -3,14 +3,14 @@
 #include <vector>
 #include <iostream>
 #include "requestLine.hpp"
-#include "fields.hpp"
+#include "requestFields.hpp"
 #include "Request.hpp"
 #include "ErrorCode.hpp"
 
 int	main(void) {
 	std::vector<std::string>	tests;
 	std::vector<std::string>	results;
-	
+
 	tests.push_back("GET /software/gnulib/manual.css HTTP/1.1");
 	results.push_back("✅");
 	tests.push_back("GET /favicon.ico HTTP/1.1");

@@ -10,11 +10,12 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server.hpp"
 #include <iostream>
 #include <cstdio>
 #include <string>
 #include <unistd.h>
+#include "ErrorCode.hpp"
+#include "Server.hpp"
 
 // TODO: use cookies for authorization? user can only delete what is theirs
 // TODO: consider other status codes. 200 OK? 202 Accepted? 403 Forbidden?
@@ -43,8 +44,6 @@ void	Server::delete_(Response& response, const Request& request) const
 	else
 	{
 		std::cerr << "File " << target << " not found or cannot be accessed\n\n";
-		response.statusCode = 404;
-		response.reasonPhrase = "Not Found";
-		response.messageBody = getFileContents("html/error404.html");
+		throw NotFound404();
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:29:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/02 15:33:11 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/08 12:43:23 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include <limits>
 # include <string>
 # include <map>
+# include "Optional.hpp"
 
 # define NUM_OF_HEADERS 22
 
@@ -26,45 +27,54 @@ class Message {
 		float		httpVersion;
 		std::map<std::string, std::string>	headers;
 		std::string	messageBody;
-		
+
 		Message(void);
 		~Message(void);
 		Message(const Message &obj);
 		Message	&operator=(const Message &obj);
 
+		static std::string	stringToLower(std::string str);
+
 		template<typename type>
-		type		find(const std::string &key) const;
-		void		insert(const std::string &key, const std::string &value);
-		std::string	operator[](const std::string &key);
+		type	find(const std::string &key) const;
+
+		void	insert(const std::string &key, const std::string &value);
+		void	insert(const std::string &key, const int &value);
+
+		Optional<std::string>		operator[](const std::string &key);
+		const Optional<std::string>	operator[](const std::string &key) const;
 };
 
 template<>
-inline std::string	Message::find<std::string>(const std::string &key) const {
+inline Optional<std::string>	Message::find< Optional<std::string> >(const std::string &key) const {
 	std::map<std::string, std::string>::const_iterator	it;
+	std::string	lowercaseKey = Message::stringToLower(key);
 
-	it = this->headers.find(key);
+	it = this->headers.find(lowercaseKey);
 	if (it == this->headers.end())
-		return ("");
+		return Optional<std::string>();
 	return (it->second);
 }
 
 template<>
-inline int	Message::find<int>(const std::string &key) const {
+inline Optional<int>	Message::find< Optional<int> >(const std::string &key) const {
 	std::map<std::string, std::string>::const_iterator	it;
+	std::string	lowercaseKey = Message::stringToLower(key);
 
-	it = this->headers.find(key);
+	it = this->headers.find(lowercaseKey);
 	if (it == this->headers.end())
-		return (std::numeric_limits<int>::min());
+		return Optional<int>();
 	return (std::atoi(it->second.c_str()));
 }
 
 template<>
-inline float	Message::find<float>(const std::string &key) const {
+inline Optional<float>	Message::find< Optional<float> >(const std::string &key) const {
 	std::map<std::string, std::string>::const_iterator	it;
+	std::string	lowercaseKey = Message::stringToLower(key);
 
-	it = this->headers.find(key);
+	it = this->headers.find(lowercaseKey);
 	if (it == this->headers.end())
-		return (std::numeric_limits<float>::min());
+		return (Optional<float>());
 	return (std::atof(it->second.c_str()));
 }
 

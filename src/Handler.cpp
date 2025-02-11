@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:24:45 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/02 04:27:38 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/04 18:21:49 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,10 @@ Request	Server::receiveRequest(int fd) const
 		}
 	}
 <<<<<<< HEAD
+	request.messageBody = messageBody;
+	std::cout << ">>> " << request.messageBody << '\n';
+=======
+<<<<<<< HEAD
 	request.parseMessageBody(messageBody);
 ||||||| 1429036
 	request.parseMessageBody(messageBody);
@@ -69,9 +73,10 @@ Request	Server::receiveRequest(int fd) const
 	request.messageBody = messageBody;
 	std::cout << ">>> " << request.messageBody << '\n';
 >>>>>>> http
+>>>>>>> 86ac
 	// TODO: is this where we delete the fd? what if
 	// the connection is kept alive
-	
+
 	/*epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, NULL);*/
 	return request;
 }

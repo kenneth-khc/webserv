@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+         #
+#    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/02/02 04:26:39 by kecheong         ###   ########.fr        #
+#    Updated: 2025/02/05 05:07:08 by cteoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,22 +24,20 @@ dirs := $(src_dir) \
 		$(src_dir)/server
 		# http			 \
 		# http/src		 \
+		# http/src/headers \
 		# http/src/message \
-		# http/src/coreABNF \
 		# http/src/URI
 
 srcs := $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))
 # For my own testing purposes
 srcs += main.cpp
-include_dir := include/ 
+include_dir := include/
 
 includes := -I include/ \
-			-I http/	\
 			-I http/include/ \
+			-I http/include/headers \
 			-I http/include/message \
-			-I http/include/coreABNF \
 			-I http/include/URI
-
 
 obj_dir := obj
 objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)
@@ -61,10 +59,11 @@ $(obj_dir)/%.o: $(src_dir)/%.cpp | obj
 	$(CXX) $(CXXFLAGS) $(includes) $< -c -o $@
 
 clean:
+	make clean -C http/
 	$(RM) -r $(obj_dir)
 
 fclean: clean
-	$(RM) $(NAME)
+	$(RM) $(NAME) http/libhttp.a
 
 re: fclean all
 

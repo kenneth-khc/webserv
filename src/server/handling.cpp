@@ -3,16 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   handling.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/02 05:56:50 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/11 05:29:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h>
 #include "Server.hpp"
 #include "ErrorCode.hpp"
+#include "Time.hpp"
+#include "connection.hpp"
+#include "date.hpp"
 
 ssize_t	Server::receiveBytes(Client& client)
 {
@@ -30,6 +33,10 @@ ssize_t	Server::receiveBytes(Client& client)
 		{
 			client.message.push_back(client.messageBuffer[i]);
 		}
+		if (client.firstDataRecv == false)
+		{
+			client.firstDataRecv = true;
+		}
 	}
 	return bytes;
 }
@@ -43,16 +50,15 @@ static bool	endOfHeaderFound(const std::string& message)
 {
 	return message.find("\r\n\r\n") != message.npos;
 }
-
-#include <iostream>
 void	Server::processMessages()
 {
+	if (listenerSocketFD == readyEvents[0].data.fd)
+		return ;
+
 	// TODO: get all ready clients instead of just the first one
 	Client&		client = clients[readyEvents[0].data.fd];
 	Request&	request = client.request;
 
-	if (client.socketFD == listenerSocketFD)
-		return ;
 	if (!client.requestLineFound && endOfRequestLineFound(client.message))
 	{
 		request.parseRequestLine(client.message);
@@ -67,12 +73,10 @@ void	Server::processMessages()
 	}
 	if (client.requestLineFound && client.headersFound)
 	{
-		int	bodyLength = request.find<int>("Content-Length");
-		if (bodyLength == std::numeric_limits<int>::min())
-			bodyLength = 0;
+		Optional<int>	bodyLength = request.find< Optional<int> >("Content-Length");
 
 		request.messageBody = client.message;
-		if (client.message.size() == (size_t)bodyLength)
+		if (client.message.size() == (size_t)bodyLength.value)
 		{
 			readyRequests.push(request);
 			logger.logRequest(*this, request);
@@ -98,16 +102,23 @@ void	Server::generateResponses()
 {
 	while (!readyResponses.empty())
 	{
+		Client&		client = clients[readyEvents[0].data.fd];
 		Response&	response = readyResponses.front();
 		logger.logResponse(*this, response);
 
 		std::string	formattedResponse = response.toString();
 		send(response.socketFD, formattedResponse.c_str(), formattedResponse.size(), 0);
-		
-		// TODO: is this where we close the connection?
-		close(response.socketFD);
-		epoll_ctl(epollFD, EPOLL_CTL_DEL, response.socketFD, 0);
-		clients.erase(clients.find(response.socketFD));
+
+		if (response.flags & Response::CONNECTION_CLOSE)
+		{
+			close(response.socketFD);
+			epoll_ctl(epollFD, EPOLL_CTL_DEL, response.socketFD, 0);
+			clients.erase(clients.find(response.socketFD));
+		}
+		else
+		{
+			client.reset();
+		}
 		readyResponses.pop();
 	}
 }
@@ -119,32 +130,32 @@ Response	Server::handleRequest(const Request& request) const
 	/*const_cast<Request&>(request).method = POST;*/
 	try
 	{
-		if (request.method == GET)
+		if (request.method == Request::GET)
 		{
 			get(response, request);
 		}
-		else if (request.method == POST)
+		else if (request.method == Request::POST)
 		{
 			post(response, request);
 		}
-		else if (request.method == PUT)
+		else if (request.method == Request::PUT)
 		{
 			put(response, request);
 		}
-		else if (request.method == DELETE)
+		else if (request.method == Request::DELETE)
 		{
 			delete_(response, request);
 		}
-		else if (request.method == HEAD)
+		else if (request.method == Request::HEAD)
 		{
 			head(response, request);
 		}
 	}
-	catch (const Response& e)
+	catch (const ErrorCode& e)
 	{
-		response.httpVersion = e.httpVersion;
-		response.statusCode = e.statusCode;
-		response.reasonPhrase = e.reasonPhrase;
+		response = e;
 	}
+	constructConnectionHeader(request, response);
+	response.insert("Date", Time::printHTTPDate());
 	return response;
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/01 09:47:46 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/11 04:01:39 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,11 +20,16 @@
 #include <string>
 #include <unistd.h>
 #include <fcntl.h>
+#include <ctime>
+#include <iostream>
 #include "utils.hpp"
 #include "Server.hpp"
 
+const unsigned int	Server::timeoutValue = 5;
+
 /* TODO: Configure the server based on the config file */
 Server::Server():
+map("mime.types"),
 epollFD(-1),
 hostName("localhost"),
 portNum(8000),
@@ -32,7 +37,7 @@ listenerSocketFD(-1),
 numClients(0),
 maxEvents(1),
 readyEvents(NULL),
-numReadyEvents(0) 
+numReadyEvents(0)
 {
 	readyEvents = new epoll_event[maxEvents];
 }
@@ -41,18 +46,30 @@ Server::~Server()
 {
 	delete[] readyEvents;
 }
-#include <iostream>
-void	Server::epollWait()
+
+int	Server::epollWait()
 {
-	std::cout << "Polling...\n";
-	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, -1);
+	// std::cout << "Polling...\n";
+	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, 1000);
+
+	std::cout << "epoll_wait() returned with " << numReadyEvents
+			  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
+
 	if (numReadyEvents == -1)
 	{
 		perror("epw");
 		error("epoll_wait failed");
 	}
-	/*std::cout << "epoll_wait() returned with " << numReadyEvents*/
-	/*		  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");*/
+	else if (numReadyEvents > 0 && (readyEvents[0].events & EPOLLRDHUP))
+	{
+		//	Closes socket in cases where client-side closes the connection on their end.
+		std::cout << "FD " << readyEvents[0].data.fd << " connection closed by client!\n";
+		close(readyEvents[0].data.fd);
+		epoll_ctl(epollFD, EPOLL_CTL_DEL, readyEvents[0].data.fd, 0);
+		clients.erase(clients.find(readyEvents[0].data.fd));
+		numReadyEvents = 0;
+	}
+	return numReadyEvents;
 }
 
 void	Server::processReadyEvents()
@@ -69,6 +86,7 @@ void	Server::processReadyEvents()
 		else if (ev.events & EPOLLIN)
 		{
 			Client&	client = clients[ev.data.fd];
+			client.updateLastActive();
 			receiveBytes(client);
 		}
 	}
@@ -83,10 +101,34 @@ void	Server::acceptNewClient()
 						  &client.addressLen);
 	fcntl(client.socketFD, F_SETFL, O_NONBLOCK);
 	++numClients;
-	
+
+	//	SO_LINGER prevents close() from returning when there's still data in
+	//	the socket buffer. This avoids the "TCP reset problem" and allows
+	//	graceful closure.
+	struct linger	linger = {.l_onoff = 1, .l_linger = 5};
+	setsockopt(client.socketFD, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
+
 	epoll_event	event;
-	event.events = EPOLLIN;
+	event.events = EPOLLIN | EPOLLRDHUP;
 	event.data.fd = client.socketFD;
 	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socketFD, &event);
 	clients.insert(std::make_pair(client.socketFD, client));
+}
+
+void	Server::monitorConnections()
+{
+	std::map<int, Client>::iterator	it = clients.begin();
+
+	while (it != clients.end())
+	{
+		if (it->second.firstDataRecv == true && it->second.isTimeout() == true)
+		{
+			std::cout << "FD " << it->first << " connection timeout!\n";
+			close(it->first);
+			epoll_ctl(epollFD, EPOLL_CTL_DEL, it->first, 0);
+			clients.erase(it++);
+		}
+		else
+			it++;
+	}
 }

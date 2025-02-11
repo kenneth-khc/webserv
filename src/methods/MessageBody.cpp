@@ -22,7 +22,8 @@
 MessageBody::MessageBody(const Request& request):
 body(request.messageBody)
 {
-	String	contentTypeField = request.find<std::string>("Content-Type");
+	Optional<std::string>	field = request["Content-Type"];
+	String	contentTypeField = field.value_or("");
 	if (contentTypeField.match("application/x-www-form-urlencoded"))
 	{
 		parseURLEncoded();

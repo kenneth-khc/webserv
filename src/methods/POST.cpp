@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   POST.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/10 01:12:54 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/11 05:50:29 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,10 @@ void	Server::post(Response& response, const Request& request) const
 	{
 		uploadFiles(msgBody);
 	}
-	response.statusCode = 200;
-	response.reasonPhrase = "OK";
-	response.messageBody = getFileContents("html/form.html");
+	response.setStatusCode(Response::OK);
+	response.getFileContents("html/form.html");
+	// TODO: location header
+	// TODO: regenerate the page/link to created resource after POSTing
 }
 
 static void	uploadFiles(const MessageBody& body)

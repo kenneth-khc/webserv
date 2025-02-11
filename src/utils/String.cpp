@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   String.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/08 06:08:56 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/12 02:40:27 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,11 @@ str(other.str) { }
 bool	String::operator==(const String& rhs) const
 {
 	return str == rhs.str;
+}
+
+bool	String::operator!=(const String& rhs) const
+{
+	return str != rhs.str;
 }
 
 bool	String::operator<(const String& rhs) const
@@ -373,6 +378,11 @@ String	String::trim(const String& set) const
 	return str.substr(start, len);
 }
 
+const char	*String::c_str() const
+{
+	return (str.c_str());
+}
+
 template <typename Type>
 std::string	String::toStdString(const Type& T)
 {
@@ -380,4 +390,3 @@ std::string	String::toStdString(const Type& T)
 	ss << T;
 	return ss.str();
 }
-

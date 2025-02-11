@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/11 05:29:11 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 02:01:03 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ ssize_t	Server::receiveBytes(Client& client)
 	{
 		for (ssize_t i = 0; i < bytes; ++i)
 		{
-			client.message.push_back(client.messageBuffer[i]);
+			client.message += client.messageBuffer[i];
 		}
 		if (client.firstDataRecv == false)
 		{

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 17:41:37 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 22:47:44 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include "ErrorCode.hpp"
 #include "Request.hpp"
 
-const std::string	Request::methods[NUM_OF_METHODS] = {
+const String	Request::methods[NUM_OF_METHODS] = {
 	"GET",
 	"HEAD",
 	"POST",
@@ -50,7 +50,7 @@ Request	&Request::operator=(const Request &obj) {
 	return *this;
 }
 
-bool	Request::isValidMethod(const std::string &method) {
+bool	Request::isValidMethod(const String &method) {
 	for (int i = 0; i < NUM_OF_METHODS; i++) {
 		if (method == methods[i]) {
 			this->method = i;
@@ -68,13 +68,13 @@ bool	Request::isSupportedVersion(const float &version) {
 	return (true);
 }
 
-void	Request::parseRequestLine(std::string &line) {
-	std::string	str;
+void	Request::parseRequestLine(String &line) {
+	String	str;
 	std::size_t	terminatorPos = 0;
 
 	terminatorPos = line.find("\r\n", 0);
 	try {
-		if (terminatorPos == std::string::npos)
+		if (terminatorPos == String::npos)
 			throw BadRequest400();
 		str = line.substr(0, terminatorPos);
 		extractRequestLineComponents(str, *this);
@@ -85,13 +85,13 @@ void	Request::parseRequestLine(std::string &line) {
 	line = line.substr(terminatorPos + 2);
 }
 
-void	Request::parseHeaders(std::string &line) {
-	std::string	str;
+void	Request::parseHeaders(String &line) {
+	String	str;
 	std::size_t	headerLineTerminator = 0;
 	std::size_t	headerLineStart = 0;
 	std::size_t	headerSectionTerminator = line.find("\r\n\r\n");
 
-	if (headerSectionTerminator == std::string::npos)
+	if (headerSectionTerminator == String::npos)
 		throw (Response(BadRequest400()));
 
 	while (true) {

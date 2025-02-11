@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 02:14:54 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/08 03:04:26 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 02:19:18 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include "date.hpp"
 
-bool	isDateHeader(const std::string &date) {
+bool	isDateHeader(const String &date) {
 	std::tm	time = {};
 
 	if (isHTTPDate(date, time) == true)
@@ -22,7 +22,7 @@ bool	isDateHeader(const std::string &date) {
 	return (false);
 }
 
-bool	isHTTPDate(const std::string &date, std::tm &time) {
+bool	isHTTPDate(const String &date, std::tm &time) {
 	if (date.length() == 0)
 		return (false);
 	if (isIMFFixDate(date, time) == true)
@@ -32,44 +32,44 @@ bool	isHTTPDate(const std::string &date, std::tm &time) {
 	return (false);
 }
 
-bool	isIMFFixDate(const std::string &date, std::tm &time) {
+bool	isIMFFixDate(const String &date, std::tm &time) {
 	std::stringstream	stream(date);
-	std::string			str;
-	std::string			buffer;
+	String				str;
+	String				buffer;
 
-	if (!std::getline(stream, str, ','))
+	if (!String::getline(stream, str, ','))
 		return (false);
 	if (isDayName(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
 	buffer = str;
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
-	buffer += ' ' + str;
-	if (!std::getline(stream, str, ' '))
+	buffer += " " + str;
+	if (!String::getline(stream, str, ' '))
 		return (false);
-	buffer += ' ' + str;
+	buffer += " " + str;
 	if (isDateOne(buffer, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
 	if (isTimeOfDay(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, '\0'))
+	if (!String::getline(stream, str, '\0'))
 		return (false);
 	if (str != "GMT")
 		return (false);
 	return (true);
 }
 
-bool	isDayName(const std::string &day, std::tm &time) {
-	static const std::string	days[NUM_OF_DAYS] = {
+bool	isDayName(const String &day, std::tm &time) {
+	static const String	days[NUM_OF_DAYS] = {
 		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
 	};
 
@@ -82,31 +82,31 @@ bool	isDayName(const std::string &day, std::tm &time) {
 	return (false);
 }
 
-bool	isDateOne(const std::string &date, std::tm &time) {
+bool	isDateOne(const String &date, std::tm &time) {
 	if (date.length() == 0)
 		return (false);
 
 	std::stringstream	stream(date);
-	std::string			str;
+	String				str;
 
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
 	if (isDay(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
 	if (isMonth(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, '\0'))
+	if (!String::getline(stream, str, '\0'))
 		return (false);
 	if (isYear(str, time) == false)
 		return (false);
 	return (true);
 }
 
-bool	isDay(const std::string &day, std::tm &time) {
+bool	isDay(const String &day, std::tm &time) {
 	if (day.length() != 2)
 		return (false);
 
@@ -118,8 +118,8 @@ bool	isDay(const std::string &day, std::tm &time) {
 	return (true);
 }
 
-bool	isMonth(const std::string &month, std::tm &time) {
-	static const std::string	months[NUM_OF_MONTHS] = {
+bool	isMonth(const String &month, std::tm &time) {
+	static const String	months[NUM_OF_MONTHS] = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 	};
@@ -133,7 +133,7 @@ bool	isMonth(const std::string &month, std::tm &time) {
 	return (false);
 }
 
-bool	isYear(const std::string &year, std::tm &time) {
+bool	isYear(const String &year, std::tm &time) {
 	if (year.length() != 4)
 		return (false);
 
@@ -145,28 +145,28 @@ bool	isYear(const std::string &year, std::tm &time) {
 	return (true);
 }
 
-bool	isTimeOfDay(const std::string &timeOfDay, std::tm &time) {
+bool	isTimeOfDay(const String &timeOfDay, std::tm &time) {
 	std::stringstream	stream(timeOfDay);
-	std::string			str;
+	String				str;
 
-	if (!std::getline(stream, str, ':'))
+	if (!String::getline(stream, str, ':'))
 		return (false);
 	if (isHour(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, ':'))
+	if (!String::getline(stream, str, ':'))
 		return (false);
 	if (isMinute(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, '\0'))
+	if (!String::getline(stream, str, '\0'))
 		return (false);
 	if (isSecond(str, time) == false)
 		return (false);
 	return (true);
 }
 
-bool	isHour(const std::string &hour, std::tm &time) {
+bool	isHour(const String &hour, std::tm &time) {
 	if (hour.length() != 2)
 		return (false);
 
@@ -178,7 +178,7 @@ bool	isHour(const std::string &hour, std::tm &time) {
 	return (true);
 }
 
-bool	isMinute(const std::string &minute, std::tm &time) {
+bool	isMinute(const String &minute, std::tm &time) {
 	if (minute.length() != 2)
 		return (false);
 
@@ -190,7 +190,7 @@ bool	isMinute(const std::string &minute, std::tm &time) {
 	return (true);
 }
 
-bool	isSecond(const std::string &second, std::tm &time) {
+bool	isSecond(const String &second, std::tm &time) {
 	if (second.length() != 2)
 		return (false);
 
@@ -202,7 +202,7 @@ bool	isSecond(const std::string &second, std::tm &time) {
 	return (true);
 }
 
-bool	isObsoleteDate(const std::string &date, std::tm &time) {
+bool	isObsoleteDate(const String &date, std::tm &time) {
 	if (isRFC850Date(date, time) == false)
 		return (false);
 	if (isASCTimeDate(date, time) == false)
@@ -210,36 +210,36 @@ bool	isObsoleteDate(const std::string &date, std::tm &time) {
 	return (true);
 }
 
-bool	isRFC850Date(const std::string &date, std::tm &time) {
+bool	isRFC850Date(const String &date, std::tm &time) {
 	std::stringstream	stream(date);
-	std::string			str;
+	String				str;
 
-	if (!std::getline(stream, str, ','))
+	if (!String::getline(stream, str, ','))
 		return (false);
 	if (isDayNameOne(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
 	if (isDateTwo(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
 	if (isTimeOfDay(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, '\0'))
+	if (!String::getline(stream, str, '\0'))
 		return (false);
 	if (str != "GMT")
 		return (false);
 	return (true);
 }
 
-bool	isDayNameOne(const std::string &day, std::tm &time) {
-	static const std::string	days[NUM_OF_DAYS] = {
+bool	isDayNameOne(const String &day, std::tm &time) {
+	static const String	days[NUM_OF_DAYS] = {
 		"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
 		"Friday", "Saturday"
 	};
@@ -253,21 +253,21 @@ bool	isDayNameOne(const std::string &day, std::tm &time) {
 	return (false);
 }
 
-bool	isDateTwo(const std::string &date, std::tm &time) {
+bool	isDateTwo(const String &date, std::tm &time) {
 	std::stringstream	stream(date);
-	std::string			str;
+	String				str;
 
-	if (!std::getline(stream, str, '-'))
+	if (!String::getline(stream, str, '-'))
 		return (false);
 	if (isDay(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, '-'))
+	if (!String::getline(stream, str, '-'))
 		return (false);
 	if (isMonth(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, '\0'))
+	if (!String::getline(stream, str, '\0'))
 		return (false);
 	if (str.length() != 2)
 		return (false);
@@ -283,52 +283,52 @@ bool	isDateTwo(const std::string &date, std::tm &time) {
 	return (true);
 }
 
-bool	isASCTimeDate(const std::string &date, std::tm &time) {
+bool	isASCTimeDate(const String &date, std::tm &time) {
 	std::stringstream	stream(date);
-	std::string			str;
-	std::string			buffer;
+	String				str;
+	String				buffer;
 
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
 	if (isDayName(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
 	buffer = str;
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
 	if (str.length() == 0) {
-		if (!std::getline(stream, str, ' '))
+		if (!String::getline(stream, str, ' '))
 			return (false);
 		buffer += ' ';
 	}
-	buffer += ' ' + str;
+	buffer += " " + str;
 	if (isDateThree(buffer, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
 	if (isTimeOfDay(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, '\0'))
+	if (!String::getline(stream, str, '\0'))
 		return (false);
 	if (isYear(str, time) == false)
 		return (false);
 	return (true);
 }
 
-bool	isDateThree(const std::string &date, std::tm &time) {
+bool	isDateThree(const String &date, std::tm &time) {
 	std::stringstream	stream(date);
-	std::string			str;
+	String				str;
 
-	if (!std::getline(stream, str, ' '))
+	if (!String::getline(stream, str, ' '))
 		return (false);
 	if (isMonth(str, time) == false)
 		return (false);
 
-	if (!std::getline(stream, str, '\0'))
+	if (!String::getline(stream, str, '\0'))
 		return (false);
 	if (str[0] == ' ')
 		str = str.substr(1);

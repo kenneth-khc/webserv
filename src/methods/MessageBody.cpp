@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   MessageBody.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:41:42 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/08 06:12:07 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/12 02:04:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,9 @@
 MessageBody::MessageBody(const Request& request):
 body(request.messageBody)
 {
-	Optional<std::string>	field = request["Content-Type"];
-	String	contentTypeField = field.value_or("");
+	Optional<String>	field = request["Content-Type"];
+	String				contentTypeField = field.value_or("");
+
 	if (contentTypeField.match("application/x-www-form-urlencoded"))
 	{
 		parseURLEncoded();

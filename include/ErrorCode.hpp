@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:25:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 06:03:18 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 22:33:33 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,16 @@
 # define ERRORCODE_HPP
 
 # include <exception>
-# include <string>
+# include "String.hpp"
 # include "Response.hpp"
 
 class ErrorCode : public std::exception, public Response {
 	public:
-		std::string	title;
+		String	title;
 
 		ErrorCode(void);
-		ErrorCode(float httpVersion, int statusCode, std::string reasonPhrase);
-		ErrorCode(float httpVersion, int statusCode, std::string reasonPhrase, const char *title);
+		ErrorCode(float httpVersion, int statusCode, String reasonPhrase);
+		ErrorCode(float httpVersion, int statusCode, String reasonPhrase, const char *title);
 		~ErrorCode(void) throw();
 		ErrorCode(const ErrorCode &obj);
 		ErrorCode	&operator=(const ErrorCode &obj);

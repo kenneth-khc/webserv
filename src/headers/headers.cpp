@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 17:47:44 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 03:12:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 22:46:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,13 @@
 #include "headers.hpp"
 
 bool	checkMandatoryHeaders(
-std::string fieldName,
-const std::string &fieldValue)
+String fieldName,
+const String &fieldValue)
 {
-	static const std::string	headers[NUM_OF_MANDATORY_HEADERS] = {
+	static const String	headers[NUM_OF_MANDATORY_HEADERS] = {
 		"host"
 	};
-	static bool					(*const funcs[NUM_OF_MANDATORY_HEADERS])(const std::string &) = {
+	static bool					(*const funcs[NUM_OF_MANDATORY_HEADERS])(const String &) = {
 		isAuthority
 	};
 

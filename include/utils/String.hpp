@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   String.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/10 01:13:01 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/12 02:41:15 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,13 +17,15 @@
 #include <string>
 #include <exception>
 #include <vector>
+#include <istream>
 #include "Optional.hpp"
 
-/* Custom String object that wraps around std::string to provide us with 
+/* Custom String object that wraps around std::string to provide us with
  * facilities that help with parsing a std::string */
 
 using std::string;
 using std::vector;
+using std::basic_istream;
 
 struct	Predicate;
 
@@ -31,6 +33,8 @@ class	String
 {
 public:
 	typedef string::size_type size_type;
+
+	const static size_type	npos = std::string::npos;
 
 	/* Constructors */
 	String();
@@ -40,6 +44,7 @@ public:
 
 	/* Operators */
 	bool					operator==(const String&) const;
+	bool					operator!=(const String &) const;
 	bool					operator<(const String&) const;
 	String&					operator=(const String&);
 	char&					operator[](size_type);
@@ -103,9 +108,17 @@ public:
 	String				trim(const String& set);
 	String				trim(const String& set) const;
 
+	// Returns the pointer of the c-string
+	const char			*c_str() const;
+
+	// std::getline() "overload" for String class
+	template<typename CharT, typename Traits>
+	static basic_istream<CharT, Traits>&	getline(basic_istream<CharT, Traits>& input, String& str, CharT delim);
+	template<typename CharT, typename Traits>
+	static basic_istream<CharT, Traits>&	getline(basic_istream<CharT, Traits>& input, String& str);
+
 private:
 	string					str; // the underlying std::string
-	const static size_type	npos = std::string::npos;
 
 	// Helper to convert a Type into a std::string
 	template <typename Type>
@@ -124,6 +137,27 @@ public:
 private:
 	String	match;
 };
+
+// getline() overload template definitions
+template<typename CharT, typename Traits>
+basic_istream<CharT, Traits>&	String::getline(basic_istream<CharT, Traits>& input, String& str, CharT delim)
+{
+	std::string	stdString;
+
+	std::getline(input, stdString, delim);
+	str = stdString;
+	return (input);
+}
+
+template<typename CharT, typename Traits>
+basic_istream<CharT, Traits>&	String::getline(basic_istream<CharT, Traits>& input, String& str)
+{
+	std::string	stdString;
+
+	std::getline(input, stdString);
+	str = stdString;
+	return (input);
+}
 
 // TODO: extend these with messages signalling what went wrong
 class	ExpectedNotFound: public std::exception { };

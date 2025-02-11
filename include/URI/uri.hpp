@@ -6,40 +6,40 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:30:37 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 11:33:09 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 22:38:53 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef URI_HPP
 # define URI_HPP
 
-# include <string>
+# include "String.hpp"
 
 /***************/
 /* General URI */
 /***************/
-bool	isAbsoluteURI(const std::string &line);
+bool	isAbsoluteURI(const String &line);
 
 /**********/
 /* Scheme */
 /**********/
-bool	isScheme(const std::string &line);
+bool	isScheme(const String &line);
 
 /*************/
 /* Hier-Part */
 /*************/
-bool	isHierPart(const std::string &line);
-bool	isAuthority(const std::string &line);
-bool	isPort(const std::string &line);
+bool	isHierPart(const String &line);
+bool	isAuthority(const String &line);
+bool	isPort(const String &line);
 
 /*********/
 /* Query */
 /*********/
-bool	isQuery(const std::string &line);
+bool	isQuery(const String &line);
 
 /************/
 /* Fragment */
 /************/
-bool	isFragment(const std::string &line);
+bool	isFragment(const String &line);
 
 #endif

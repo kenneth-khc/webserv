@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 17:34:45 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/06 18:24:30 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 22:52:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ std::time_t	Time::convertToGMT(std::time_t time) {
 	return (std::mktime(std::gmtime(&time)));
 }
 
-std::string	Time::printHTTPDate(void) {
+String	Time::printHTTPDate(void) {
 	char	buffer[sizeof("DAY, DD MM YYYY HH:MM:SS GMT") + 1];
 
 	std::time_t	time = std::time(NULL);
@@ -43,7 +43,7 @@ std::string	Time::printHTTPDate(void) {
 	return (buffer);
 }
 
-std::string	Time::printHTTPDate(const struct timespec &time) {
+String	Time::printHTTPDate(const struct timespec &time) {
 	char	buffer[sizeof("DAY, DD MM YYYY HH:MM:SS GMT") + 1];
 
 	std::tm	*timeStruct = std::gmtime(&time.tv_sec);

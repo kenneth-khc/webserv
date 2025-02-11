@@ -6,15 +6,15 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 03:24:10 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 22:52:26 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
-# include <string>
 # include <sys/socket.h>
+# include "String.hpp"
 # include "Message.hpp"
 
 # define NUM_OF_METHODS 6
@@ -22,11 +22,11 @@
 
 class Request : public Message {
 	public:
-		static const std::string	methods[NUM_OF_METHODS];
-		static const float			supportedVersions[NUM_OF_VERSIONS];
+		static const String	methods[NUM_OF_METHODS];
+		static const float	supportedVersions[NUM_OF_VERSIONS];
 
 		int					method;
-		std::string			requestTarget;
+		String				requestTarget;
 		int					socketFD;
 		sockaddr_storage	srcAddress;
 		int					flags;
@@ -36,10 +36,10 @@ class Request : public Message {
 		Request(const Request &obj);
 		Request	&operator=(const Request &obj);
 
-		bool	isValidMethod(const std::string &method);
+		bool	isValidMethod(const String &method);
 		bool	isSupportedVersion(const float &version);
-		void	parseRequestLine(std::string &line);
-		void	parseHeaders(std::string &line);
+		void	parseRequestLine(String &line);
+		void	parseHeaders(String &line);
 
 		enum Methods {
 			GET,

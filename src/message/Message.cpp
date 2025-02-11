@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:32:28 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/07 17:45:29 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 02:39:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include "ErrorCode.hpp"
 #include "Message.hpp"
 
-const std::string	Message::allowedDuplicateHeaders[NUM_OF_HEADERS] = {
+const String	Message::allowedDuplicateHeaders[NUM_OF_HEADERS] = {
 	"accept",
 	"accept-encoding",
 	"accept-language",
@@ -59,14 +59,14 @@ Message	&Message::operator=(const Message &obj) {
 	return (*this);
 }
 
-std::string	Message::stringToLower(std::string str) {
+String	Message::stringToLower(String str) {
 	for (std::size_t i = 0; i < str.length(); i++)
 		str[i] = std::tolower(str[i]);
 	return (str);
 }
 
-void	Message::insert(const std::string &key, const std::string &value) {
-	std::map<std::string, std::string>::iterator	it = this->headers.begin();
+void	Message::insert(const String &key, const String &value) {
+	std::map<String, String>::iterator	it = this->headers.begin();
 
 	it = this->headers.find(key);
 	if (it == this->headers.end()) {
@@ -83,14 +83,14 @@ void	Message::insert(const std::string &key, const std::string &value) {
 	}
 }
 
-void	Message::insert(const std::string &key, const int &value) {
-	std::map<std::string, std::string>::iterator	it = this->headers.begin();
-	std::stringstream								stream;
-	std::string										str;
+void	Message::insert(const String &key, const int &value) {
+	std::map<String, String>::iterator	it = this->headers.begin();
+	std::stringstream	stream;
+	String				str;
 
 	it = this->headers.find(key);
 	stream << value;
-	std::getline(stream, str, '\0');
+	String::getline(stream, str, '\0');
 	if (it == this->headers.end()) {
 		this->headers.insert(std::make_pair(key, str));
 	}
@@ -105,24 +105,24 @@ void	Message::insert(const std::string &key, const int &value) {
 	}
 }
 
-Optional<std::string>	Message::operator[](const std::string &key) {
-	std::string	lowercaseKey = Message::stringToLower(key);
+Optional<String>	Message::operator[](const String &key) {
+	String	lowercaseKey = Message::stringToLower(key);
 
 	try {
 		return (this->headers.at(lowercaseKey));
 	}
 	catch (const std::out_of_range &e) {
-		return (Optional<std::string>());
+		return (Optional<String>());
 	}
 }
 
-const Optional<std::string>	Message::operator[](const std::string &key) const {
-	std::string	lowercaseKey = Message::stringToLower(key);
+const Optional<String>	Message::operator[](const String &key) const {
+	String	lowercaseKey = Message::stringToLower(key);
 
 	try {
 		return (this->headers.at(lowercaseKey));
 	}
 	catch (const std::out_of_range &e) {
-		return (Optional<std::string>());
+		return (Optional<String>());
 	}
 }

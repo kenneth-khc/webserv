@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 06:05:36 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 02:17:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,16 +46,16 @@ Response&	Response::operator=(const Response& other)
 
 //	Turns the information stored in the Response instance into a complete
 //	HTTP response message
-const std::string	Response::toString(void) const {
+const String	Response::toString(void) const {
 	std::stringstream	stream;
-	std::string			str;
+	String			str;
 
 	stream << "HTTP/" << this->httpVersion << ' ';
 	stream << this->statusCode << ' ';
 	stream << this->reasonPhrase << "\r\n";
 
 	if (this->headers.size() != 0) {
-		for (std::map<std::string, std::string>::const_iterator it = this->headers.begin(); it != this->headers.end(); it++)
+		for (std::map<String, String>::const_iterator it = this->headers.begin(); it != this->headers.end(); it++)
 			stream << it->first << ": " << it->second << "\r\n";
 	}
 	stream << "\r\n";
@@ -63,7 +63,7 @@ const std::string	Response::toString(void) const {
 	if (this->messageBody.length() != 0)
 		stream << this->messageBody;
 
-	std::getline(stream, str, '\0');
+	String::getline(stream, str, '\0');
 	return (str);
 }
 
@@ -80,13 +80,13 @@ void	Response::setStatusCode(int statusCode) {
 	}
 }
 
-void	Response::getFileContents(const std::string& file)
+void	Response::getFileContents(const String& file)
 {
 	std::ifstream	filestream(file.c_str());
-	std::string		fileContents;
-	std::string		str;
+	String			fileContents;
+	String			str;
 
-	while (std::getline(filestream, str))
+	while (String::getline(filestream, str))
 	{
 		fileContents += str;
 		fileContents += "\n";

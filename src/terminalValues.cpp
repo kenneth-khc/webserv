@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 18:04:21 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/30 11:50:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 22:40:16 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,15 @@
 
 //	A string containing one or more symbols listed below, digits, and/or
 //	alphabet characters.
-bool	isToken(const std::string &line) {
-	static const std::string	values = "!#$%&'*+-.^_`|~";
+bool	isToken(const String &line) {
+	static const String	values = "!#$%&'*+-.^_`|~";
 
 	if (line.length() == 0)
 		return (false);
 	for (std::size_t i = 0; i < line.length(); i++) {
 		if (std::isalnum(line[i]) != 0)
 			continue ;
-		if (values.find(line[i]) != std::string::npos)
+		if (values.find(line[i]) != String::npos)
 			continue ;
 		return (false);
 	}
@@ -31,19 +31,19 @@ bool	isToken(const std::string &line) {
 
 //	A character that is alphanumeric or one of the symbols listed below.
 bool	isUnreservedCharacter(const unsigned char &character) {
-	static const std::string	values = "-._~";
+	static const String	values = "-._~";
 
 	if (std::isalnum(character) != 0)
 		return (true);
-	if (values.find(character) != std::string::npos)
+	if (values.find(character) != String::npos)
 		return (true);
 	return (false);
 }
 
 //	A string that is made up of '%' and two hexadecimal characters, which
 //	represents a symbol.
-bool	isPercentEncoded(const std::string &line, int index) {
-	if (std::string(&line[index]).length() < 3)
+bool	isPercentEncoded(const String &line, int index) {
+	if (String(&line[index]).length() < 3)
 		return (false);
 	if (line[index] != '%')
 		return (false);
@@ -56,9 +56,9 @@ bool	isPercentEncoded(const std::string &line, int index) {
 
 //	A character that is one of the symbols listed below.
 bool	isSubDelimiter(const unsigned char &character) {
-	static const std::string	values = "!$&'()*+,;=";
+	static const String	values = "!$&'()*+,;=";
 
-	if (values.find(character) != std::string::npos)
+	if (values.find(character) != String::npos)
 		return (true);
 	return (false);
 }

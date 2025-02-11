@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 06:03:52 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 22:39:40 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 
 ErrorCode::ErrorCode(void) {}
 
-ErrorCode::ErrorCode(float httpVersion, int statusCode, std::string reasonPhrase) {
+ErrorCode::ErrorCode(float httpVersion, int statusCode, String reasonPhrase) {
 	this->httpVersion = httpVersion;
 	this->statusCode = statusCode;
 	this->reasonPhrase = reasonPhrase;
@@ -25,7 +25,7 @@ ErrorCode::ErrorCode(float httpVersion, int statusCode, std::string reasonPhrase
 ErrorCode::ErrorCode(
 float httpVersion,
 int statusCode,
-std::string reasonPhrase,
+String reasonPhrase,
 const char *title)
 {
 	this->httpVersion = httpVersion;
@@ -33,7 +33,7 @@ const char *title)
 	this->reasonPhrase = reasonPhrase;
 	this->insert("Content-Type", "application/problem+json");
 	this->insert("Content-Language", "en");
-	this->messageBody = "{\n\t\"title\": \"" + std::string(title) + "\"\n}";
+	this->messageBody = "{\n\t\"title\": \"" + String(title) + "\"\n}";
 }
 
 ErrorCode::~ErrorCode(void) throw() {}

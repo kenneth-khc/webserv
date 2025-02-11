@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/26 02:00:53 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 03:12:51 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 02:15:40 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,24 +24,24 @@ bool	isFieldVisibleCharacter(const unsigned char &character) {
 	return (false);
 }
 
-bool	isFieldContent(const std::string &line) {
-	static const std::string	values = " \t";
+bool	isFieldContent(const String &line) {
+	static const String	values = " \t";
 	std::size_t					length = line.length();
 
-	if (length == 0 || values.find(line[length - 1]) != std::string::npos)
+	if (length == 0 || values.find(line[length - 1]) != String::npos)
 		return (false);
 
 	for (std::size_t i = 0; i < line.length(); i++) {
 		if (isFieldVisibleCharacter(line[i]) == true)
 			continue ;
-		if (values.find(line[i]) != std::string::npos)
+		if (values.find(line[i]) != String::npos)
 			continue ;
 		return (false);
 	}
 	return (true);
 }
 
-bool	isFieldValue(const std::string &line) {
+bool	isFieldValue(const String &line) {
 	if (line.length() == 0)
 		return (true);
 	if (isFieldContent(line) == false)
@@ -49,29 +49,27 @@ bool	isFieldValue(const std::string &line) {
 	return (true);
 }
 
-void	extractFieldLineComponents(const std::string &line, Request &request) {
-	static const std::string	optionalWhiteSpaces = " \t";
+void	extractFieldLineComponents(const String &line, Request &request) {
+	static const String	optionalWhiteSpaces = " \t";
 
-	if (line.find(':') == std::string::npos)
+	if (line.find(':') == String::npos)
 		throw BadRequest400();
 
 	std::stringstream	stream(line);
-	std::string			str;
-	std::string			fieldName;
+	String			str;
+	String			fieldName;
 
-	std::getline(stream, str, ':');
+	String::getline(stream, str, ':');
 	if (isToken(str) == false)
 		throw BadRequest400();
 	fieldName = str;
 
-	if (!std::getline(stream, str, '\0'))
+	if (!String::getline(stream, str, '\0'))
 		return ;
-	if (str.find("\r\n ") != std::string::npos || str.find("\r\n\t") != std::string::npos)
+	if (str.find("\r\n ") != String::npos || str.find("\r\n\t") != String::npos)
 		throw BadRequest400("Invalid use of obsolete line folding in field value.");
 
-	std::size_t	frontPos = str.find_first_not_of(optionalWhiteSpaces);
-	std::size_t	backPos = str.find_last_not_of(optionalWhiteSpaces);
-	str = str.substr(frontPos, backPos + 1 - frontPos);
+	str = str.trim(optionalWhiteSpaces);
 
 	if (isFieldValue(str) == false)
 		throw BadRequest400();

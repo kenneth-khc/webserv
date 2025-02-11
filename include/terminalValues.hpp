@@ -6,18 +6,18 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 18:06:55 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/26 02:53:00 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 22:34:18 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef TERMINALVALUES_HPP
 # define TERMINALVALUES_HPP
 
-# include <string>
+# include "String.hpp"
 
-bool	isToken(const std::string &line);
+bool	isToken(const String &line);
 bool	isUnreservedCharacter(const unsigned char &character);
-bool	isPercentEncoded(const std::string &line, int index);
+bool	isPercentEncoded(const String &line, int index);
 bool	isSubDelimiter(const unsigned char &character);
 bool	isVisibleCharacter(const unsigned char &character);
 

@@ -3,28 +3,40 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+         #
+#    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/01/16 18:55:20 by kecheong         ###   ########.fr        #
+#    Updated: 2025/02/11 18:17:17 by kecheong         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-.DEFAULT_GOAL := debug_server
+.DEFAULT_GOAL := fsan
 
 NAME := webserv
 
-CXX := c++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98 -I $(include_dir)
+CXX := g++
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes) -g3 -fsanitize=address,undefined
 
 src_dir := src
 dirs := $(src_dir) \
-		$(src_dir)/debug
+		$(src_dir)/server \
+		$(src_dir)/methods \
+		$(src_dir)/URI \
+		$(src_dir)/message \
+		$(src_dir)/headers \
+		$(src_dir)/utils \
+		$(src_dir)/debug 
 
 srcs := $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))
 # For my own testing purposes
-srcs += testServer.cpp
-include_dir := include/
+srcs += main.cpp
+inc_dir := include
+
+includes := -I $(inc_dir)/ \
+			-I $(inc_dir)/URI \
+			-I $(inc_dir)/message \
+			-I $(inc_dir)/headers \
+			-I $(inc_dir)/utils \
 
 obj_dir := obj
 objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)
@@ -32,7 +44,7 @@ objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)
 all: $(NAME)
 
 $(NAME): $(objs)
-	$(CXX) $(CXXFLAGS) $(objs) $(includes) -o $(NAME)
+	$(CXX) $(CXXFLAGS) $(objs) -o $(NAME)
 
 $(obj_dir):
 	mkdir -p $(obj_dir)

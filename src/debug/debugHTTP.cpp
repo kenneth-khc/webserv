@@ -1,33 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   testServer.cpp                                     :+:      :+:    :+:   */
+/*   debugHTTP.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/19 17:52:51 by kecheong         ###   ########.fr       */
+/*   Created: 2025/01/30 00:13:55 by kecheong          #+#    #+#             */
+/*   Updated: 2025/01/30 00:14:02 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include "Server.hpp"
 #include "debugUtils.hpp"
 
-void	server();
-
-int	main()
+void	dbg::printHTTPHeaders(const std::map<std::string,std::string>& headers)
 {
-	Server	server;
+	std::map<std::string,std::string>::const_iterator	it;
 
-	server.startListening();
-	server.initEpoll();
-
-	std::cout << "Server is running...\n";
-	while (1)
+	for (it = headers.begin(); it != headers.end(); ++it)
 	{
-		dbg::println("Polling...");
-		server.epollWait();
-		server.processReadyEvents();
+		const std::string&	key = it->first;
+		const std::string&	value = it->second;
+		std::cout << key << ": " << value << '\n';
 	}
 }
+

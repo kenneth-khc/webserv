@@ -1,22 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils.cpp                                          :+:      :+:    :+:   */
+/*   headers.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/19 17:26:12 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/19 17:28:26 by kecheong         ###   ########.fr       */
+/*   Created: 2025/02/05 17:49:28 by cteoh             #+#    #+#             */
+/*   Updated: 2025/02/05 18:03:03 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include <string>
-#include <cstdlib>
+#ifndef HEADERS_HPP
+# define HEADERS_HPP
 
-void	error(const std::string& errmsg)
-{
-	std::cerr << errmsg << '\n';
-	std::exit(1);
-}
+# define NUM_OF_MANDATORY_HEADERS 1
 
+# include <string>
+
+bool	checkMandatoryHeaders(std::string fieldName, const std::string &fieldValue);
+
+#endif

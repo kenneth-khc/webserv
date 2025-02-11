@@ -7,3 +7,7 @@ ubuntu_cgi_tester
 .cache/
 .vscode/
 obj/
+uploads/
+*.txt
+a.out
+*.a

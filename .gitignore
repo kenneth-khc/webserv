@@ -10,3 +10,4 @@ obj/
 uploads/
 *.txt
 a.out
+*.a

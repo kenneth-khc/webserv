@@ -6,11 +6,11 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/02/05 05:07:08 by cteoh            ###   ########.fr        #
+#    Updated: 2025/02/11 18:17:17 by kecheong         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-.DEFAULT_GOAL := debug_server
+.DEFAULT_GOAL := fsan
 
 NAME := webserv
 
@@ -19,51 +19,45 @@ CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes) -g3 -fsanitize=address,u
 
 src_dir := src
 dirs := $(src_dir) \
-		$(src_dir)/debug \
+		$(src_dir)/server \
 		$(src_dir)/methods \
-		$(src_dir)/server
-		# http			 \
-		# http/src		 \
-		# http/src/headers \
-		# http/src/message \
-		# http/src/URI
+		$(src_dir)/URI \
+		$(src_dir)/message \
+		$(src_dir)/headers \
+		$(src_dir)/utils \
+		$(src_dir)/debug 
 
 srcs := $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))
 # For my own testing purposes
 srcs += main.cpp
-include_dir := include/
+inc_dir := include
 
-includes := -I include/ \
-			-I http/include/ \
-			-I http/include/headers \
-			-I http/include/message \
-			-I http/include/URI
+includes := -I $(inc_dir)/ \
+			-I $(inc_dir)/URI \
+			-I $(inc_dir)/message \
+			-I $(inc_dir)/headers \
+			-I $(inc_dir)/utils \
 
 obj_dir := obj
 objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)
 
 all: $(NAME)
 
-$(NAME): $(objs) http/libhttp.a
-	$(CXX) $(CXXFLAGS) $(objs) http/libhttp.a -o $(NAME)
-
-http/libhttp.a:
-	make -C http/
+$(NAME): $(objs)
+	$(CXX) $(CXXFLAGS) $(objs) -o $(NAME)
 
 $(obj_dir):
 	mkdir -p $(obj_dir)
 
-vpath %.cpp http/ http/src http/src/message
 $(obj_dir)/%.o: $(src_dir)/%.cpp | obj
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(includes) $< -c -o $@
 
 clean:
-	make clean -C http/
 	$(RM) -r $(obj_dir)
 
 fclean: clean
-	$(RM) $(NAME) http/libhttp.a
+	$(RM) $(NAME)
 
 re: fclean all
 

@@ -15,9 +15,17 @@
 #include <sys/epoll.h>
 #include "ErrorCode.hpp"
 #include <unistd.h>
+#include <csignal>
+#include <cstdlib>
+
+void	sigint_exit(int)
+{
+	std::exit(1);
+}
 
 int	main()
 {
+	std::signal(SIGINT, sigint_exit);
 	Server	server;
 
 	server.startListening();

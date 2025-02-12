@@ -11,3 +11,4 @@ uploads/
 *.txt
 a.out
 *.a
+.clangd

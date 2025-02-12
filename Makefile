@@ -6,7 +6,7 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/02/11 18:17:17 by kecheong         ###   ########.fr        #
+#    Updated: 2025/02/12 22:12:45 by kecheong         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,7 @@
 NAME := webserv
 
 CXX := g++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes)
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes) -fuse-ld=mold
 
 src_dir := src
 dirs := $(src_dir) \
@@ -69,5 +69,8 @@ debug_server: all
 
 fsan: CXXFLAGS += -fsanitize=address,undefined -g3
 fsan: all
+
+lib:
+	ar -rcs libserv.a $(objs)
 
 .PHONY: all clean fclean re optimized debug fsan

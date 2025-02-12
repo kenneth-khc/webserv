@@ -37,6 +37,7 @@ public:
 	Optional&	operator=(const T&);
 	Optional	operator()(const T&);
 	operator	bool() const;
+	operator	T()	const;
 
 	void		reset();
 	template <typename U>

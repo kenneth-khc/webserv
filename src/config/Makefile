@@ -1,0 +1,37 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2025/02/12 22:06:13 by kecheong          #+#    #+#              #
+#    Updated: 2025/02/12 22:14:21 by kecheong         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+CXX := c++
+SERVER_INC := ../../include
+INC := -I $(SERVER_INC) -I $(SERVER_INC)/utils
+CXXFLAGS := -Wall -Werror -Wextra -std=c++98 -fsanitize=address,undefined -g3 \
+			$(INC)
+
+LDFLAGS := -fuse-ld=mold
+
+LIBSERV := ../../libserv.a
+
+SRCS := main.cpp RDP.cpp Token.cpp Lexer.cpp
+OBJS := $(SRCS:.cpp=.o)
+
+all: parser
+
+parser: $(OBJS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o parser $(LIBSERV) $(OBJS)
+
+clean:
+	$(RM) $(OBJS)
+
+fclean: clean
+	$(RM) parser
+
+re: fclean all

@@ -14,6 +14,7 @@
 #define STRING_HPP
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <exception>
 #include <vector>
@@ -37,6 +38,8 @@ public:
 	String(const char*);
 	String(const std::string&);
 	String(const String&);
+	String(int);
+	String(const std::ifstream&);
 
 	/* Operators */
 	bool					operator==(const String&) const;
@@ -65,6 +68,7 @@ public:
 	Optional<size_type>	find(char, size_type searchFrom = 0) const;
 	Optional<size_type>	find(const String&, size_type searchFrom = 0) const;
 	String				substr(size_type pos = 0, size_type len = npos) const;
+	void				clear();
 
 	/* Custom additions to a String */
 
@@ -85,6 +89,7 @@ public:
 
 	// Consume the first character if Predicate returns true
 	Optional<char>		consumeIf(const Predicate&);
+	Optional<char>		consumeIf(bool (*pred)(char));
 
 	// Consume characters up until a substring, returning the string consumed
 	Optional<String>	consumeUntil(const String&);

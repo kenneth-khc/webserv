@@ -3,7 +3,7 @@ webserv
 *.json
 ubuntu_tester
 ubuntu_cgi_tester
-*.conf
+nginx.conf
 .cache/
 .vscode/
 obj/

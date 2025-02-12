@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <stdexcept>
 #include "String.hpp"
 #include "Optional.hpp"
@@ -27,6 +28,20 @@ str(str) { }
 
 String::String(const String& other):
 str(other.str) { }
+
+String::String(int num)
+{
+	std::stringstream	ss;
+	ss << num;
+	str = ss.str();
+}
+
+String::String(const std::ifstream& ifs)
+{
+	std::stringstream	ss;
+	ss << ifs.rdbuf();
+	str = ss.str();
+}
 
 bool	String::operator==(const String& rhs) const
 {
@@ -181,6 +196,11 @@ String	String::substr(size_type pos, size_type n) const
 	return str.substr(pos, n);
 }
 
+void	String::clear()
+{
+	return str.clear();
+}
+
 Optional<String::size_type>
 String::findAfter(const String& expected, size_type offset) const
 {
@@ -251,6 +271,16 @@ bool	String::consumeIf(char c)
 }
 
 Optional<char>	String::consumeIf(const Predicate& pred)
+{
+	if (!str.empty() && pred(str[0]))
+	{
+		char	consumed = consume().value;
+		return makeOptional(consumed);
+	}
+	return makeNone<char>();
+}
+
+Optional<char>	String::consumeIf(bool (*pred)(char))
 {
 	if (!str.empty() && pred(str[0]))
 	{

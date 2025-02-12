@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 22:47:44 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 15:46:20 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,14 @@ const String	Request::methods[NUM_OF_METHODS] = {
 
 const float	Request::supportedVersions[NUM_OF_VERSIONS] = { 1.1 };
 
-Request::Request(void) : Message() {}
+Request::Request(void) :
+	Message(),
+	method(0),
+	requestTarget(""),
+	flags(0),
+	requestLineFound(false),
+	headersFound(false)
+{}
 
 Request::~Request(void) {}
 
@@ -35,8 +42,9 @@ Request::Request(const Request &obj) :
 	Message(obj),
 	method(obj.method),
 	requestTarget(obj.requestTarget),
-	socketFD(obj.socketFD),
-	srcAddress(obj.srcAddress)
+	flags(obj.flags),
+	requestLineFound(obj.requestLineFound),
+	headersFound(obj.headersFound)
 {}
 
 Request	&Request::operator=(const Request &obj) {
@@ -45,8 +53,9 @@ Request	&Request::operator=(const Request &obj) {
 	Message::operator=(obj);
 	this->method = obj.method;
 	this->requestTarget = obj.requestTarget;
-	this->socketFD = obj.socketFD;
-	this->srcAddress = obj.srcAddress;
+	this->flags = obj.flags;
+	this->requestLineFound = obj.requestLineFound;
+	this->headersFound = obj.headersFound;
 	return *this;
 }
 
@@ -86,7 +95,7 @@ void	Request::parseRequestLine(String &line) {
 }
 
 void	Request::parseHeaders(String &line) {
-	String	str;
+	String		str;
 	std::size_t	headerLineTerminator = 0;
 	std::size_t	headerLineStart = 0;
 	std::size_t	headerSectionTerminator = line.find("\r\n\r\n");

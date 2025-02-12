@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/12 02:01:03 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 15:55:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,6 @@ ssize_t	Server::receiveBytes(Client& client)
 	ssize_t	bytes = recv(client.socketFD,
 						 &client.messageBuffer[0],
 						 client.messageBuffer.size(), 0);
-
-	// TODO: fix where this belongs
-	client.request.socketFD = client.socketFD;
-	client.request.srcAddress = client.address;
 
 	if (bytes > 0)
 	{
@@ -59,19 +55,19 @@ void	Server::processMessages()
 	Client&		client = clients[readyEvents[0].data.fd];
 	Request&	request = client.request;
 
-	if (!client.requestLineFound && endOfRequestLineFound(client.message))
+	if (!request.requestLineFound && endOfRequestLineFound(client.message))
 	{
 		request.parseRequestLine(client.message);
-		client.requestLineFound = true;
+		request.requestLineFound = true;
 	}
-	if (client.requestLineFound &&
-		!client.headersFound &&
+	if (request.requestLineFound &&
+		!request.headersFound &&
 		endOfHeaderFound(client.message))
 	{
 		request.parseHeaders(client.message);
-		client.headersFound = true;
+		request.headersFound = true;
 	}
-	if (client.requestLineFound && client.headersFound)
+	if (request.requestLineFound && request.headersFound)
 	{
 		Optional<int>	bodyLength = request.find< Optional<int> >("Content-Length");
 
@@ -79,7 +75,7 @@ void	Server::processMessages()
 		if (client.message.size() == (size_t)bodyLength.value)
 		{
 			readyRequests.push(request);
-			logger.logRequest(*this, request);
+			logger.logRequest(*this, request, &client.address);
 		}
 	}
 }
@@ -91,8 +87,6 @@ void	Server::processReadyRequests()
 		Request&	request = readyRequests.front();
 		Response	response = handleRequest(request);
 
-		response.socketFD = request.socketFD;
-		response.destAddress = request.srcAddress;
 		readyResponses.push(response);
 		readyRequests.pop();
 	}
@@ -107,17 +101,17 @@ void	Server::generateResponses()
 		logger.logResponse(*this, response);
 
 		std::string	formattedResponse = response.toString();
-		send(response.socketFD, formattedResponse.c_str(), formattedResponse.size(), 0);
+		send(client.socketFD, formattedResponse.c_str(), formattedResponse.size(), 0);
 
 		if (response.flags & Response::CONNECTION_CLOSE)
 		{
 			close(response.socketFD);
-			epoll_ctl(epollFD, EPOLL_CTL_DEL, response.socketFD, 0);
-			clients.erase(clients.find(response.socketFD));
+			epoll_ctl(epollFD, EPOLL_CTL_DEL, client.socketFD, 0);
+			clients.erase(clients.find(client.socketFD));
 		}
 		else
 		{
-			client.reset();
+			client.request = Request();
 		}
 		readyResponses.pop();
 	}

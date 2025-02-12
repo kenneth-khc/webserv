@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 14:00:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 20:16:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 15:54:48 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,9 @@ const char*	Logger::YELLOW = "\e[0;33m";
 const char*	Logger::CRESET = "\e[0m";
 
 // TODO: clean this up nicely
-void	Logger::logRequest(const Server& server, Request& request) const
+void	Logger::logRequest(const Server& server, Request& request, const sockaddr_storage *srcAddress) const
 {
-	sockaddr*	client = (sockaddr*)&request.srcAddress;
+	sockaddr*	client = (sockaddr*)srcAddress;
 
 	std::cout << YELLOW;
 	if (client->sa_family == AF_INET)

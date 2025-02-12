@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 22:52:26 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 15:44:42 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,11 @@ class Request : public Message {
 		static const String	methods[NUM_OF_METHODS];
 		static const float	supportedVersions[NUM_OF_VERSIONS];
 
-		int					method;
-		String				requestTarget;
-		int					socketFD;
-		sockaddr_storage	srcAddress;
-		int					flags;
+		int		method;
+		String	requestTarget;
+		int		flags;
+		bool	requestLineFound;
+		bool	headersFound;
 
 		Request(void);
 		~Request(void);

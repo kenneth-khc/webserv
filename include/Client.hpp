@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/12 01:59:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 15:52:23 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ public:
 
 	bool	isTimeout() const;
 	void	updateLastActive();
-	void	reset();
 
 private:
 	int					socketFD;
@@ -41,11 +40,6 @@ private:
 	String				message;
 	static const size_t	MAX_REQUEST_SIZE;
 	Request				request;
-
-	bool				requestLineFound;
-	bool				headersFound;
-	bool				hasBody;
-	bool				bodyFound;
 
 	bool				firstDataRecv;
 	std::time_t			lastActive;

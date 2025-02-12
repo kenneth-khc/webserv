@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 02:17:37 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 15:58:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,12 @@
 #include <sstream>
 #include "Response.hpp"
 
-Response::Response(void) : Message() {
+Response::Response(void) :
+	Message(),
+	flags(0)
+{
 	this->httpVersion = 1.1;
 	this->insert("Server", SERVER_NAME);
-	this->flags = 0;
 }
 
 Response::~Response(void) {}
@@ -26,8 +28,6 @@ Response::Response(const Response &obj) :
 	Message(obj),
 	statusCode(obj.statusCode),
 	reasonPhrase(obj.reasonPhrase),
-	socketFD(obj.socketFD),
-	destAddress(obj.destAddress),
 	flags(obj.flags)
 {}
 
@@ -38,8 +38,6 @@ Response&	Response::operator=(const Response& other)
 	Message::operator=(other);
 	this->statusCode = other.statusCode;
 	this->reasonPhrase = other.reasonPhrase;
-	this->socketFD = other.socketFD;
-	this->destAddress = other.destAddress;
 	this->flags = other.flags;
 	return *this;
 }
@@ -48,7 +46,7 @@ Response&	Response::operator=(const Response& other)
 //	HTTP response message
 const String	Response::toString(void) const {
 	std::stringstream	stream;
-	String			str;
+	String				str;
 
 	stream << "HTTP/" << this->httpVersion << ' ';
 	stream << this->statusCode << ' ';

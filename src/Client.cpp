@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/11 03:36:42 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 15:52:14 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,10 +24,6 @@ addressLen(),
 messageBuffer(),
 message(),
 request(),
-requestLineFound(false),
-headersFound(false),
-hasBody(true),
-bodyFound(false),
 firstDataRecv(false),
 lastActive(std::time(0))
 {
@@ -44,19 +40,4 @@ bool	Client::isTimeout() const
 void	Client::updateLastActive()
 {
 	lastActive = std::time(0);
-}
-
-//	TODO: slot in booleans into request instance?
-//	TODO: reconstructing request instance should reset everything (not requiring
-//		  "transfer" of socketFD and address)?
-void	Client::reset()
-{
-	int					socketFD = request.socketFD;
-	sockaddr_storage	srcAddress = request.srcAddress;
-
-	requestLineFound = false;
-	headersFound = false;
-	request = Request();
-	request.socketFD = socketFD;
-	request.srcAddress = srcAddress;
 }

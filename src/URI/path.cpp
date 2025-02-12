@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:05:10 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 02:13:45 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 15:58:39 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ bool	isPathAbsolute(const String &line) {
 //		hello/world
 bool	isPathNoScheme(const String &line) {
 	std::stringstream	stream(line);
-	String			str;
+	String				str;
 
 	String::getline(stream, str, '/');
 	if (isSegmentNZNC(str) == false)

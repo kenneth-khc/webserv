@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/11 03:32:52 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/12 15:57:24 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,6 @@ public:
 	void			put(Response&, const Request&) const;
 	void			head(Response&, const Request&) const;
 
-	std::string		getFileContents(const std::string&) const;
 	void			generateDirectoryListing(Response&, const std::string&) const;
 	void			sendResponse(int socketFD, Response&) const;
 

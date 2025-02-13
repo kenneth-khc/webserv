@@ -94,6 +94,8 @@ public:
 	// Consume characters up until a substring, returning the string consumed
 	Optional<String>	consumeUntil(const String&);
 
+	Optional<String>	consumeUntilNot(const Predicate&);
+
 	// Consume characters up until a substring, assuming they all match the
 	// Predicate, throwing on unexpected characters
 	String				consumeIfUntil(const Predicate&, const String&);

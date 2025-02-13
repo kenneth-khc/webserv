@@ -20,7 +20,7 @@ LDFLAGS := -fuse-ld=mold
 
 LIBSERV := ../../libserv.a
 
-SRCS := main.cpp RDP.cpp Token.cpp Lexer.cpp
+SRCS := main.cpp Token.cpp Lexer.cpp Parser.cpp 
 OBJS := $(SRCS:.cpp=.o)
 
 all: parser

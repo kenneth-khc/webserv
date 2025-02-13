@@ -14,13 +14,26 @@
 #include "Token.hpp"
 #include <cctype>
 
-const Predicate Lexer::WSP(" \t\n");
+const Predicate Lexer::isWSP(" \t\n");
 
 Lexer::Lexer(const char* fileName):
 configFile(fileName),
-input(configFile)
+input(configFile),
+currentToken()
 {
 
+}
+
+const Token&	Lexer::peek() const
+{
+	return currentToken;
+}
+
+Token&	Lexer::next()
+{
+	currentToken = getNextToken();
+	std::cout << "Lex: " << currentToken.lexeme << '\n';
+	return currentToken;
 }
 
 Token	Lexer::getNextToken()
@@ -34,28 +47,36 @@ Token	Lexer::getNextToken()
 		switch (c.value)
 		{
 			case '{':
-				return gift(Token::LCURLY);
+				return token(Token::LCURLY);
 			case '}':
-				return gift(Token::RCURLY);
+				return token(Token::RCURLY);
 			case ';':
-				return gift(Token::SEMICOLON);
+				return token(Token::SEMICOLON);
 			case '#':
-				return gift(Token::HASH);
+				skipComment(); break; // TODO: make this better
 			case '\n':
-				return gift(Token::NEWLINE);
+				return token(Token::NEWLINE);
 			default:
 				if (std::isalpha(c.value))
 				{
+					// TODO: differentiate between an Identifier for a key
+					// and a Word for a value
 					tryIdentifier();
-					return gift(Token::IDENTIFIER);
+					tryWord();
+					return token(Token::IDENTIFIER);
 				}
-
+				// TODO: an actual number token
+				else if (std::isdigit(c.value))
+				{
+					tryNumber();
+					return token(Token::IDENTIFIER);
+				}
 		}
 	}
-	return gift(Token::END_OF_FILE);
+	return Token(Token::END_OF_FILE, "EOF");
 }
 
-Token	Lexer::gift(Token::TokenType type)
+Token	Lexer::token(Token::TokenType type)
 {
 	String	lexeme = lexemeBuffer;
 	lexemeBuffer.clear();
@@ -71,14 +92,41 @@ void	Lexer::tryIdentifier()
 	}
 }
 
+void	Lexer::tryWord()
+{
+	while (std::isalpha(*input) || std::isdigit(*input)
+			|| *input == '_' || *input == '-' || *input == '/'
+			|| *input == '=' || *input == '[' || *input == ']')
+	{
+		lexemeBuffer += input.consume().value;
+	}
+}
+
+void	Lexer::tryNumber()
+{
+	while (std::isdigit(*input))
+	{
+		lexemeBuffer += input.consume().value;
+	}
+}
 
 size_t	Lexer::skipWhitespaces()
 {
 	size_t	skipped = 0;
-
-	while (input.consumeIf(WSP).exists)
+	while (input.consumeIf(isWSP).exists)
 	{
 		++skipped;
 	}
+	return skipped;
+}
+
+size_t	Lexer::skipComment()
+{
+	size_t	skipped = 0;
+	Optional<String>	consumedComment = input.consumeUntil("\n");
+	while (input.consume("\n").exists)
+		++skipped;
+	skipped += consumedComment.value_or("").size();
+	lexemeBuffer.clear();
 	return skipped;
 }

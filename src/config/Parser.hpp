@@ -14,19 +14,28 @@
 #define RDP_HPP
 
 #include <fstream>
+#include <exception>
 #include "String.hpp"
-#include "Token.hpp"
+#include "Lexer.hpp"
 
-struct	RDP
+struct	Parser
 {
-	RDP(const char* fileName);
+	Parser(const char* fileName);
 
+	Lexer			lexer;
 	std::ifstream	configFile;
 	const String	config;
-	String			input;
 	size_t			lineOffset;
 	size_t			charOffset;
 
+	void				parseConfig();
+	void				parseDirective();
+	void				parseBlock();
+	std::vector<String>	parseParameters();
+	void				expect(bool);
+	void				expect(Token::TokenType);
+
+	class	UnexpectedToken : public std::exception {};
 
 };
 

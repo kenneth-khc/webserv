@@ -13,6 +13,14 @@
 #include "Token.hpp"
 #include "String.hpp"
 
+Token::Token():
+type(),
+lexeme()
+{
+
+}
+
+
 Token::Token(const String& str):
 lexeme(str)
 {
@@ -30,3 +38,8 @@ Token::operator TokenType() const
 {
 	return type;
 }
+
+const char*	Token::stringified[] = {
+	"Identifier", "Digit", "Alpha", "Whitespace", "Char", "DoubleQuote",
+	"LeftCurly", "RightCurly", "Semicolon", "Hash", "Newline", "EndOfFile"
+};

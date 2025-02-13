@@ -17,6 +17,8 @@
 #include "String.hpp"
 #include "Token.hpp"
 
+struct	Token;
+
 struct	Lexer
 {
 	Lexer(const char* fileName);
@@ -26,16 +28,19 @@ struct	Lexer
 	size_t			charOffset;
 	size_t			lineOffset;
 	String			lexemeBuffer;
+	Token			currentToken;
 
+	const Token&	peek() const;
+	Token&			next();
 	Token			getNextToken();
-	Token			gift(Token::TokenType);
+	Token			token(Token::TokenType);
 	size_t			skipWhitespaces();
+	size_t			skipComment();
 	void			tryIdentifier();
+	void			tryWord();
+	void			tryNumber();
 	
-	
-
-
-	static const Predicate	WSP;
+	static const Predicate	isWSP;
 
 };
 

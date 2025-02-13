@@ -305,6 +305,25 @@ Optional<String>	String::consumeUntil(const String& expected)
 	}
 }
 
+Optional<String>	String::consumeUntilNot(const Predicate& pred)
+{
+	String			consumedString;
+	Optional<char>	consumed = consumeIf(pred);
+	while (consumed.exists)
+	{
+		consumedString += consumed.value;
+		consumed = consumeIf(pred);
+	}
+	if (consumedString.empty())
+	{
+		return makeNone<String>();
+	}
+	else
+	{
+		return makeOptional(consumedString);
+	}
+}
+
 String	String::consumeIfUntil(const Predicate& pred, const String& expected)
 {
 	Optional<size_type>	pos = find(expected);

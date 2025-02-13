@@ -13,7 +13,9 @@
 #ifndef TOKEN_HPP
 #define TOKEN_HPP
 
+#include <map>
 #include "String.hpp"
+
 
 struct	Token
 {
@@ -22,10 +24,12 @@ struct	Token
 		IDENTIFIER, DIGIT, ALPHA, WSP, CHAR, DQUOTE,
 		LCURLY, RCURLY, SEMICOLON, HASH, NEWLINE, END_OF_FILE
 	};
+	static const char* stringified[];
 
 	TokenType	type;
 	String		lexeme;
 
+	Token();
 	Token(const String&);
 	Token(const TokenType&, const String&);
 	operator	TokenType() const;

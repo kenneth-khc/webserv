@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #include <iostream>
-#include "RDP.hpp"
+#include "Parser.hpp"
 #include "Token.hpp"
 #include "Lexer.hpp"
 
@@ -23,16 +23,10 @@ int	main(int argc, char** argv)
 		return 1;
 	}
 
-	Lexer	lexer(argv[1]);
-	RDP		parser(argv[1]);
+	Parser	parser(argv[1]);
 
 	if (parser.configFile)
 	{
-		Token	t = lexer.getNextToken();
-		while (t != Token::END_OF_FILE)
-		{
-			std::cout << "Lex: " << t.lexeme << '\n';
-			t = lexer.getNextToken();
-		}
+		parser.parseConfig();
 	}
 }

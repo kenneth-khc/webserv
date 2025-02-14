@@ -1,30 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   Directive.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/12 21:38:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:12:04 by kecheong         ###   ########.fr       */
+/*   Created: 2025/02/14 17:32:50 by kecheong          #+#    #+#             */
+/*   Updated: 2025/02/15 05:10:15 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include "Parser.hpp"
+#ifndef DIRECTIVE_HPP
+#define DIRECTIVE_HPP
 
-int	main(int argc, char** argv)
+#include <vector>
+#include "String.hpp"
+
+struct	Directive
 {
-	if (argc == 1)
-	{
-		std::cerr << "where's the config file you bozo?\n";
-		return 1;
-	}
+	String	name;
+	String	param;
 
-	Parser	parser(argv[1]);
+	Directive(const String&, const String&);
+};
 
-	if (parser.configFile)
-	{
-		parser.parseConfig();
-	}
-}
+#endif

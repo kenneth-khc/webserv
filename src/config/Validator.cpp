@@ -1,30 +1,40 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   Validator.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/12 21:38:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:12:04 by kecheong         ###   ########.fr       */
+/*   Created: 2025/02/15 04:06:02 by kecheong          #+#    #+#             */
+/*   Updated: 2025/02/15 05:09:38 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include "Parser.hpp"
+#include "Validator.hpp"
+#include "Parameter.hpp"
+#include "String.hpp"
 
-int	main(int argc, char** argv)
+Validator::Validator()
 {
-	if (argc == 1)
-	{
-		std::cerr << "where's the config file you bozo?\n";
-		return 1;
-	}
 
-	Parser	parser(argv[1]);
+}
 
-	if (parser.configFile)
+Validator::Validator(bool (*function)(const String&)):
+validate(function)
+{
+
+}
+
+bool	Validator::operator()(String parameter) const
+{
+	return validate(parameter);
+}
+
+bool	checkIfAbsolutePath(const String& str)
+{
+	if (str[0] != '/')
 	{
-		parser.parseConfig();
+		throw InvalidParameter(str);
 	}
+	return str[0] == '/';
 }

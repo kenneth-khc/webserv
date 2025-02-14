@@ -1,30 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   ConfigValidator.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/12 21:38:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:12:04 by kecheong         ###   ########.fr       */
+/*   Created: 2025/02/15 04:55:07 by kecheong          #+#    #+#             */
+/*   Updated: 2025/02/15 05:03:21 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include "Parser.hpp"
+#include "ConfigValidator.hpp"
+#include "Validator.hpp"
 
-int	main(int argc, char** argv)
+ConfigValidator::ConfigValidator()
 {
-	if (argc == 1)
-	{
-		std::cerr << "where's the config file you bozo?\n";
-		return 1;
-	}
-
-	Parser	parser(argv[1]);
-
-	if (parser.configFile)
-	{
-		parser.parseConfig();
-	}
+	add("prefix", checkIfAbsolutePath);
 }

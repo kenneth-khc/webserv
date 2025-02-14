@@ -1,30 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   ConfigValidator.hpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/12 21:38:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:12:04 by kecheong         ###   ########.fr       */
+/*   Created: 2025/02/15 04:54:25 by kecheong          #+#    #+#             */
+/*   Updated: 2025/02/15 05:09:53 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include "Parser.hpp"
+#ifndef CONFIGVALIDATOR_HPP
+#define CONFIGVALIDATOR_HPP
 
-int	main(int argc, char** argv)
+#include <map>
+#include "String.hpp"
+#include "Validator.hpp"
+
+struct	ConfigValidator
 {
-	if (argc == 1)
-	{
-		std::cerr << "where's the config file you bozo?\n";
-		return 1;
-	}
+	ConfigValidator();
 
-	Parser	parser(argv[1]);
+	void	add(const String&, const Validator&);
+	const Validator&	operator[](const String&) const;
 
-	if (parser.configFile)
-	{
-		parser.parseConfig();
-	}
-}
+	std::map<String,Validator>	directives;
+};
+
+#endif

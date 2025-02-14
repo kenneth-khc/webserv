@@ -1,30 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   Parameter.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/12 21:38:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:12:04 by kecheong         ###   ########.fr       */
+/*   Created: 2025/02/14 17:33:50 by kecheong          #+#    #+#             */
+/*   Updated: 2025/02/15 05:13:08 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include "Parser.hpp"
+#ifndef PARAMETER_HPP
+#define PARAMETER_HPP
 
-int	main(int argc, char** argv)
+#include <vector>
+#include <exception>
+#include "String.hpp"
+
+struct	Parameter
 {
-	if (argc == 1)
-	{
-		std::cerr << "where's the config file you bozo?\n";
-		return 1;
-	}
+	std::vector<String>	params;
+};
 
-	Parser	parser(argv[1]);
+struct	InvalidParameter : public std::exception
+{
+	String	parameter;
 
-	if (parser.configFile)
-	{
-		parser.parseConfig();
-	}
-}
+	InvalidParameter(const String& str):
+	parameter(str) { }
+
+	~InvalidParameter() throw() { }
+};
+
+#endif

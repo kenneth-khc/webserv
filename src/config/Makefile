@@ -6,11 +6,11 @@
 #    By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/02/12 22:06:13 by kecheong          #+#    #+#              #
-#    Updated: 2025/02/12 22:14:21 by kecheong         ###   ########.fr        #
+#    Updated: 2025/02/15 05:02:14 by kecheong         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-CXX := c++
+CXX := g++
 SERVER_INC := ../../include
 INC := -I $(SERVER_INC) -I $(SERVER_INC)/utils
 CXXFLAGS := -Wall -Werror -Wextra -std=c++98 -fsanitize=address,undefined -g3 \
@@ -20,7 +20,8 @@ LDFLAGS := -fuse-ld=mold
 
 LIBSERV := ../../libserv.a
 
-SRCS := main.cpp Token.cpp Lexer.cpp Parser.cpp 
+SRCS := main.cpp Token.cpp Lexer.cpp Parser.cpp Context.cpp Directive.cpp \
+		Validator.cpp ConfigValidator.cpp
 OBJS := $(SRCS:.cpp=.o)
 
 all: parser

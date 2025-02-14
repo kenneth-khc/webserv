@@ -1,69 +1,107 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   RDP.cpp                                            :+:      :+:    :+:   */
+/*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:45:56 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/12 22:28:04 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/15 05:19:35 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <cctype>
+#include <stdexcept>
+#include "Parameter.hpp"
 #include "String.hpp"
 #include "Parser.hpp"
 #include "Lexer.hpp"
+#include "ConfigValidator.hpp"
+#include "Validator.hpp"
 
 Parser::Parser(const char *fileName):
 lexer(fileName),
 configFile(fileName),
-config(configFile),
-lineOffset(0),
-charOffset(0)
+config(configFile)
 {
 
 }
 
+void	ConfigValidator::add(const String& name, const Validator& validator)
+{
+	directives.insert(std::make_pair(name, validator));
+
+}
+
+const Validator&	ConfigValidator::operator[](const String& key) const
+{
+	try
+	{
+		const Validator&	validator = directives.at(key);
+		return validator;
+	}
+	catch (const std::out_of_range& e)
+	{
+		throw InvalidDirective(key);
+	}
+}
+
 void	Parser::parseConfig()
 {
+	ConfigValidator	configValidator;
+
 	try
 	{
 		while (lexer.next() != Token::END_OF_FILE)
 		{
-			parseDirective();
+			Directive	directive = parseDirective();
+			configValidator[directive.name].validate(directive.param);
 		}
 	}
 	catch (const UnexpectedToken& e)
 	{
 		std::cerr << "unexpected token you bozo\n";
 	}
+	catch (const InvalidParameter& e)
+	{
+		std::cerr << e.parameter << " is invalid parameter you bozo\n";
+	}
+	catch (const InvalidDirective& e)
+	{
+		std::cerr << e.directive << " is an invalid directive you bozo\n";
+	}
 }
 
-void	Parser::parseDirective()
+Directive	Parser::parseDirective()
 {
 	expect(Token::IDENTIFIER);
+	String	name = lexer.peek().lexeme;
 	Optional<String>	whitespaces = lexer.input.consumeUntilNot(lexer.isWSP);
 	if (lexer.next() == Token::LCURLY)
 	{
-		parseBlock();
+		return parseBlock();
 	}
 	else
 	{
 		expect(whitespaces.exists);
 		std::vector<String>	params = parseParameters();
+		Directive	directive(name, params[0]);
+		// validate directive
+
 		lexer.next();
 		expect(Token::SEMICOLON);
+		return directive;
 	}
 }
 
-void	Parser::parseBlock()
+Directive	Parser::parseBlock()
 {
 	expect(Token::LCURLY);
 	lexer.next();
-	parseDirective();
+	Directive directive = parseDirective();
 	lexer.next();
 	expect(Token::RCURLY);
+	return directive;
 }
 
 /* TODO: handle multiple parameters

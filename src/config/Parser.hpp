@@ -16,8 +16,8 @@
 #include <fstream>
 #include <exception>
 #include <stack>
-#include "String.hpp"
 #include "Lexer.hpp"
+#include "String.hpp"
 #include "Directive.hpp"
 #include "ConfigValidator.hpp"
 
@@ -27,18 +27,17 @@ struct	Parser
 
 	Lexer				lexer;
 	std::ifstream		configFile;
-	const String		config;
 	ConfigValidator		configValidator;
 	std::stack<String>	contextStack;
+	Token				token;
 
 	void				parseConfig();
 	Directive			parseDirective();
-	Directive			parseBlock();
+	Directive			parseBlock(const String&);
 	std::vector<String>	parseParameters();
 	void				expect(bool);
 	void				expect(Token::TokenType);
-
-	class	UnexpectedToken : public std::exception {};
+	bool				accept(Token::TokenType);
 };
 
 #endif

@@ -33,31 +33,10 @@ struct	Validator
 	bool	operator()(Directive parameter) const;
 };
 
-struct	InvalidDirective : public std::exception
-{
-	InvalidDirective(const String& directive):
-		directive(directive) {}
-
-	~InvalidDirective() throw() {}
-
-	String	directive;
-};
-
-struct	InvalidContext : public std::exception
-{
-	InvalidContext(const String& directive, const String& context):
-		directive(directive),
-		context(context) {}
-
-	~InvalidContext() throw() {}
-
-	String	directive;
-	String	context;
-};
-
 bool	returnsTrue(const Directive&);
 bool	checkIfAbsolutePath(const Directive&);
-bool	isValidPortNumber(const Directive&);
+bool	validateListen(const Directive&);
 bool	validateHTTP(const Directive& );
+bool	validateServer(const Directive&);
 
 #endif

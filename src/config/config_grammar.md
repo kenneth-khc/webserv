@@ -15,7 +15,7 @@ uri					= 1*( ALPHA / DIGIT / "-" / "_" / "/" / "." / "?" / "=" / "&" / "%" ); s
 boolean				= "on" / "off" ;
 number				= 1*DIGIT ;
 size				= 1*DIGIT [ "k" / "m" ] ;
-comment				= "#" *( WSP / CHAR ) NEWLINE
+comment				= "#" *( WSP / CHAR ) NEWLINE ;
 
 ; Terminals
 LCURLY				= "{" ;

@@ -14,22 +14,11 @@
 #define PARAMETER_HPP
 
 #include <vector>
-#include <exception>
 #include "String.hpp"
 
 struct	Parameter
 {
 	std::vector<String>	params;
-};
-
-struct	InvalidParameter : public std::exception
-{
-	String	parameter;
-
-	InvalidParameter(const String& str):
-	parameter(str) { }
-
-	~InvalidParameter() throw() { }
 };
 
 #endif

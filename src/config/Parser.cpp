@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:45:56 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:19:35 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/15 05:42:40 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,14 +48,14 @@ const Validator&	ConfigValidator::operator[](const String& key) const
 
 void	Parser::parseConfig()
 {
-	ConfigValidator	configValidator;
+	contextStack.push("global");
 
 	try
 	{
 		while (lexer.next() != Token::END_OF_FILE)
 		{
 			Directive	directive = parseDirective();
-			configValidator[directive.name].validate(directive.param);
+			configValidator[directive.name].validate(directive);
 		}
 	}
 	catch (const UnexpectedToken& e)
@@ -64,11 +64,15 @@ void	Parser::parseConfig()
 	}
 	catch (const InvalidParameter& e)
 	{
-		std::cerr << e.parameter << " is invalid parameter you bozo\n";
+		std::cerr << e.parameter << " is an invalid parameter you bozo\n";
 	}
 	catch (const InvalidDirective& e)
 	{
 		std::cerr << e.directive << " is an invalid directive you bozo\n";
+	}
+	catch (const InvalidContext& e)
+	{
+		std::cerr << e.directive << " is in an invalid context " << e.context << '\n';
 	}
 }
 
@@ -79,13 +83,16 @@ Directive	Parser::parseDirective()
 	Optional<String>	whitespaces = lexer.input.consumeUntilNot(lexer.isWSP);
 	if (lexer.next() == Token::LCURLY)
 	{
+		// TODO: parsing a block is hella sus. fix this shit
+		Directive	blockDirective(name, "", contextStack.top());
+		configValidator[blockDirective.name].validate(blockDirective);
 		return parseBlock();
 	}
 	else
 	{
 		expect(whitespaces.exists);
 		std::vector<String>	params = parseParameters();
-		Directive	directive(name, params[0]);
+		Directive	directive(name, params[0], contextStack.top());
 		// validate directive
 
 		lexer.next();

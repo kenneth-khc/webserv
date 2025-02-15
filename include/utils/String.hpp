@@ -43,7 +43,11 @@ public:
 
 	/* Operators */
 	bool					operator==(const String&) const;
+	bool					operator!=(const String&) const;
+	bool					operator<=(const String&) const;
+	bool					operator>=(const String&) const;
 	bool					operator<(const String&) const;
+	bool					operator>(const String&) const;
 	String&					operator=(const String&);
 	char&					operator[](size_type);
 	const char&				operator[](size_type) const;
@@ -109,6 +113,8 @@ public:
 	// Trim leading and trailing characters that match the set
 	String				trim(const String& set);
 	String				trim(const String& set) const;
+
+	int					toInt() const;
 
 private:
 	string					str; // the underlying std::string

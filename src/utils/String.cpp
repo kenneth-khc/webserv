@@ -48,9 +48,29 @@ bool	String::operator==(const String& rhs) const
 	return str == rhs.str;
 }
 
+bool	String::operator!=(const String& rhs) const
+{
+	return str != rhs.str;
+}
+
+bool	String::operator<=(const String& rhs) const
+{
+	return str <= rhs.str;
+}
+
+bool	String::operator>=(const String& rhs) const
+{
+	return str >= rhs.str;
+}
+
 bool	String::operator<(const String& rhs) const
 {
 	return str < rhs.str;
+}
+
+bool	String::operator>(const String& rhs) const
+{
+	return str > rhs.str;
 }
 
 String&	String::operator=(const String& other)
@@ -420,6 +440,13 @@ String	String::trim(const String& set) const
 	}
 	size_type	len = (end + 1) - start;
 	return str.substr(start, len);
+}
+
+int	String::toInt() const
+{
+	int	num;
+	std::istringstream(str) >> num;
+	return num;
 }
 
 template <typename Type>

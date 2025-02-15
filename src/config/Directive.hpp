@@ -20,8 +20,9 @@ struct	Directive
 {
 	String	name;
 	String	param;
+	String	enclosingContext;
 
-	Directive(const String&, const String&);
+	Directive(const String&, const String&, const String&);
 };
 
 #endif

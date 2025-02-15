@@ -12,9 +12,10 @@
 
 #include "Directive.hpp"
 
-Directive::Directive(const String& dname, const String& param):
+Directive::Directive(const String& dname, const String& param, const String& context):
 name(dname),
-param(param)
+param(param),
+enclosingContext(context)
 {
 
 }

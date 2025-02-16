@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/12 15:57:24 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 04:53:32 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,13 @@
 #include <sys/socket.h>
 #include <queue>
 #include <vector>
+#include "String.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Logger.hpp"
 #include "Client.hpp"
 #include "MediaType.hpp"
+#include "Session.hpp"
 
 class	Logger;
 
@@ -33,6 +35,11 @@ public:
 	~Server();
 
 	/* Server configuration, initialization, event loop */
+	// TODO: Change access specifier?
+	// Only include a server-wide mapping for now..,
+	// Nginx allows defining in different http, server, and location blocks
+	MediaType		MIMEMappings;
+
 	void			startListening();
 	void			initEpoll();
 	int				epollWait();
@@ -44,30 +51,28 @@ public:
 	void			processReadyRequests();
 	void			generateResponses();
 
+	// TODO: Change access specifier?
+	// Server-wide connection timeout value in seconds
+	static const unsigned int	timeoutValue;
 	void			monitorConnections();
-
-	//	TODO: Change access specifier?
-	//	Only include a server-wide mapping for now..,
-	//	Nginx allows defining in different http, server, and location blocks
-	MediaType		map;
 
 	/* HTTP requests */
 	Request			receiveRequest(int fd) const;
-	Response		handleRequest(const Request&) const;
+	Response		handleRequest(Request&);
 
 	/* Handling HTTP methods */
-	void			get(Response&, const Request&) const;
-	void			post(Response&, const Request&) const;
+	// Server-wide sessions (cookies)
+	std::vector<Session>	sessions;
+	Session					*processSession(Request &request, Response &response);
+
+	void			get(Response&, const Request&);
+	void			post(Response&, const Request&);
 	void			delete_(Response&, const Request&) const;
 	void			put(Response&, const Request&) const;
 	void			head(Response&, const Request&) const;
 
 	void			generateDirectoryListing(Response&, const std::string&) const;
 	void			sendResponse(int socketFD, Response&) const;
-
-	//	TODO: Change access specifier?
-	/* Server-wide connection timeout value in seconds */
-	static const unsigned int	timeoutValue;
 
 private:
 	int				epollFD; // fd of the epoll instance

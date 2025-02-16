@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 19:16:30 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 01:58:24 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/15 02:19:12 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ MediaType::MediaType(const String &file) {
 		std::vector<String>	elements = mediaType.split(whiteSpaces);
 
 		for (std::vector<String>::const_iterator it = elements.begin() + 1; it != elements.end(); it++)
-			this->map.insert(std::make_pair(elements[0], *it));
+			this->map.insert(std::make_pair(*it, elements[0]));
 	};
 }
 

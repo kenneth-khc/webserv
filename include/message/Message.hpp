@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:29:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 22:58:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/15 23:26:30 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,10 @@
 
 class Message {
 	public:
-		static const String	allowedDuplicateHeaders[NUM_OF_HEADERS];
-		float		httpVersion;
-		std::map<String, String>	headers;
-		String	messageBody;
+		static const String				allowedDuplicateHeaders[NUM_OF_HEADERS];
+		float							httpVersion;
+		std::multimap<String, String>	headers;
+		String							messageBody;
 
 		Message(void);
 		~Message(void);
@@ -46,7 +46,7 @@ class Message {
 
 template<>
 inline Optional<String>	Message::find< Optional<String> >(const String &key) const {
-	std::map<String, String>::const_iterator	it;
+	std::multimap<String, String>::const_iterator	it;
 	String	lowercaseKey = Message::stringToLower(key);
 
 	it = this->headers.find(lowercaseKey);
@@ -57,7 +57,7 @@ inline Optional<String>	Message::find< Optional<String> >(const String &key) con
 
 template<>
 inline Optional<int>	Message::find< Optional<int> >(const String &key) const {
-	std::map<String, String>::const_iterator	it;
+	std::multimap<String, String>::const_iterator	it;
 	String	lowercaseKey = Message::stringToLower(key);
 
 	it = this->headers.find(lowercaseKey);
@@ -74,7 +74,7 @@ inline Optional<int>	Message::find< Optional<int> >(const String &key) const {
 
 template<>
 inline Optional<float>	Message::find< Optional<float> >(const String &key) const {
-	std::map<String, String>::const_iterator	it;
+	std::multimap<String, String>::const_iterator	it;
 	String	lowercaseKey = Message::stringToLower(key);
 
 	it = this->headers.find(lowercaseKey);

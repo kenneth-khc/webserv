@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/12 15:55:17 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 16:08:09 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 #include "Server.hpp"
 #include "ErrorCode.hpp"
 #include "Time.hpp"
+#include "Cookie.hpp"
+#include "Base64.hpp"
 #include "connection.hpp"
 #include "date.hpp"
 
@@ -46,6 +48,7 @@ static bool	endOfHeaderFound(const std::string& message)
 {
 	return message.find("\r\n\r\n") != message.npos;
 }
+
 void	Server::processMessages()
 {
 	if (listenerSocketFD == readyEvents[0].data.fd)
@@ -55,28 +58,36 @@ void	Server::processMessages()
 	Client&		client = clients[readyEvents[0].data.fd];
 	Request&	request = client.request;
 
-	if (!request.requestLineFound && endOfRequestLineFound(client.message))
+	try
 	{
-		request.parseRequestLine(client.message);
-		request.requestLineFound = true;
-	}
-	if (request.requestLineFound &&
-		!request.headersFound &&
-		endOfHeaderFound(client.message))
-	{
-		request.parseHeaders(client.message);
-		request.headersFound = true;
-	}
-	if (request.requestLineFound && request.headersFound)
-	{
-		Optional<int>	bodyLength = request.find< Optional<int> >("Content-Length");
-
-		request.messageBody = client.message;
-		if (client.message.size() == (size_t)bodyLength.value)
+		if (!request.requestLineFound && endOfRequestLineFound(client.message))
 		{
-			readyRequests.push(request);
-			logger.logRequest(*this, request, &client.address);
+			request.parseRequestLine(client.message);
+			request.requestLineFound = true;
 		}
+		if (request.requestLineFound &&
+			!request.headersFound &&
+			endOfHeaderFound(client.message))
+		{
+			request.parseHeaders(client.message);
+			request.headersFound = true;
+		}
+		if (request.requestLineFound && request.headersFound)
+		{
+			Optional<int>	bodyLength = request.find< Optional<int> >("Content-Length");
+
+			request.messageBody = client.message;
+			if (client.message.size() == (size_t)bodyLength.value)
+			{
+				readyRequests.push(request);
+				logger.logRequest(*this, request, &client.address);
+				client.message = "";
+			}
+		}
+	}
+	catch (const Response &e)
+	{
+		readyResponses.push(e);
 	}
 }
 
@@ -98,14 +109,14 @@ void	Server::generateResponses()
 	{
 		Client&		client = clients[readyEvents[0].data.fd];
 		Response&	response = readyResponses.front();
-		logger.logResponse(*this, response);
+		logger.logResponse(*this, response, (sockaddr*)&client.address);
 
 		std::string	formattedResponse = response.toString();
 		send(client.socketFD, formattedResponse.c_str(), formattedResponse.size(), 0);
 
 		if (response.flags & Response::CONNECTION_CLOSE)
 		{
-			close(response.socketFD);
+			close(client.socketFD);
 			epoll_ctl(epollFD, EPOLL_CTL_DEL, client.socketFD, 0);
 			clients.erase(clients.find(client.socketFD));
 		}
@@ -117,11 +128,48 @@ void	Server::generateResponses()
 	}
 }
 
-Response	Server::handleRequest(const Request& request) const
+Session	*Server::processSession(Request &request, Response &response)
+{
+	Session	*currSession = NULL;
+
+	if (request.session.exists == false)
+	{
+		sessions.push_back(Session());
+		constructSetCookieHeader(response, sessions[sessions.size() - 1].cookies);
+		currSession = &sessions[sessions.size() - 1];
+	}
+	else
+	{
+		std::vector<Session>::iterator	it = sessions.begin();
+
+		while (it != sessions.end())
+		{
+			if (*it == request.session.value)
+				break ;
+			it++;
+		}
+		if (it == sessions.end())
+		{
+			sessions.push_back(Session());
+			constructSetCookieHeader(response, sessions[sessions.size() - 1].cookies);
+			currSession = &sessions[sessions.size() - 1];
+		}
+		else
+		{
+			constructSetCookieHeader(response, it->updateSession(request.session.value));
+			currSession = &(*it);
+		}
+	}
+	return currSession;
+}
+
+Response	Server::handleRequest(Request& request)
 {
 	Response	response;
 
 	/*const_cast<Request&>(request).method = POST;*/
+	request.parseCookieHeader();
+	response.currSession = processSession(request, response);
 	try
 	{
 		if (request.method == Request::GET)

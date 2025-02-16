@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 15:58:17 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 04:47:10 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,8 @@
 
 Response::Response(void) :
 	Message(),
-	flags(0)
+	flags(0),
+	currSession(NULL)
 {
 	this->httpVersion = 1.1;
 	this->insert("Server", SERVER_NAME);
@@ -28,7 +29,8 @@ Response::Response(const Response &obj) :
 	Message(obj),
 	statusCode(obj.statusCode),
 	reasonPhrase(obj.reasonPhrase),
-	flags(obj.flags)
+	flags(obj.flags),
+	currSession(obj.currSession)
 {}
 
 Response&	Response::operator=(const Response& other)
@@ -39,6 +41,7 @@ Response&	Response::operator=(const Response& other)
 	this->statusCode = other.statusCode;
 	this->reasonPhrase = other.reasonPhrase;
 	this->flags = other.flags;
+	this->currSession = other.currSession;
 	return *this;
 }
 
@@ -53,7 +56,7 @@ const String	Response::toString(void) const {
 	stream << this->reasonPhrase << "\r\n";
 
 	if (this->headers.size() != 0) {
-		for (std::map<String, String>::const_iterator it = this->headers.begin(); it != this->headers.end(); it++)
+		for (std::multimap<String, String>::const_iterator it = this->headers.begin(); it != this->headers.end(); it++)
 			stream << it->first << ": " << it->second << "\r\n";
 	}
 	stream << "\r\n";

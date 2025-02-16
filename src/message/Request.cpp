@@ -6,14 +6,15 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 15:46:20 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 23:56:18 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
+#include "Optional.hpp"
+#include "ErrorCode.hpp"
 #include "requestLine.hpp"
 #include "requestFields.hpp"
-#include "ErrorCode.hpp"
 #include "Request.hpp"
 
 const String	Request::methods[NUM_OF_METHODS] = {
@@ -30,7 +31,6 @@ const float	Request::supportedVersions[NUM_OF_VERSIONS] = { 1.1 };
 Request::Request(void) :
 	Message(),
 	method(0),
-	requestTarget(""),
 	flags(0),
 	requestLineFound(false),
 	headersFound(false)
@@ -44,7 +44,8 @@ Request::Request(const Request &obj) :
 	requestTarget(obj.requestTarget),
 	flags(obj.flags),
 	requestLineFound(obj.requestLineFound),
-	headersFound(obj.headersFound)
+	headersFound(obj.headersFound),
+	session(obj.session)
 {}
 
 Request	&Request::operator=(const Request &obj) {
@@ -56,6 +57,7 @@ Request	&Request::operator=(const Request &obj) {
 	this->flags = obj.flags;
 	this->requestLineFound = obj.requestLineFound;
 	this->headersFound = obj.headersFound;
+	this->session = obj.session;
 	return *this;
 }
 
@@ -78,34 +80,33 @@ bool	Request::isSupportedVersion(const float &version) {
 }
 
 void	Request::parseRequestLine(String &line) {
-	String	str;
-	std::size_t	terminatorPos = 0;
+	String						str;
+	Optional<String::size_type>	terminatorPos = line.find("\r\n");
 
-	terminatorPos = line.find("\r\n", 0);
 	try {
-		if (terminatorPos == String::npos)
+		if (terminatorPos.exists == false)
 			throw BadRequest400();
-		str = line.substr(0, terminatorPos);
+		str = line.substr(0, terminatorPos.value);
 		extractRequestLineComponents(str, *this);
 	}
 	catch (const ErrorCode &error) {
 		throw Response(error);
 	}
-	line = line.substr(terminatorPos + 2);
+	line = line.substr(terminatorPos.value + 2);
 }
 
 void	Request::parseHeaders(String &line) {
-	String		str;
-	std::size_t	headerLineTerminator = 0;
-	std::size_t	headerLineStart = 0;
-	std::size_t	headerSectionTerminator = line.find("\r\n\r\n");
+	String						str;
+	Optional<String::size_type>	headerLineTerminator = 0;
+	Optional<String::size_type>	headerLineStart = 0;
+	Optional<String::size_type>	headerSectionTerminator = line.find("\r\n\r\n");
 
-	if (headerSectionTerminator == String::npos)
+	if (headerSectionTerminator.exists == false)
 		throw (Response(BadRequest400()));
 
 	while (true) {
-		headerLineTerminator = line.find("\r\n", headerLineStart);
-		str = line.substr(headerLineStart, headerLineTerminator - headerLineStart);
+		headerLineTerminator = line.find("\r\n", headerLineStart.value);
+		str = line.substr(headerLineStart.value, headerLineTerminator.value - headerLineStart.value);
 
 		try {
 			extractFieldLineComponents(str, *this);
@@ -114,13 +115,23 @@ void	Request::parseHeaders(String &line) {
 			throw Response(error);
 		}
 
-		headerLineStart = headerLineTerminator + 2;
-		if (headerLineStart >= headerSectionTerminator)
+		headerLineStart.value = headerLineTerminator.value + 2;
+		if (headerLineStart.value >= headerSectionTerminator.value)
 			break ;
 	}
-	if (line[headerLineStart + 2] == '\0') {
+	if (line[headerLineStart.value + 2] == '\0') {
 		line = "";
 		return ;
 	}
-	line = line.substr(headerLineStart + 2);
+	line = line.substr(headerLineStart.value + 2);
+}
+
+void	Request::parseCookieHeader(void) {
+	Optional<String>	cookieHeader = Message::operator[]("Cookie");
+
+	if (cookieHeader.exists == false)
+		return ;
+
+	this->session.exists = true;
+	isCookieString(cookieHeader.value, this->session.value);
 }

@@ -6,11 +6,10 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/12 02:40:27 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 20:26:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include "String.hpp"
@@ -79,7 +78,17 @@ String	String::operator+(const String& rhs)
 	return String(str + rhs.str);
 }
 
+String	String::operator+(const String& rhs) const
+{
+	return String(str + rhs.str);
+}
+
 String	String::operator+(const char* rhs)
+{
+	return *this + String(rhs);
+}
+
+String	String::operator+(const char* rhs) const
 {
 	return *this + String(rhs);
 }

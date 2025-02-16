@@ -114,7 +114,7 @@
 |second|2DIGIT||✅|
 |GMT|%x47.4D.54|GMT|✅|
 |obs-date|rfc850-date / asctime-date||✅|
-|rfc850-date|day-name-1 "," SP date2 SP time-of-day SP GMT|✅|
+|rfc850-date|day-name-1 "," SP date2 SP time-of-day SP GMT||✅|
 |day-name-1|%x4D.6F.6E.64.61.79 / %x54.75.65.73.64.61.79 / %x57.65.64.6E.65.73.64.61.79 / %x54.68.75.72.73.64.61.79 / %x46.72.69.64.61.79 / %x53.61.74.75.72.64.61.79 / %x53.75.6E.64.61.79|Monday / Tuesday / Wednesday / Thursday / Friday / Saturday / Sunday|✅|
 |date2|day "-" month "-" 2DIGIT||✅|
 |asctime-date|day-name SP date3 SP time-of-day SP year||✅|
@@ -148,22 +148,24 @@
 ### Cookies
 |Rule|Value|Description|Check|
 |-|-|-|:-:|
-|Set-Cookie|set-cookie-setting|||
-|set-cookie-setting|cookie-pair *( ";" SP cookie-av )|||
-|cookie-pair|cookie-name "=" cookie-value|||
-|cookie-name|token|||
-|cookie-value|*cookie-octet / ( DQUOTE *cookie-octet DQUOTE )|||
-|cookie-octet|%x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E|US-ASCII characters excluding CTLs, whitespace DQUOTE, comma, semicolon, and backslash||
+|Set-Cookie|set-cookie-string|||
+|set-cookie-string|cookie-pair *( ";" SP cookie-av )|||
+|cookie-pair|cookie-name "=" cookie-value||✅|
+|cookie-name|token||❕|
+|cookie-value|*cookie-octet / ( DQUOTE *cookie-octet DQUOTE )||✅|
+|cookie-octet|%x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E|US-ASCII characters excluding CTLs, whitespace, DQUOTE, comma, semicolon, and backslash|✅|
 |cookie-av|expires-av / max-age-av / domain-av / path-av / secure-av / httponly-av|||
 |expires-av|"Expires=" Date|||
 |max-age-av|"Max-Age=" non-zero-digit *DIGIT|In practice, both expires-av and max-age-av are limited to dates representable by the user agent||
 |non-zero-digit|%x31-39|digits 1 through 9||
 |domain-av|"Domain=" domain-value|||
-|domain-value||||
+|domain-value|<subdomain>|||
 |path-av|"Path=" path-value|||
 |path-value|<any CHAR except CTLs or ";">|||
 |secure-av|"Secure"|||
 |httponly-av|"HttpOnly"|||
+|cookie-header|"Cookie:" OWS cookie-string OWS||❕|
+|cookie-string|cookie-pair *( ";" SP cookie-pair )||❕|
 
 ### Entity Tag
 |Rule|Value|Description|Check|

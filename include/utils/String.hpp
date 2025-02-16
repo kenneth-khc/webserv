@@ -6,14 +6,13 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/12 02:41:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 17:19:21 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef STRING_HPP
 #define STRING_HPP
 
-#include <iostream>
 #include <string>
 #include <exception>
 #include <vector>
@@ -32,7 +31,7 @@ struct	Predicate;
 class	String
 {
 public:
-	typedef string::size_type size_type;
+	typedef string::size_type	size_type;
 
 	const static size_type	npos = std::string::npos;
 
@@ -53,7 +52,9 @@ public:
 	char*					operator+(size_type);
 	const char*				operator+(size_type) const;
 	String					operator+(const String&);
+	String					operator+(const String&) const;
 	String					operator+(const char*);
+	String					operator+(const char*) const;
 	friend String			operator+(const char*, const String&);
 	String&					operator+=(const String&);
 	String&					operator+=(char);
@@ -118,7 +119,7 @@ public:
 	static basic_istream<CharT, Traits>&	getline(basic_istream<CharT, Traits>& input, String& str);
 
 private:
-	string					str; // the underlying std::string
+	string				str; // the underlying std::string
 
 	// Helper to convert a Type into a std::string
 	template <typename Type>

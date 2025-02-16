@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/11 17:48:45 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/16 06:40:52 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ const unsigned int	Server::timeoutValue = 5;
 
 /* TODO: Configure the server based on the config file */
 Server::Server():
-map("mime.types"),
+MIMEMappings("mime.types"),
 epollFD(-1),
 hostName("localhost"),
 portNum(8000),
@@ -51,8 +51,8 @@ int	Server::epollWait()
 	// std::cout << "Polling...\n";
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, 1000);
 
-	std::cout << "epoll_wait() returned with " << numReadyEvents
-			  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
+	// std::cout << "epoll_wait() returned with " << numReadyEvents
+	// 		  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
 
 	if (numReadyEvents == -1)
 	{

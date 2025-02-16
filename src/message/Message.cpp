@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:32:28 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 02:39:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 23:23:41 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,16 +60,16 @@ Message	&Message::operator=(const Message &obj) {
 }
 
 String	Message::stringToLower(String str) {
-	for (std::size_t i = 0; i < str.length(); i++)
+	for (String::size_type i = 0; i < str.length(); i++)
 		str[i] = std::tolower(str[i]);
 	return (str);
 }
 
 void	Message::insert(const String &key, const String &value) {
-	std::map<String, String>::iterator	it = this->headers.begin();
+	std::multimap<String, String>::iterator	it = this->headers.begin();
 
 	it = this->headers.find(key);
-	if (it == this->headers.end()) {
+	if (it == this->headers.end() || key == "Set-Cookie") {
 		this->headers.insert(std::make_pair(key, value));
 	}
 	else {
@@ -84,14 +84,14 @@ void	Message::insert(const String &key, const String &value) {
 }
 
 void	Message::insert(const String &key, const int &value) {
-	std::map<String, String>::iterator	it = this->headers.begin();
+	std::multimap<String, String>::iterator	it = this->headers.begin();
 	std::stringstream	stream;
 	String				str;
 
 	it = this->headers.find(key);
 	stream << value;
 	String::getline(stream, str, '\0');
-	if (it == this->headers.end()) {
+	if (it == this->headers.end() || key == "Set-Cookie") {
 		this->headers.insert(std::make_pair(key, str));
 	}
 	else {
@@ -106,23 +106,21 @@ void	Message::insert(const String &key, const int &value) {
 }
 
 Optional<String>	Message::operator[](const String &key) {
-	String	lowercaseKey = Message::stringToLower(key);
+	String									lowercaseKey = Message::stringToLower(key);
+	std::multimap<String, String>::iterator	it = this->headers.find(lowercaseKey);
 
-	try {
-		return (this->headers.at(lowercaseKey));
-	}
-	catch (const std::out_of_range &e) {
+	if (it == this->headers.end())
 		return (Optional<String>());
-	}
+	else
+		return (it->second);
 }
 
 const Optional<String>	Message::operator[](const String &key) const {
-	String	lowercaseKey = Message::stringToLower(key);
+	String											lowercaseKey = Message::stringToLower(key);
+	std::multimap<String, String>::const_iterator	it = this->headers.find(lowercaseKey);
 
-	try {
-		return (this->headers.at(lowercaseKey));
-	}
-	catch (const std::out_of_range &e) {
+	if (it == this->headers.end())
 		return (Optional<String>());
-	}
+	else
+		return (it->second);
 }

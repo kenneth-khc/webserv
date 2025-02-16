@@ -73,6 +73,7 @@ public:
 	Optional<size_type>	find(const String&, size_type searchFrom = 0) const;
 	String				substr(size_type pos = 0, size_type len = npos) const;
 	void				clear();
+	const char*			c_str() const;
 
 	/* Custom additions to a String */
 

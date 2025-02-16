@@ -18,11 +18,12 @@
 
 struct	Directive
 {
-	String	name;
-	String	param;
-	String	enclosingContext;
+	String				name;
+	std::vector<String>	parameters;
+	String				enclosingContext;
 
-	Directive(const String&, const String&, const String&);
+	Directive();
+	Directive(const String&, const std::vector<String>&, const String&);
 };
 
 #endif

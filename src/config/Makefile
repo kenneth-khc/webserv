@@ -20,8 +20,8 @@ LDFLAGS := -fuse-ld=mold
 
 LIBSERV := ../../libserv.a
 
-SRCS := main.cpp Token.cpp Lexer.cpp Parser.cpp Context.cpp Directive.cpp \
-		Validator.cpp ConfigValidator.cpp
+SRCS := main.cpp Token.cpp Lexer.cpp Parser.cpp Directive.cpp \
+		Validator.cpp ConfigValidator.cpp ConfigErrors.cpp
 OBJS := $(SRCS:.cpp=.o)
 
 all: parser

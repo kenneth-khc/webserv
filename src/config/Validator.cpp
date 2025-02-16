@@ -6,14 +6,15 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:43:10 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/16 17:12:20 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Directive.hpp"
 #include "Validator.hpp"
-#include "Parameter.hpp"
 #include "String.hpp"
+#include "ConfigErrors.hpp"
+#include <dirent.h>
 
 Validator::Validator()
 { }
@@ -32,9 +33,22 @@ bool	returnsTrue(const Directive&)
 	return true;
 }
 
-bool	checkIfAbsolutePath(const Directive& dir)
+bool	validatePrefix(const Directive& dir)
 {
-	const String&	str = dir.param;
+	if (dir.parameters.size() != 1)
+	{
+		throw InvalidParameterAmount();
+	}
+	if (dir.enclosingContext != "global")
+	{
+		throw InvalidContext(dir.name, dir.enclosingContext);
+	}
+	const String&	str = dir.parameters[0];
+	if (str == "")
+	{
+		std::cerr << "Missing parameter in " << dir.name << '\n';
+		throw InvalidParameter();
+	}
 	if (str[0] == '/')
 	{
 		return true;
@@ -45,9 +59,11 @@ bool	checkIfAbsolutePath(const Directive& dir)
 	}
 }
 
-bool	isValidPortNumber(const Directive& dir)
+// TODO: accept more options for validate. right now, the only parameter
+// accepted is a single port number
+bool	validateListen(const Directive& dir)
 {
-	const String&	str = dir.param;
+	const String&	str = dir.parameters[0];
 	int	portNum = str.toInt();
 
 	if (portNum > 0 && portNum < 65536)
@@ -64,7 +80,7 @@ bool	validateHTTP(const Directive& dir)
 {
 	const String&	context = dir.enclosingContext;
 	const String&	name = dir.name;
-	if (dir.enclosingContext == String("global"))
+	if (dir.enclosingContext == "global")
 	{
 		return true;
 	}
@@ -72,4 +88,33 @@ bool	validateHTTP(const Directive& dir)
 	{
 		throw InvalidContext(name, context);
 	}
+}
+
+bool	validateServer(const Directive& dir)
+{
+	const String& context = dir.enclosingContext;
+	const String& name = dir.name;
+	if (dir.enclosingContext == "http")
+	{
+		return true;
+	}
+	else
+	{
+		throw InvalidContext(name, context);
+	}
+}
+
+bool	validateLocation(const Directive&)
+{
+	return true;
+}
+
+bool	validateRoot(const Directive&)
+{
+	return true;
+}
+
+bool	validateIndex(const Directive&)
+{
+	return true;
 }

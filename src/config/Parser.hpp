@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:35:41 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:33:16 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/16 17:13:13 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,12 @@
 #define PARSER_HPP
 
 #include <fstream>
-#include <exception>
 #include <stack>
 #include "Lexer.hpp"
 #include "String.hpp"
 #include "Directive.hpp"
 #include "ConfigValidator.hpp"
+#include "Optional.hpp"
 
 struct	Parser
 {
@@ -32,10 +32,9 @@ struct	Parser
 	Token				token;
 
 	void				parseConfig();
-	Directive			parseDirective();
+	Optional<Directive>	parseDirective();
 	Directive			parseBlock(const String&);
 	std::vector<String>	parseParameters();
-	void				expect(bool);
 	void				expect(Token::TokenType);
 	bool				accept(Token::TokenType);
 };

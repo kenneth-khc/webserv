@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 03:00:41 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:43:44 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/16 16:44:14 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,9 +34,12 @@ struct	Validator
 };
 
 bool	returnsTrue(const Directive&);
-bool	checkIfAbsolutePath(const Directive&);
+bool	validatePrefix(const Directive&);
 bool	validateListen(const Directive&);
 bool	validateHTTP(const Directive& );
 bool	validateServer(const Directive&);
+bool	validateLocation(const Directive&);
+bool	validateRoot(const Directive&);
+bool	validateIndex(const Directive&);
 
 #endif

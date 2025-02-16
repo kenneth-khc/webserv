@@ -12,9 +12,16 @@
 
 #include "Directive.hpp"
 
-Directive::Directive(const String& dname, const String& param, const String& context):
+Directive::Directive()
+{
+
+}
+
+Directive::Directive(const String& dname,
+					 const std::vector<String>& parameters,
+					 const String& context):
 name(dname),
-param(param),
+parameters(parameters),
 enclosingContext(context)
 {
 

@@ -11,39 +11,20 @@
 /* ************************************************************************** */
 
 #include <cctype>
-#include <stdexcept>
-#include "Parameter.hpp"
 #include "String.hpp"
 #include "Parser.hpp"
 #include "Lexer.hpp"
 #include "ConfigValidator.hpp"
+#include "ConfigErrors.hpp"
+#include "Token.hpp"
 #include "Validator.hpp"
+#include "Optional.hpp"
 
 Parser::Parser(const char *fileName):
 lexer(fileName),
-configFile(fileName),
-config(configFile)
+configFile(fileName)
 {
 
-}
-
-void	ConfigValidator::add(const String& name, const Validator& validator)
-{
-	directives.insert(std::make_pair(name, validator));
-
-}
-
-const Validator&	ConfigValidator::operator[](const String& key) const
-{
-	try
-	{
-		const Validator&	validator = directives.at(key);
-		return validator;
-	}
-	catch (const std::out_of_range& e)
-	{
-		throw InvalidDirective(key);
-	}
 }
 
 void	Parser::parseConfig()
@@ -52,63 +33,72 @@ void	Parser::parseConfig()
 
 	try
 	{
-		while (lexer.next() != Token::END_OF_FILE)
+		token = lexer.advance();
+		while (token != Token::END_OF_FILE)
 		{
-			Directive	directive = parseDirective();
-			configValidator[directive.name].validate(directive);
+			Optional<Directive>	directive = parseDirective();
+			if (directive.exists)
+			{
+				configValidator.validate(directive.value);
+			}
 		}
 	}
-	catch (const UnexpectedToken& e)
+	catch (const ConfigError& e)
 	{
-		std::cerr << "unexpected token you bozo\n";
-	}
-	catch (const InvalidParameter& e)
-	{
-		std::cerr << e.parameter << " is an invalid parameter you bozo\n";
-	}
-	catch (const InvalidDirective& e)
-	{
-		std::cerr << e.directive << " is an invalid directive you bozo\n";
-	}
-	catch (const InvalidContext& e)
-	{
-		std::cerr << e.directive << " is in an invalid context " << e.context << '\n';
+		std::cerr << e.what() << '\n';
 	}
 }
 
-Directive	Parser::parseDirective()
+Optional<Directive>	Parser::parseDirective()
 {
-	expect(Token::IDENTIFIER);
-	String	name = lexer.peek().lexeme;
-	Optional<String>	whitespaces = lexer.input.consumeUntilNot(lexer.isWSP);
-	if (lexer.next() == Token::LCURLY)
+	if (token.type == Token::END_OF_FILE)
 	{
-		// TODO: parsing a block is hella sus. fix this shit
-		Directive	blockDirective(name, "", contextStack.top());
-		configValidator[blockDirective.name].validate(blockDirective);
-		return parseBlock();
+		return makeNone<Directive>();
+	}
+	String	name = token.lexeme;
+	lexer.lookingFor = Token::PARAMETER;
+	expect(Token::NAME);
+	if (token == Token::LCURLY)
+	{
+		lexer.lookingFor = Token::NAME;
+		Directive	blockDirective = parseBlock(name);
+		configValidator.validate(blockDirective);
+		return blockDirective;
 	}
 	else
 	{
-		expect(whitespaces.exists);
-		std::vector<String>	params = parseParameters();
-		Directive	directive(name, params[0], contextStack.top());
-		// validate directive
-
-		lexer.next();
+		std::vector<String>	parameters;
+		while (token.type == Token::PARAMETER)
+		{
+			parameters.push_back(token.lexeme);
+			accept(Token::PARAMETER);
+		}
+		lexer.lookingFor = Token::NAME;
+		Directive	directive(name, parameters, contextStack.top());
 		expect(Token::SEMICOLON);
 		return directive;
 	}
 }
 
-Directive	Parser::parseBlock()
+Directive	Parser::parseBlock(const String& blockName)
 {
+	// TODO: this is assuming a block directive can't have parameters
+	// which isn't true
+	Directive	blockDirective(blockName, std::vector<String>(), contextStack.top());
 	expect(Token::LCURLY);
-	lexer.next();
-	Directive directive = parseDirective();
-	lexer.next();
+	contextStack.push(blockDirective.name);
+	while (token != Token::RCURLY)
+	{
+		Optional<Directive> directive = parseDirective();
+		if (!directive.exists)
+		{
+			break ;
+		}
+		configValidator[directive.value.name].validate(directive.value);
+	}
 	expect(Token::RCURLY);
-	return directive;
+	contextStack.pop();
+	return blockDirective;
 }
 
 /* TODO: handle multiple parameters
@@ -117,33 +107,40 @@ Directive	Parser::parseBlock()
 std::vector<String>	Parser::parseParameters()
 {
 	std::vector<String>	parameters;
-	parameters.push_back(lexer.currentToken.lexeme);
-	std::cout << "Param: " << lexer.currentToken.lexeme << '\n';
+	Optional<String>	beforeSemicolon = lexer.input.consumeUntil(";");
+	if (beforeSemicolon.exists)
+	{
+		parameters = beforeSemicolon.value.split(" \t\n");
+		for (size_t i = 0; i < parameters.size(); ++i)
+		{
+			std::cout << "Param" << i << ": " << parameters[i] << '\n';
+		}
+		std::cout << '\n';
+	}
 	return parameters;
 }
 
-void	Parser::expect(bool	yes)
+void	Parser::expect(Token::TokenType expected)
 {
-	if (yes)
+	if (accept(expected))
 	{
 		return ;
 	}
 	else
 	{
-		throw UnexpectedToken();
+		throw UnexpectedToken(expected, token.type);
 	}
 }
 
-void	Parser::expect(Token::TokenType type)
+bool	Parser::accept(Token::TokenType type)
 {
-	if (lexer.peek().type == type)
+	if (token.type == type)
 	{
-		return ;
+		token = lexer.advance();
+		return true;
 	}
 	else
 	{
-		std::cerr << "Expected " << Token::stringified[type] << " but got "
-				  << Token::stringified[lexer.peek().type] << " instead...\n";
-		throw UnexpectedToken();
+		return false;
 	}
 }

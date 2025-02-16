@@ -40,6 +40,6 @@ Token::operator TokenType() const
 }
 
 const char*	Token::stringified[] = {
-	"Identifier", "Digit", "Alpha", "Whitespace", "Char", "DoubleQuote",
+	"Name", "Parameter", "Digit", "Alpha", "Whitespace", "Char", "DoubleQuote",
 	"LeftCurly", "RightCurly", "Semicolon", "Hash", "Newline", "EndOfFile"
 };

@@ -221,6 +221,11 @@ void	String::clear()
 	return str.clear();
 }
 
+const char*	String::c_str() const
+{
+	return str.c_str();
+}
+
 Optional<String::size_type>
 String::findAfter(const String& expected, size_type offset) const
 {

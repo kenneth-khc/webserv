@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 22:02:59 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/13 05:24:32 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/16 17:14:45 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ struct	Token
 {
 	enum	TokenType
 	{
-		IDENTIFIER, DIGIT, ALPHA, WSP, CHAR, DQUOTE,
+		NAME, PARAMETER, DIGIT, ALPHA, WSP, CHAR, DQUOTE,
 		LCURLY, RCURLY, SEMICOLON, HASH, NEWLINE, END_OF_FILE
 	};
 	static const char* stringified[];

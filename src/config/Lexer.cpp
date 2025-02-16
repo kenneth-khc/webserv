@@ -19,7 +19,8 @@ const Predicate Lexer::isWSP(" \t\n");
 Lexer::Lexer(const char* fileName):
 configFile(fileName),
 input(configFile),
-currentToken()
+currentToken(),
+lookingFor(Token::NAME)
 {
 
 }
@@ -29,11 +30,20 @@ const Token&	Lexer::peek() const
 	return currentToken;
 }
 
-Token&	Lexer::next()
+Token&	Lexer::advance()
 {
 	currentToken = getNextToken();
-	std::cout << "Lex: " << currentToken.lexeme << '\n';
+	std::cout << Token::stringified[currentToken.type] << ": "
+			  << currentToken.lexeme << '\n';
 	return currentToken;
+}
+
+void	Lexer::tryParameter()
+{
+	while (*input != ' ' && *input != '\t' && *input != ';')
+	{
+		lexemeBuffer += input.consume().value;
+	}
 }
 
 Token	Lexer::getNextToken()
@@ -57,19 +67,28 @@ Token	Lexer::getNextToken()
 			case '\n':
 				return token(Token::NEWLINE);
 			default:
-				if (std::isalpha(c.value))
+				if (lookingFor == Token::NAME)
 				{
-					// TODO: differentiate between an Identifier for a key
-					// and a Word for a value
-					tryIdentifier();
-					tryWord();
-					return token(Token::IDENTIFIER);
+					tryName();
+					return token(Token::NAME);
 				}
-				// TODO: an actual number token
-				else if (std::isdigit(c.value))
+				else if (lookingFor == Token::PARAMETER)
 				{
-					tryNumber();
-					return token(Token::IDENTIFIER);
+					tryParameter();
+					return token(Token::PARAMETER);
+					/*if (std::isalpha(c.value))*/
+					/*{*/
+					/*	// TODO: differentiate between an Name for a key*/
+					/*	// and a Parameter for a value*/
+					/*	tryName();*/
+					/*	return token(Token::NAME);*/
+					/*}*/
+					/*// TODO: an actual number token*/
+					/*else if (std::isdigit(c.value))*/
+					/*{*/
+					/*	tryNumber();*/
+					/*	return token(Token::NAME);*/
+					/*}*/
 				}
 		}
 	}
@@ -83,7 +102,7 @@ Token	Lexer::token(Token::TokenType type)
 	return Token(type, lexeme);
 }
 
-void	Lexer::tryIdentifier()
+void	Lexer::tryName()
 {
 	while (std::isalpha(*input) || std::isdigit(*input)
 			|| *input == '_' || *input == '-')

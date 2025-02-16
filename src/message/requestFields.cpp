@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/26 02:00:53 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 02:15:40 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 23:11:03 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,15 +26,15 @@ bool	isFieldVisibleCharacter(const unsigned char &character) {
 
 bool	isFieldContent(const String &line) {
 	static const String	values = " \t";
-	std::size_t					length = line.length();
+	String::size_type	length = line.length();
 
-	if (length == 0 || values.find(line[length - 1]) != String::npos)
+	if (length == 0 || values.find(line[length - 1]).exists == true)
 		return (false);
 
-	for (std::size_t i = 0; i < line.length(); i++) {
+	for (String::size_type i = 0; i < line.length(); i++) {
 		if (isFieldVisibleCharacter(line[i]) == true)
 			continue ;
-		if (values.find(line[i]) != String::npos)
+		if (values.find(line[i]).exists == true)
 			continue ;
 		return (false);
 	}
@@ -52,7 +52,7 @@ bool	isFieldValue(const String &line) {
 void	extractFieldLineComponents(const String &line, Request &request) {
 	static const String	optionalWhiteSpaces = " \t";
 
-	if (line.find(':') == String::npos)
+	if (line.find(':').exists == false)
 		throw BadRequest400();
 
 	std::stringstream	stream(line);
@@ -66,7 +66,7 @@ void	extractFieldLineComponents(const String &line, Request &request) {
 
 	if (!String::getline(stream, str, '\0'))
 		return ;
-	if (str.find("\r\n ") != String::npos || str.find("\r\n\t") != String::npos)
+	if (str.find("\r\n ").exists == true || str.find("\r\n\t").exists == true)
 		throw BadRequest400("Invalid use of obsolete line folding in field value.");
 
 	str = str.trim(optionalWhiteSpaces);

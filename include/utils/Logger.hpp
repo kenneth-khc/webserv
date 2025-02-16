@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 13:59:28 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/12 15:54:43 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 03:33:15 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ class	Logger
 {
 public:
 	void	logRequest(const Server&, Request&, const sockaddr_storage*) const;
-	void	logResponse(const Server&, Response&) const;
+	void	logResponse(const Server&, Response&, sockaddr*) const;
 
 private:
 	static const char*	GREEN;

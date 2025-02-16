@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 02:14:54 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 02:19:18 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 23:22:25 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,7 @@ bool	isDay(const String &day, std::tm &time) {
 	if (day.length() != 2)
 		return (false);
 
-	for (std::size_t i = 0; i < day.length(); i++) {
+	for (String::size_type i = 0; i < day.length(); i++) {
 		if (std::isdigit(day[i]) == 0)
 			return (false);
 	}
@@ -137,7 +137,7 @@ bool	isYear(const String &year, std::tm &time) {
 	if (year.length() != 4)
 		return (false);
 
-	for (std::size_t i = 0; i < year.length(); i++) {
+	for (String::size_type i = 0; i < year.length(); i++) {
 		if (std::isdigit(year[i]) == 0)
 			return (false);
 	}
@@ -170,7 +170,7 @@ bool	isHour(const String &hour, std::tm &time) {
 	if (hour.length() != 2)
 		return (false);
 
-	for (std::size_t i = 0; i < hour.length(); i++) {
+	for (String::size_type i = 0; i < hour.length(); i++) {
 		if (std::isdigit(hour[i]) == 0)
 			return (false);
 	}
@@ -182,7 +182,7 @@ bool	isMinute(const String &minute, std::tm &time) {
 	if (minute.length() != 2)
 		return (false);
 
-	for (std::size_t i = 0; i < minute.length(); i++) {
+	for (String::size_type i = 0; i < minute.length(); i++) {
 		if (std::isdigit(minute[i]) == 0)
 			return (false);
 	}
@@ -194,7 +194,7 @@ bool	isSecond(const String &second, std::tm &time) {
 	if (second.length() != 2)
 		return (false);
 
-	for (std::size_t i = 0; i < second.length(); i++) {
+	for (String::size_type i = 0; i < second.length(); i++) {
 		if (std::isdigit(second[i]) == 0)
 			return (false);
 	}
@@ -271,7 +271,7 @@ bool	isDateTwo(const String &date, std::tm &time) {
 		return (false);
 	if (str.length() != 2)
 		return (false);
-	for (std::size_t i = 0; i < str.length(); i++) {
+	for (String::size_type i = 0; i < str.length(); i++) {
 		if (std::isdigit(str[i]) == 0)
 			return (false);
 	}
@@ -332,7 +332,7 @@ bool	isDateThree(const String &date, std::tm &time) {
 		return (false);
 	if (str[0] == ' ')
 		str = str.substr(1);
-	for (std::size_t i = 0; i < str.length(); i++) {
+	for (String::size_type i = 0; i < str.length(); i++) {
 		if (std::isdigit(str[i]) == 0)
 			return (false);
 	}

@@ -6,11 +6,12 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:02:09 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 15:58:48 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 23:25:59 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
+#include "Optional.hpp"
 #include "host.hpp"
 #include "path.hpp"
 #include "uri.hpp"
@@ -27,7 +28,7 @@
 //	client will make use of it. It is included here for the sake of
 //	completeness of a URL/URI.
 bool	isAbsoluteURI(const String &line) {
-	if (line.find(':') == String::npos)
+	if (line.find(':').exists == false)
 		return (false);
 
 	std::stringstream	stream(line);
@@ -58,12 +59,12 @@ bool	isScheme(const String &line) {
 	if (std::isalpha(line[0]) == 0)
 		return (false);
 
-	for (std::size_t i = 1; i < line.length(); i++) {
+	for (String::size_type i = 1; i < line.length(); i++) {
 		if (std::isalpha(line[i]) != 0)
 			continue ;
 		if (std::isdigit(line[i]) != 0)
 			continue ;
-		if (values.find(line[i]) != String::npos)
+		if (values.find(line[i]).exists == true)
 			continue ;
 		return (false);
 	}
@@ -76,9 +77,9 @@ bool	isScheme(const String &line) {
 //	'hier-part' (hierarchical part) represents the authority (domain/IP and
 //	port) and path of the URI.
 bool	isHierPart(const String &line) {
-	std::size_t	doubleSlashPos = line.find("//");
+	Optional<String::size_type>	doubleSlashPos = line.find("//");
 
-	if (doubleSlashPos == String::npos) {
+	if (doubleSlashPos.exists == false) {
 		if (isPathAbsolute(line) == true)
 			return (true);
 		if (isPathRootless(line) == true)
@@ -87,7 +88,7 @@ bool	isHierPart(const String &line) {
 			return (true);
 	}
 	else {
-		String				str = line.substr(doubleSlashPos + 2);
+		String				str = line.substr(doubleSlashPos.value + 2);
 		std::stringstream	stream(str);
 
 		String::getline(stream, str, '/');
@@ -116,7 +117,7 @@ bool	isAuthority(const String &line) {
 }
 
 bool	isPort(const String &line) {
-	for (std::size_t i = 0; i < line.length(); i++) {
+	for (String::size_type i = 0; i < line.length(); i++) {
 		if (std::isdigit(line[i]) == 0)
 			return (false);
 	}
@@ -131,10 +132,10 @@ bool	isPort(const String &line) {
 bool	isQuery(const String &line) {
 	static const String	values = "/?";
 
-	for (std::size_t i = 0; i < line.length(); i++) {
+	for (String::size_type i = 0; i < line.length(); i++) {
 		if (isPrintableCharacter(line, i) == true)
 			continue ;
-		if (values.find(line[i]) != String::npos)
+		if (values.find(line[i]).exists == true)
 			continue ;
 		return (false);
 	}
@@ -150,10 +151,10 @@ bool	isQuery(const String &line) {
 bool	isFragment(const String &line) {
 	static const String	values = "/?";
 
-	for (std::size_t i = 0; i < line.length(); i++) {
+	for (String::size_type i = 0; i < line.length(); i++) {
 		if (isPrintableCharacter(line, i) == true)
 			continue ;
-		if (values.find(line[i]) != String::npos)
+		if (values.find(line[i]).exists == true)
 			continue ;
 		return (false);
 	}

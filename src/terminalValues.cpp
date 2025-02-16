@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 18:04:21 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 22:40:16 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 23:20:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,10 @@ bool	isToken(const String &line) {
 
 	if (line.length() == 0)
 		return (false);
-	for (std::size_t i = 0; i < line.length(); i++) {
+	for (String::size_type i = 0; i < line.length(); i++) {
 		if (std::isalnum(line[i]) != 0)
 			continue ;
-		if (values.find(line[i]) != String::npos)
+		if (values.find(line[i]).exists == true)
 			continue ;
 		return (false);
 	}
@@ -35,7 +35,7 @@ bool	isUnreservedCharacter(const unsigned char &character) {
 
 	if (std::isalnum(character) != 0)
 		return (true);
-	if (values.find(character) != String::npos)
+	if (values.find(character).exists == true)
 		return (true);
 	return (false);
 }
@@ -58,7 +58,7 @@ bool	isPercentEncoded(const String &line, int index) {
 bool	isSubDelimiter(const unsigned char &character) {
 	static const String	values = "!$&'()*+,;=";
 
-	if (values.find(character) != String::npos)
+	if (values.find(character).exists == true)
 		return (true);
 	return (false);
 }

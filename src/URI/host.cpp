@@ -6,12 +6,13 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:49:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 02:05:54 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 23:24:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 #include <vector>
+#include "Optional.hpp"
 #include "terminalValues.hpp"
 #include "host.hpp"
 
@@ -68,20 +69,20 @@ bool	isIPVFuture(const String &line) {
 	if (line[0] != 'v')
 		return (false);
 
-	std::size_t	dotPos = line.find('.');
-	if (dotPos == String::npos || dotPos == 1)
+	Optional<String::size_type>	dotPos = line.find('.');
+	if (dotPos.exists == false || dotPos.value == 1)
 		return (false);
 
-	String	str = line.substr(1, dotPos);
-	for (std::size_t i = 0; i < str.length(); i++) {
+	String	str = line.substr(1, dotPos.value);
+	for (String::size_type i = 0; i < str.length(); i++) {
 		if (std::isxdigit(str[i]) == 0)
 			return (false);
 	}
 
-	str = line.substr(dotPos);
+	str = line.substr(dotPos.value);
 	if (str.length() == 0)
 		return (false);
-	for (std::size_t i = 0; i < str.length(); i++) {
+	for (String::size_type i = 0; i < str.length(); i++) {
 		if (isUnreservedCharacter(str[i]) == true)
 			continue ;
 		if (isSubDelimiter(str[i]) == true)
@@ -109,12 +110,12 @@ bool	isIPV4(const String &line) {
 }
 
 bool	is16BitsHexa(const String &line) {
-	std::size_t	length = line.length();
+	String::size_type	length = line.length();
 
 	if (length == 0 || length > 4)
 		return (false);
 
-	for (std::size_t i = 0; i < length; i++) {
+	for (String::size_type i = 0; i < length; i++) {
 		if (std::isxdigit(line[i]) == 0)
 			return (false);
 	}
@@ -132,7 +133,7 @@ bool	isDecOctet(const String &line) {
 }
 
 bool	isRegName(const String &line) {
-	for (std::size_t i = 0; i < line.length(); i++) {
+	for (String::size_type i = 0; i < line.length(); i++) {
 		if (isUnreservedCharacter(line[i]) == true)
 			continue ;
 		if (isPercentEncoded(line, i) == true) {

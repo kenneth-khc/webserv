@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 14:00:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/12 15:54:48 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 03:34:02 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,10 +63,8 @@ void	Logger::logRequest(const Server& server, Request& request, const sockaddr_s
 	std::cout << "\n\n";
 }
 
-void	Logger::logResponse(const Server& server, Response& response) const
+void	Logger::logResponse(const Server& server, Response& response, sockaddr*	client) const
 {
-	sockaddr*	client = (sockaddr*)&response.destAddress;
-
 	std::cout << YELLOW;
 	if (client->sa_family == AF_INET)
 	{

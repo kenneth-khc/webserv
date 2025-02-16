@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:05:10 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 15:58:39 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 23:25:36 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,7 @@ bool	isAbsolutePath(const String &line) {
 }
 
 bool	isSegment(const String &line) {
-	for (std::size_t i = 0; i < line.length(); i++) {
+	for (String::size_type i = 0; i < line.length(); i++) {
 		if (isPrintableCharacter(line, i) == true)
 			continue ;
 		return (false);
@@ -125,7 +125,7 @@ bool	isSegmentNZNC(const String &line) {
 	if (line.length() == 0)
 		return (false);
 
-	for (std::size_t i = 0; i < line.length(); i++) {
+	for (String::size_type i = 0; i < line.length(); i++) {
 		if (isUnreservedCharacter(line[i]) == true)
 			continue ;
 		if (isPercentEncoded(line, i) == true) {
@@ -141,7 +141,7 @@ bool	isSegmentNZNC(const String &line) {
 	return (true);
 }
 
-bool	isPrintableCharacter(const String &line, std::size_t &index) {
+bool	isPrintableCharacter(const String &line, String::size_type &index) {
 	static const String	values = ":@";
 
 	if (isUnreservedCharacter(line[index]) == true)
@@ -152,7 +152,7 @@ bool	isPrintableCharacter(const String &line, std::size_t &index) {
 	}
 	if (isSubDelimiter(line[index]) == true)
 		return (true);
-	if (values.find(line[index]) != String::npos)
+	if (values.find(line[index]).exists == true)
 		return (true);
 	return (false);
 }

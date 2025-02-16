@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 18:09:22 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 02:19:29 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 23:23:07 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ bool	isOpaqueTag(const String &line) {
 }
 
 bool	isEntityTagCharacter(const String &line) {
-	for (std::size_t i = 0; i < line.length(); i++) {
+	for (String::size_type i = 0; i < line.length(); i++) {
 		if ((line[i] != '"' && std::isgraph(line[i]) != 0) || isObsoleteText(line[i]))
 			continue ;
 		return (false);

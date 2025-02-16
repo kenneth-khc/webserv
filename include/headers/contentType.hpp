@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 01:07:30 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 22:34:31 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 23:06:34 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,6 @@
 # include "Response.hpp"
 # include "MediaType.hpp"
 
-void	constructContentTypeHeader(const String &file, const MediaType &map, Response &response);
+void	constructContentTypeHeader(const String &file, const MediaType &MIMEMappings, Response &response);
 
 #endif

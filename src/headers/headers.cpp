@@ -6,21 +6,18 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 17:47:44 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 22:46:13 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/18 15:51:44 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "uri.hpp"
 #include "headers.hpp"
 
-bool	checkMandatoryHeaders(
-String fieldName,
-const String &fieldValue)
-{
+bool	checkMandatoryHeaders(String fieldName, const String &fieldValue) {
 	static const String	headers[NUM_OF_MANDATORY_HEADERS] = {
 		"host"
 	};
-	static bool					(*const funcs[NUM_OF_MANDATORY_HEADERS])(const String &) = {
+	static bool	(*const funcs[NUM_OF_MANDATORY_HEADERS])(const String &) = {
 		isAuthority
 	};
 

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 20:26:11 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/19 07:06:56 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,6 +193,11 @@ String::find(const String& expected, size_type offset) const
 String	String::substr(size_type pos, size_type n) const
 {
 	return str.substr(pos, n);
+}
+
+const char*	String::c_str() const
+{
+	return (str.c_str());
 }
 
 Optional<String::size_type>
@@ -385,11 +390,6 @@ String	String::trim(const String& set) const
 	}
 	size_type	len = (end + 1) - start;
 	return str.substr(start, len);
-}
-
-const char	*String::c_str() const
-{
-	return (str.c_str());
 }
 
 template <typename Type>

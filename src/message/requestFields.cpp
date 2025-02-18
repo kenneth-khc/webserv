@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/26 02:00:53 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/16 23:11:03 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/18 05:12:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +56,8 @@ void	extractFieldLineComponents(const String &line, Request &request) {
 		throw BadRequest400();
 
 	std::stringstream	stream(line);
-	String			str;
-	String			fieldName;
+	String				str;
+	String				fieldName;
 
 	String::getline(stream, str, ':');
 	if (isToken(str) == false)

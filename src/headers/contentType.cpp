@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 01:09:40 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/15 22:15:03 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/18 15:51:03 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,10 @@
 #include "contentType.hpp"
 
 void	constructContentTypeHeader(
-const String &file,
-const MediaType &MIMEMappings,
-Response &response) {
+	const String &file,
+	const MediaType &MIMEMappings,
+	Response &response)
+{
 	Optional<String::size_type>	pos = file.find('.');
 	String						extension = file.substr(pos.value + 1);
 	Optional<String>			mediaType = MIMEMappings[extension];

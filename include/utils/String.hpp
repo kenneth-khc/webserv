@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 17:19:21 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/19 07:07:01 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ public:
 	Optional<size_type>	find(char, size_type searchFrom = 0) const;
 	Optional<size_type>	find(const String&, size_type searchFrom = 0) const;
 	String				substr(size_type pos = 0, size_type len = npos) const;
+	const char*			c_str() const;
 
 	/* Custom additions to a String */
 
@@ -108,9 +109,6 @@ public:
 	// Trim leading and trailing characters that match the set
 	String				trim(const String& set);
 	String				trim(const String& set) const;
-
-	// Returns the pointer of the c-string
-	const char			*c_str() const;
 
 	// std::getline() "overload" for String class
 	template<typename CharT, typename Traits>

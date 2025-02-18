@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<style>
+			html {
+				box-sizing: border-box;
+				font-family: 'Comic Sans MS', cursive;
+			}
+
+			*,
+			*::before,
+			*::after {
+				box-sizing: inherit;
+			}
+
+			body {
+				margin: 0px;
+				background-color: #f4dde7;
+			}
+
+			#container {
+				width: 100vw;
+				height: 100vh;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			#success-container {
+				width: 50%;
+				height: 50%;
+				border: 2px solid black;
+				border-radius: 8px;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				gap: 10px;
+				padding: 8px;
+			}
+
+			h1, h2 {
+				margin: 0px;
+			}
+
+			#return {
+				text-decoration: none;
+				color: black;
+			}
+
+			#return:hover {
+				text-decoration: underline;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="container">
+			<div id="success-container">
+				<h1>Upload Failed</h1>
+				<h2>Consider checking the upload destination.</h2>
+				<a href="/pages/form.html" id="return"><h2>Click here to return to the previous page</h2></a>
+			</div>
+		</div>
+	</body>
+</html>

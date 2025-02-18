@@ -1,0 +1,84 @@
+html {
+	box-sizing: border-box;
+	font-family: 'Comic Sans MS', cursive;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: inherit;
+	font-family: inherit;
+}
+
+body {
+	margin: 0px;
+	background-color: #f4dde7;
+}
+
+/* Container for the entire viewport */
+#container {
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 10px;
+	padding: 0px 8px 8px 8px;
+}
+
+/* Main title and navbar */
+#title-container {
+	display: flex;
+	align-items: center;
+}
+
+#title {
+	text-align: center;
+	flex: 1;
+}
+
+#back-button {
+	position: absolute;
+	font-size: larger;
+	color: black;
+	text-decoration: none;
+	padding: 8px;
+}
+
+#back-button:hover {
+	text-decoration: underline;
+}
+
+/* Simple form and file uploads */
+h2 {
+	margin: 0px;
+}
+
+#simple-form-container,
+#file-uploads-container {
+	border: 2px solid black;
+	border-radius: 8px;
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+input {
+	display: block;
+	margin-bottom: 8px;
+}
+
+#simple-form-container input {
+	border: none;
+	background-color: transparent;
+	border-bottom: 2px solid black;
+}
+
+#simple-form-container input:focus {
+	outline: none;
+}
+
+#file-uploads-container {
+	flex: 1;
+}

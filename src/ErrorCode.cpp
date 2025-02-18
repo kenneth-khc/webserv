@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 22:39:40 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/18 15:54:07 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,10 @@ ErrorCode::ErrorCode(float httpVersion, int statusCode, String reasonPhrase) {
 }
 
 ErrorCode::ErrorCode(
-float httpVersion,
-int statusCode,
-String reasonPhrase,
-const char *title)
+	float httpVersion,
+	int statusCode,
+	String reasonPhrase,
+	const char *title)
 {
 	this->httpVersion = httpVersion;
 	this->statusCode = statusCode;
@@ -57,9 +57,9 @@ BadRequest400::BadRequest400(void) :
 	struct stat	statbuf;
 
 	this->insert("Content-Type", "text/html");
-	stat("html/error/400BadRequest.html", &statbuf);
+	stat("error_pages/400BadRequest.html", &statbuf);
 	this->insert("Content-Length", statbuf.st_size);
-	this->getFileContents("html/error/400BadRequest.html");
+	this->getFileContents("error_pages/400BadRequest.html");
 }
 
 BadRequest400::BadRequest400(const char *title) :
@@ -73,9 +73,9 @@ NotFound404::NotFound404(void) :
 	struct stat	statbuf;
 
 	this->insert("Content-Type", "text/html");
-	stat("html/error/404NotFound.html", &statbuf);
+	stat("error_pages/404NotFound.html", &statbuf);
 	this->insert("Content-Length", statbuf.st_size);
-	this->getFileContents("html/error/404NotFound.html");
+	this->getFileContents("error_pages/404NotFound.html");
 }
 
 NotFound404::NotFound404(const char *title) :
@@ -89,14 +89,42 @@ PreconditionFailed412::PreconditionFailed412(void) :
 	struct stat	statbuf;
 
 	this->insert("Content-Type", "text/html");
-	stat("html/error/412PreconditionFailed.html", &statbuf);
+	stat("error_pages/412PreconditionFailed.html", &statbuf);
 	this->insert("Content-Length", statbuf.st_size);
-	this->getFileContents("html/error/412PreconditionFailed.html");
+	this->getFileContents("error_pages/412PreconditionFailed.html");
 }
 
 PreconditionFailed412::PreconditionFailed412(const char *title) :
 	ErrorCode(1.1, 412, "Precondition Failed", title)
 {}
+
+//	415 Unsupported Media Type
+UnsupportedMediaType415::UnsupportedMediaType415(void) :
+	ErrorCode(1.1, 415, "Unsupported Media Type")
+{
+	struct stat	statbuf;
+
+	this->insert("Content-Type", "text/html");
+	stat("error_pages/415UnsupportedMediaType.html", &statbuf);
+	this->insert("Content-Length", statbuf.st_size);
+	this->getFileContents("error_pages/415UnsupportedMediaType.html");
+}
+
+UnsupportedMediaType415::UnsupportedMediaType415(const char *title) :
+	ErrorCode(1.1, 412, "Unsupported Media Type", title)
+{}
+
+UnsupportedMediaType415::UnsupportedMediaType415(const char *header, const char *value) :
+	ErrorCode(1.1, 415, "Unsupported Media Type")
+{
+	struct stat	statbuf;
+
+	this->insert("Content-Type", "text/html");
+	stat("error_pages/415UnsupportedMediaType.html", &statbuf);
+	this->insert("Content-Length", statbuf.st_size);
+	this->insert(header, value);
+	this->getFileContents("error_pages/415UnsupportedMediaType.html");
+}
 
 /********************/
 /* Server Error 5XX */
@@ -108,9 +136,9 @@ NotImplemented501::NotImplemented501(void) :
 	struct stat	statbuf;
 
 	this->insert("Content-Type", "text/html");
-	stat("html/error/501NotImplemented.html", &statbuf);
+	stat("error_pages/501NotImplemented.html", &statbuf);
 	this->insert("Content-Length", statbuf.st_size);
-	this->getFileContents("html/error/501NotImplemented.html");
+	this->getFileContents("error_pages/501NotImplemented.html");
 }
 
 NotImplemented501::NotImplemented501(const char *title) :
@@ -124,9 +152,9 @@ VersionNotSupported505::VersionNotSupported505(void) :
 	struct stat	statbuf;
 
 	this->insert("Content-Type", "text/html");
-	stat("html/error/505VersionNotSupported.html", &statbuf);
+	stat("error_pages/505VersionNotSupported.html", &statbuf);
 	this->insert("Content-Length", statbuf.st_size);
-	this->getFileContents("html/error/505VersionNotSupported.html");
+	this->getFileContents("error_pages/505VersionNotSupported.html");
 }
 
 VersionNotSupported505::VersionNotSupported505(const char *title) :

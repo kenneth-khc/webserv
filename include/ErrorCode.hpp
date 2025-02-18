@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:25:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/16 15:55:18 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/18 03:08:10 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,13 @@ class PreconditionFailed412 : public ErrorCode {
 	public:
 		PreconditionFailed412(void);
 		PreconditionFailed412(const char *title);
+};
+
+class UnsupportedMediaType415 : public ErrorCode {
+	public:
+		UnsupportedMediaType415(void);
+		UnsupportedMediaType415(const char *title);
+		UnsupportedMediaType415(const char *header, const char *value);
 };
 
 /********************/

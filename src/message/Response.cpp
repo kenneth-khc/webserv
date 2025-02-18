@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/16 04:47:10 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/18 05:17:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ Response&	Response::operator=(const Response& other)
 const String	Response::toString(void) const {
 	std::stringstream	stream;
 	String				str;
+	String				temp;
 
 	stream << "HTTP/" << this->httpVersion << ' ';
 	stream << this->statusCode << ' ';
@@ -64,7 +65,10 @@ const String	Response::toString(void) const {
 	if (this->messageBody.length() != 0)
 		stream << this->messageBody;
 
-	String::getline(stream, str, '\0');
+	while (String::getline(stream, temp)) {
+		str += temp;
+		str += "\n";
+	};
 	return (str);
 }
 
@@ -74,6 +78,15 @@ void	Response::setStatusCode(int statusCode) {
 	switch (statusCode) {
 		case 200:
 			this->reasonPhrase = "OK";
+			break ;
+		case 201:
+			this->reasonPhrase = "Created";
+			break ;
+		case 301:
+			this->reasonPhrase = "Moved Permanently";
+			break ;
+		case 303:
+			this->reasonPhrase = "See Other";
 			break ;
 		case 304:
 			this->reasonPhrase = "Not Modified";

@@ -64,10 +64,10 @@ re: fclean all
 optimized: CXXFLAGS += -O3
 optimized: all
 
-debug_server: CXXFLAGS += -g3
+debug_server: CXXFLAGS += -O -g3
 debug_server: all
 
-fsan: CXXFLAGS += -fsanitize=address,undefined -g3
+fsan: CXXFLAGS += -fsanitize=address,undefined -O -g3
 fsan: all
 
 lib:

@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:35:41 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 17:13:13 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/19 22:55:02 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ struct	Parser
 	Lexer				lexer;
 	std::ifstream		configFile;
 	ConfigValidator		configValidator;
-	std::stack<String>	contextStack;
+	std::stack<String>	contexts;
 	Token				token;
 
 	void				parseConfig();

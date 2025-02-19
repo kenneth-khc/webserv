@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:45:56 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:42:40 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/19 22:56:22 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include "Token.hpp"
 #include "Validator.hpp"
 #include "Optional.hpp"
+#include "Configuration.hpp"
 
 Parser::Parser(const char *fileName):
 lexer(fileName),
@@ -29,8 +30,9 @@ configFile(fileName)
 
 void	Parser::parseConfig()
 {
-	contextStack.push("global");
+	Configuration	config;
 
+	contexts.push("global");
 	try
 	{
 		token = lexer.advance();
@@ -74,7 +76,7 @@ Optional<Directive>	Parser::parseDirective()
 			accept(Token::PARAMETER);
 		}
 		lexer.lookingFor = Token::NAME;
-		Directive	directive(name, parameters, contextStack.top());
+		Directive	directive(name, parameters, contexts.top());
 		expect(Token::SEMICOLON);
 		return directive;
 	}
@@ -84,9 +86,9 @@ Directive	Parser::parseBlock(const String& blockName)
 {
 	// TODO: this is assuming a block directive can't have parameters
 	// which isn't true
-	Directive	blockDirective(blockName, std::vector<String>(), contextStack.top());
+	Directive	blockDirective(blockName, std::vector<String>(), contexts.top());
 	expect(Token::LCURLY);
-	contextStack.push(blockDirective.name);
+	contexts.push(blockDirective.name);
 	while (token != Token::RCURLY)
 	{
 		Optional<Directive> directive = parseDirective();
@@ -97,7 +99,7 @@ Directive	Parser::parseBlock(const String& blockName)
 		configValidator[directive.value.name].validate(directive.value);
 	}
 	expect(Token::RCURLY);
-	contextStack.pop();
+	contexts.pop();
 	return blockDirective;
 }
 

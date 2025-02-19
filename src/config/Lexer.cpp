@@ -143,8 +143,9 @@ size_t	Lexer::skipComment()
 {
 	size_t	skipped = 0;
 	Optional<String>	consumedComment = input.consumeUntil("\n");
-	while (input.consume("\n").exists)
-		++skipped;
+	skipped += skipWhitespaces();
+	/*while (input.consume("\n").exists)*/
+	/*	++skipped;*/
 	skipped += consumedComment.value_or("").size();
 	lexemeBuffer.clear();
 	return skipped;

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 04:54:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/19 04:32:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,35 +25,33 @@
 
 void	Server::get(Response& response, const Request& request)
 {
-	std::string		file = request.requestTarget;
 	const Session	&session = *(response.currSession);
+	std::string		file = Server::pagesDir + "/" + session["lang"].value;
 	struct stat		statbuf;
 
-	if (file == "/")
+	if (request.requestTarget == "/")
 	{
 		//TODO: try all index pages
-		file = "html/index/" + session["lang"].value + "/index.html";
+		file += "/index.html";
 	}
-	// TODO: map directories properly
-	// if (file[0] == '/')
-	// {
-	// 	file = file.substr(1, file.npos);
-	// }
-	// TODO: if this is a directory, show directory listing if turned on
-	// if (file[file.size()-1] == '/')
-	// {
-	// 	generateDirectoryListing(response, file);
-	// 	return ;
-	// }
-	else if (access(std::string(std::string("html/index") + file).c_str(), R_OK) == 0)
-		file = "html/index" + file;
-	if (stat(file.c_str(), &statbuf) == 0)
+	else
+		file += request.requestTarget;
+	if (access(file.c_str(), R_OK) != 0)
+		file = Server::rootDir + request.requestTarget;
+	if (stat(file.c_str(), &statbuf) == 0 && access(file.c_str(), R_OK) == 0)
 	{
-		if (processPreconditions(request, statbuf) == false)
+		if (autoindex == true && S_ISDIR(statbuf.st_mode))
+		{
+			generateDirectoryListing(response, file);
+			response.setStatusCode(Response::OK);
+			response.insert("Content-Length", response.messageBody.length());
+			response.insert("Content-Type", "text/html");
+		}
+		else if (processPreconditions(request, statbuf) == false)
 		{
 			response.setStatusCode(Response::NOT_MODIFIED);
 		}
-		else if (access(file.c_str(), R_OK) == 0)
+		else
 		{
 			response.setStatusCode(Response::OK);
 			response.getFileContents(file);

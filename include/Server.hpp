@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 04:53:32 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/18 19:44:55 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,10 +35,17 @@ public:
 	~Server();
 
 	/* Server configuration, initialization, event loop */
-	// TODO: Change access specifier?
 	// Only include a server-wide mapping for now..,
 	// Nginx allows defining in different http, server, and location blocks
 	MediaType		MIMEMappings;
+
+	// Resources Directories
+	static const String	rootDir;
+	static const String pagesDir;
+	static const String uploadsDir;
+	static const String errorPagesDir;
+
+	bool			autoindex;
 
 	void			startListening();
 	void			initEpoll();

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 08:14:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/19 08:16:42 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,9 +66,10 @@ int	Server::epollWait()
 	else if (numReadyEvents > 0 && (readyEvents[0].events & EPOLLRDHUP))
 	{
 		//	Closes socket in cases where client-side closes the connection on their end.
-		std::cout << "FD " << readyEvents[0].data.fd << " connection closed by client!\n";
 		close(readyEvents[0].data.fd);
 		epoll_ctl(epollFD, EPOLL_CTL_DEL, readyEvents[0].data.fd, 0);
+		logger.logConnection(*this, Logger::CLOSE, readyEvents[0].data.fd,
+			(sockaddr*)&clients[readyEvents[0].data.fd].address);
 		clients.erase(clients.find(readyEvents[0].data.fd));
 		numReadyEvents = 0;
 	}
@@ -116,6 +117,7 @@ void	Server::acceptNewClient()
 	event.data.fd = client.socketFD;
 	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socketFD, &event);
 	clients.insert(std::make_pair(client.socketFD, client));
+	logger.logConnection(*this, Logger::ESTABLISHED, client.socketFD, (sockaddr*)&client.address);
 }
 
 void	Server::monitorConnections()
@@ -126,9 +128,9 @@ void	Server::monitorConnections()
 	{
 		if (it->second.firstDataRecv == true && it->second.isTimeout() == true)
 		{
-			std::cout << "FD " << it->first << " connection timeout!\n";
 			close(it->first);
 			epoll_ctl(epollFD, EPOLL_CTL_DEL, it->first, 0);
+			logger.logConnection(*this, Logger::TIMEOUT, it->first, (sockaddr*)&it->second.address);
 			clients.erase(it++);
 		}
 		else

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 16:08:09 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/19 03:35:38 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,8 +80,8 @@ void	Server::processMessages()
 			if (client.message.size() == (size_t)bodyLength.value)
 			{
 				readyRequests.push(request);
-				logger.logRequest(*this, request, &client.address);
 				client.message = "";
+				logger.logRequest(*this, request, (sockaddr*)&client.address);
 			}
 		}
 	}
@@ -109,7 +109,6 @@ void	Server::generateResponses()
 	{
 		Client&		client = clients[readyEvents[0].data.fd];
 		Response&	response = readyResponses.front();
-		logger.logResponse(*this, response, (sockaddr*)&client.address);
 
 		std::string	formattedResponse = response.toString();
 		send(client.socketFD, formattedResponse.c_str(), formattedResponse.size(), 0);
@@ -124,6 +123,7 @@ void	Server::generateResponses()
 		{
 			client.request = Request();
 		}
+		logger.logResponse(*this, response, (sockaddr*)&client.address);
 		readyResponses.pop();
 	}
 }

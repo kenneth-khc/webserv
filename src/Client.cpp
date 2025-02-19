@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 16:08:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/19 07:31:36 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,19 +24,20 @@ messageBuffer(),
 message(),
 request(),
 firstDataRecv(false),
-lastActive(std::time(0))
+lastActive(Time::getTimeSinceEpoch())
 {
 	messageBuffer.resize(1024);
 }
 
 bool	Client::isTimeout() const
 {
-	if (firstDataRecv == true && (std::time(0) - lastActive >= Server::timeoutValue))
+	if (firstDataRecv == true
+		&& (Time::getTimeSinceEpoch() - lastActive >= Server::timeoutValue))
 		return (true);
 	return (false);
 }
 
 void	Client::updateLastActive()
 {
-	lastActive = std::time(0);
+	lastActive = Time::getTimeSinceEpoch();
 }

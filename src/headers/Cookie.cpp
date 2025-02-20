@@ -6,13 +6,12 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:41:12 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/16 23:21:41 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/19 23:53:32 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <vector>
 #include "terminalValues.hpp"
-#include "Session.hpp"
 #include "Response.hpp"
 #include "Cookie.hpp"
 
@@ -65,9 +64,9 @@ bool	Cookie::operator==(const Cookie &obj) {
 		return (false);
 }
 
-bool	isCookieString(const String &line, Session &session) {
-	std::vector<String>	values = line.split("; ");
-	std::vector<Cookie>	validCookies;
+bool	isCookieString(const String &line, std::map<String, Cookie> &cookies) {
+	std::vector<String>			values = line.split("; ");
+	std::map<String, Cookie>	validCookies;
 
 	if (values.size() == 0)
 		return (false);
@@ -76,11 +75,11 @@ bool	isCookieString(const String &line, Session &session) {
 		std::vector<String>	cookiePair = it->split("=");
 
 		if (isCookiePair(*it) == true)
-			validCookies.push_back(Cookie(cookiePair[0], cookiePair[1]));
+			validCookies.insert(std::make_pair(cookiePair[0], Cookie(cookiePair[0], cookiePair[1])));
 	}
 	if (validCookies.size() == 0)
 		return (false);
-	session.cookies = validCookies;
+	cookies = validCookies;
 	return (true);
 }
 

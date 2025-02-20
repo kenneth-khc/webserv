@@ -6,18 +6,19 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:41:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/16 03:30:27 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/19 23:52:55 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef COOKIE_HPP
 # define COOKIE_HPP
 
+# include <vector>
+# include <map>
 # include "String.hpp"
 
 # define NUM_OF_NAMES 1
 
-class Session;
 class Response;
 
 class Cookie {
@@ -40,7 +41,7 @@ class Cookie {
 		bool	operator==(const Cookie &obj);
 };
 
-bool	isCookieString(const String &line, Session &session);
+bool	isCookieString(const String &line, std::map<String, Cookie> &cookies);
 bool	isCookiePair(const String &line);
 bool	isCookieValue(const String &line);
 bool	isCookieOctet(const unsigned &character);

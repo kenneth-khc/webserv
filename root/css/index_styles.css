@@ -52,6 +52,12 @@ form {
 	margin-top: 4px;
 }
 
+#language-container {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
 .main-element {
 	border: 2px solid black;
 	border-radius: 8px;

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/18 02:20:41 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/19 23:53:19 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 # define RESPONSE_HPP
 
 # include <vector>
-# include "Session.hpp"
 # include "String.hpp"
 # include "Message.hpp"
 
@@ -25,7 +24,6 @@ class Response : public Message {
 		int		statusCode;
 		String	reasonPhrase;
 		int		flags;
-		Session	*currSession;
 
 		Response(void);
 		~Response(void);

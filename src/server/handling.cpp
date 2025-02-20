@@ -6,10 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 03:35:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/20 00:21:24 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <map>
 #include <unistd.h>
 #include "Server.hpp"
 #include "ErrorCode.hpp"
@@ -128,39 +129,21 @@ void	Server::generateResponses()
 	}
 }
 
-Session	*Server::processSession(Request &request, Response &response)
+void	Server::processCookies(Request& request, Response& response)
 {
-	Session	*currSession = NULL;
+	std::map<String, Cookie>&	cookies = request.cookies;
 
-	if (request.session.exists == false)
+	if (cookies.find("sid") == cookies.end())
 	{
-		sessions.push_back(Session());
-		constructSetCookieHeader(response, sessions[sessions.size() - 1].cookies);
-		currSession = &sessions[sessions.size() - 1];
+		String	sid = Base64::encode(Time::printHTTPDate());
+		cookies.insert(std::make_pair("sid", Cookie("sid", sid)));
+		response.insert("Set-Cookie", "sid=" + sid);
 	}
-	else
+	if (cookies.find("lang") == cookies.end())
 	{
-		std::vector<Session>::iterator	it = sessions.begin();
-
-		while (it != sessions.end())
-		{
-			if (*it == request.session.value)
-				break ;
-			it++;
-		}
-		if (it == sessions.end())
-		{
-			sessions.push_back(Session());
-			constructSetCookieHeader(response, sessions[sessions.size() - 1].cookies);
-			currSession = &sessions[sessions.size() - 1];
-		}
-		else
-		{
-			constructSetCookieHeader(response, it->updateSession(request.session.value));
-			currSession = &(*it);
-		}
+		cookies.insert(std::make_pair("lang", Cookie("lang", "en")));
+		response.insert("Set-Cookie", "lang=en");
 	}
-	return currSession;
 }
 
 Response	Server::handleRequest(Request& request)
@@ -169,7 +152,7 @@ Response	Server::handleRequest(Request& request)
 
 	/*const_cast<Request&>(request).method = POST;*/
 	request.parseCookieHeader();
-	response.currSession = processSession(request, response);
+	processCookies(request, response);
 	try
 	{
 		if (request.method == Request::GET)

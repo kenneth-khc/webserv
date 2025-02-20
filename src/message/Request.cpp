@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/16 23:56:18 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/19 23:15:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ Request::Request(const Request &obj) :
 	flags(obj.flags),
 	requestLineFound(obj.requestLineFound),
 	headersFound(obj.headersFound),
-	session(obj.session)
+	cookies(obj.cookies)
 {}
 
 Request	&Request::operator=(const Request &obj) {
@@ -57,7 +57,7 @@ Request	&Request::operator=(const Request &obj) {
 	this->flags = obj.flags;
 	this->requestLineFound = obj.requestLineFound;
 	this->headersFound = obj.headersFound;
-	this->session = obj.session;
+	this->cookies = obj.cookies;
 	return *this;
 }
 
@@ -132,6 +132,5 @@ void	Request::parseCookieHeader(void) {
 	if (cookieHeader.exists == false)
 		return ;
 
-	this->session.exists = true;
-	isCookieString(cookieHeader.value, this->session.value);
+	isCookieString(cookieHeader.value, this->cookies);
 }

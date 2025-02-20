@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 04:32:17 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/20 00:08:26 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 #include "Response.hpp"
 #include "ErrorCode.hpp"
 #include "Time.hpp"
-#include "Session.hpp"
 #include "debugUtils.hpp"
 #include "preconditions.hpp"
 #include "contentType.hpp"
@@ -25,8 +24,8 @@
 
 void	Server::get(Response& response, const Request& request)
 {
-	const Session	&session = *(response.currSession);
-	std::string		file = Server::pagesDir + "/" + session["lang"].value;
+	const String&	lang = request.cookies.find("lang")->second.value;
+	std::string		file = Server::pagesDir + "/" + lang;
 	struct stat		statbuf;
 
 	if (request.requestTarget == "/")

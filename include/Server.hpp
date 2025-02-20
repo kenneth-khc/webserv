@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/18 19:44:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/20 00:09:22 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@
 #include "Logger.hpp"
 #include "Client.hpp"
 #include "MediaType.hpp"
-#include "Session.hpp"
 
 class	Logger;
 
@@ -68,9 +67,7 @@ public:
 	Response		handleRequest(Request&);
 
 	/* Handling HTTP methods */
-	// Server-wide sessions (cookies)
-	std::vector<Session>	sessions;
-	Session					*processSession(Request &request, Response &response);
+	void			processCookies(Request&, Response&);
 
 	void			get(Response&, const Request&);
 	void			post(Response&, const Request&);

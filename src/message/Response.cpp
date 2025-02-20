@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/18 05:17:13 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/20 00:01:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,7 @@
 
 Response::Response(void) :
 	Message(),
-	flags(0),
-	currSession(NULL)
+	flags(0)
 {
 	this->httpVersion = 1.1;
 	this->insert("Server", SERVER_NAME);
@@ -29,8 +28,7 @@ Response::Response(const Response &obj) :
 	Message(obj),
 	statusCode(obj.statusCode),
 	reasonPhrase(obj.reasonPhrase),
-	flags(obj.flags),
-	currSession(obj.currSession)
+	flags(obj.flags)
 {}
 
 Response&	Response::operator=(const Response& other)
@@ -41,7 +39,6 @@ Response&	Response::operator=(const Response& other)
 	this->statusCode = other.statusCode;
 	this->reasonPhrase = other.reasonPhrase;
 	this->flags = other.flags;
-	this->currSession = other.currSession;
 	return *this;
 }
 

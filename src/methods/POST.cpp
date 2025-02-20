@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 07:36:18 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/20 00:01:00 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,23 +25,20 @@ using std::ifstream;
 using std::stringstream;
 using std::time_t;
 
-static bool		uploadFiles(Response &response, const POSTBody& body);
-static bool		uploadFile(const std::string& filename, const String& fileContent);
-static bool		uploadForm(Response &response, const POSTBody& body);
+static bool		uploadFiles(const POSTBody& body, const string& sid);
+static bool		uploadFile(const string& filename, const String& fileContent);
+static bool		uploadForm(const POSTBody& body, const string& sid);
 static String	getUploadStatusPage(const bool &uploadStatus);
 
 void	Server::post(Response& response, const Request& request)
 {
-	Session	&session = *(response.currSession);
-
 	if (request.requestTarget == "/")
 	{
 		vector<String>	values = request.messageBody.split("=");
-		String			&lang = session.find("lang")->value;
+		const String&	lang = request.cookies.find("lang")->second.value;
 
 		if (lang != values[1])
 		{
-			lang = values[1];
 			response.insert("Set-Cookie", "lang=" + values[1]);
 		}
 		response.setStatusCode(Response::SEE_OTHER);
@@ -50,15 +47,16 @@ void	Server::post(Response& response, const Request& request)
 	}
 	else if (request.requestTarget == "/pages/form.html")
 	{
-		POSTBody	msgBody(request);
+		POSTBody		msgBody(request);
+		const String&	sid = request.cookies.find("sid")->second.value;
 
 		if (msgBody.contentType == "application/x-www-form-urlencoded")
 		{
-			response.messageBody = getUploadStatusPage(uploadForm(response, msgBody));
+			response.messageBody = getUploadStatusPage(uploadForm(msgBody, sid));
 		}
 		else if (msgBody.contentType == "multipart/form-data")
 		{
-			response.messageBody = getUploadStatusPage(uploadFiles(response, msgBody));
+			response.messageBody = getUploadStatusPage(uploadFiles(msgBody, sid));
 		}
 		else
 			throw UnsupportedMediaType415("Accept", "application/x-www-form-urlencoded, multipart/form-data");
@@ -71,7 +69,7 @@ void	Server::post(Response& response, const Request& request)
 	// TODO: regenerate the page/link to created resource after POSTing
 }
 
-static bool	uploadFiles(Response& response, const POSTBody& body)
+static bool	uploadFiles(const POSTBody& body, const string& sid)
 {
 	String			name;
 	stringstream	stream;
@@ -83,7 +81,7 @@ static bool	uploadFiles(Response& response, const POSTBody& body)
 		map<String,String>::const_iterator fname = it->contentDisposition.find("filename");
 		if (fname != it->contentDisposition.end())
 		{
-			name = (*response.currSession)["sid"].value + "_";
+			name = sid + "_";
 			stream << Time::getTimeSinceEpoch();
 			name += "_" + stream.str() + "_";
 			if (uploadFile(name + fname->second, it->content) == false)
@@ -114,12 +112,12 @@ static bool	uploadFile(const std::string& filename, const String& fileContent)
 	}
 }
 
-static bool	uploadForm(Response &response, const POSTBody& body)
+static bool	uploadForm(const POSTBody& body, const string& sid)
 {
 	static std::size_t	i = 0;
 	stringstream		stream;
 	string				str;
-	string				uploadDest = Server::uploadsDir + "/" + (*response.currSession)["sid"].value + "_";
+	string				uploadDest = Server::uploadsDir + "/" + sid;
 	ofstream			outfile;
 
 	if (i != 0)

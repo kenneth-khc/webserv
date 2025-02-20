@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 07:33:32 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 08:11:50 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/20 15:09:26 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ void	Server::generateDirectoryListing(Response& response, const std::string& dir
 		   << 	"<head>\n"
 		   << 		"<title>Index of " + trimmedRootPath + "</title>\n"
 		   << 		"<style>\n\t"
-		   << 			"html { font-family: 'Comic Sans MS', cursive }\n\t"
+		   << 			"html { font-family: 'Comic Sans MS' }\n\t"
 		   << 			"body { background-color: #f4dde7 }\n\t"
 		   << 			"p { display: inline }\n"
 		   << 		"</style>\n"

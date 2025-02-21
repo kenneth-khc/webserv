@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:45:56 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 22:56:22 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/22 01:45:09 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,11 +28,11 @@ configFile(fileName)
 
 }
 
-void	Parser::parseConfig()
+Configuration	Parser::parseConfig()
 {
 	Configuration	config;
 
-	contexts.push("global");
+	contexts.push(GLOBAL);
 	try
 	{
 		token = lexer.advance();
@@ -42,6 +42,7 @@ void	Parser::parseConfig()
 			if (directive.exists)
 			{
 				configValidator.validate(directive.value);
+				config.addDirective(directive.value);
 			}
 		}
 	}
@@ -49,6 +50,7 @@ void	Parser::parseConfig()
 	{
 		std::cerr << e.what() << '\n';
 	}
+	return config;
 }
 
 Optional<Directive>	Parser::parseDirective()
@@ -57,16 +59,21 @@ Optional<Directive>	Parser::parseDirective()
 	{
 		return makeNone<Directive>();
 	}
+
 	String	name = token.lexeme;
 	lexer.lookingFor = Token::PARAMETER;
 	expect(Token::NAME);
+
 	if (token == Token::LCURLY)
 	{
 		lexer.lookingFor = Token::NAME;
-		Directive	blockDirective = parseBlock(name);
+		Context	newContext = contextify(name);
+
+		Directive	blockDirective = parseBlock(newContext);
 		configValidator.validate(blockDirective);
 		return blockDirective;
 	}
+	// not a {, we are expecting Parameters now
 	else
 	{
 		std::vector<String>	parameters;
@@ -82,13 +89,15 @@ Optional<Directive>	Parser::parseDirective()
 	}
 }
 
-Directive	Parser::parseBlock(const String& blockName)
+Directive	Parser::parseBlock(Context blockName)
 {
 	// TODO: this is assuming a block directive can't have parameters
 	// which isn't true
-	Directive	blockDirective(blockName, std::vector<String>(), contexts.top());
+	Directive	blockDirective(stringifyContext(blockName),
+							   std::vector<String>(),
+							   contexts.top());
 	expect(Token::LCURLY);
-	contexts.push(blockDirective.name);
+	contexts.push(blockName);
 	while (token != Token::RCURLY)
 	{
 		Optional<Directive> directive = parseDirective();
@@ -96,16 +105,13 @@ Directive	Parser::parseBlock(const String& blockName)
 		{
 			break ;
 		}
-		configValidator[directive.value.name].validate(directive.value);
+		configValidator.validate(directive.value);
+		blockDirective.addDirective(directive.value);
 	}
 	expect(Token::RCURLY);
-	contexts.pop();
 	return blockDirective;
 }
 
-/* TODO: handle multiple parameters
- * for now, we can only handle a single parameter because there's
- * currently no way to differentiate between a parameter and a key */
 std::vector<String>	Parser::parseParameters()
 {
 	std::vector<String>	parameters;

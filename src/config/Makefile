@@ -6,7 +6,7 @@
 #    By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/02/12 22:06:13 by kecheong          #+#    #+#              #
-#    Updated: 2025/02/15 05:02:14 by kecheong         ###   ########.fr        #
+#    Updated: 2025/02/21 18:17:45 by kecheong         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,8 @@ LDFLAGS := -fuse-ld=mold
 LIBSERV := ../../libserv.a
 
 SRCS := main.cpp Token.cpp Lexer.cpp Parser.cpp Directive.cpp \
-		Validator.cpp ConfigValidator.cpp ConfigErrors.cpp
+		Validator.cpp ConfigValidator.cpp ConfigErrors.cpp Configuration.cpp
+
 OBJS := $(SRCS:.cpp=.o)
 
 all: parser

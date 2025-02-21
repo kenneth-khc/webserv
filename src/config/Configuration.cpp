@@ -6,12 +6,18 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 22:23:35 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 22:37:32 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/22 01:14:44 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Configuration.hpp"
+#include "Directive.hpp"
 
-Configuration::Configuration()
+Configuration::Configuration() { }
+
+void	Configuration::addDirective(const Directive& dir)
 {
+	directives.push_back(dir);
 }
+
+

@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 22:51:42 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/21 18:45:24 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ bool	validateParameterSize(const Directive& dir, size_t min, size_t max)
 }
 
 bool	validateEnclosingContext(const Directive& dir,
-								 const std::vector<String>& allowedContexts)
+								 const std::vector<Context>& allowedContexts)
 {
 	if (std::find(allowedContexts.begin(),
 				  allowedContexts.end(),
@@ -79,17 +79,18 @@ bool	validatePrefix(const Directive& dir)
 {
 	validateParameterSize(dir, 1);
 
-	std::vector<String>	allowedContexts;
-	allowedContexts.push_back("global");
+	std::vector<Context>	allowedContexts;
+	allowedContexts.push_back(GLOBAL);
 	validateEnclosingContext(dir, allowedContexts);
 
-	if (dir.parameters[0] == '/')
+	const String&	path = dir.parameters[0];
+	if (path[0] == '/')
 	{
 		return true;
 	}
 	else
 	{
-		throw InvalidParameter(dir.parameters[0]);
+		throw InvalidParameter(path);
 	}
 }
 
@@ -114,7 +115,7 @@ bool	validateHTTP(const Directive& dir)
 {
 	const String&	context = dir.enclosingContext;
 	const String&	name = dir.name;
-	if (dir.enclosingContext == "global")
+	if (context == GLOBAL)
 	{
 		return true;
 	}
@@ -126,8 +127,8 @@ bool	validateHTTP(const Directive& dir)
 
 bool	validateServer(const Directive& dir)
 {
-	std::vector<String>	allowedContexts;
-	allowedContexts.push_back("http");
+	std::vector<Context>	allowedContexts;
+	allowedContexts.push_back(HTTP);
 	validateEnclosingContext(dir, allowedContexts);
 	return true;
 }

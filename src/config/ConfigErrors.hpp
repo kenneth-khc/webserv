@@ -6,9 +6,12 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/16 05:10:59 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 16:52:22 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/21 18:45:16 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#ifndef CONFIGERRORS_HPP
+#define CONFIGERRORS_HPP
 
 /* These are custom exceptions thrown by the Parser, to indicate things
  * going wrong when parsing a config file. It provides the ability to display
@@ -65,3 +68,4 @@ public:
 	~InvalidContext() throw();
 };
 
+#endif

@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:32:50 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:10:15 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/21 18:47:39 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,35 @@
 #include <vector>
 #include "String.hpp"
 
+enum Context
+{
+	NONE,
+	GLOBAL,
+	HTTP,
+	SERVER,
+	LOCATION
+};
+
+Context	contextify(const String&);
+String	stringifyContext(Context);
+
 struct	Directive
 {
-	String				name;
-	std::vector<String>	parameters;
-	String				enclosingContext;
+	// Name of the current directive
+	String					name;
+	// Parameters of the current directive
+	std::vector<String>		parameters;
+	/*Context				context;*/
+	// The context this directive is in
+	Context					enclosingContext;
+	// The directives within the directive
+	std::vector<Directive>	directives;
 
 	Directive();
-	Directive(const String&, const std::vector<String>&, const String&);
+	Directive(const String&, const std::vector<String>&, Context);
+	/*Directive(const String&, const std::vector<String>&, Context, Context);*/
+
+	void	addDirective(const Directive&);
 };
 
 #endif

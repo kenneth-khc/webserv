@@ -40,7 +40,7 @@ Token&	Lexer::advance()
 
 void	Lexer::tryParameter()
 {
-	while (*input != ' ' && *input != '\t' && *input != ';')
+	while (!isWSP(*input) && *input != ';')
 	{
 		lexemeBuffer += input.consume().value;
 	}
@@ -76,19 +76,6 @@ Token	Lexer::getNextToken()
 				{
 					tryParameter();
 					return token(Token::PARAMETER);
-					/*if (std::isalpha(c.value))*/
-					/*{*/
-					/*	// TODO: differentiate between an Name for a key*/
-					/*	// and a Parameter for a value*/
-					/*	tryName();*/
-					/*	return token(Token::NAME);*/
-					/*}*/
-					/*// TODO: an actual number token*/
-					/*else if (std::isdigit(c.value))*/
-					/*{*/
-					/*	tryNumber();*/
-					/*	return token(Token::NAME);*/
-					/*}*/
 				}
 		}
 	}
@@ -106,24 +93,6 @@ void	Lexer::tryName()
 {
 	while (std::isalpha(*input) || std::isdigit(*input)
 			|| *input == '_' || *input == '-')
-	{
-		lexemeBuffer += input.consume().value;
-	}
-}
-
-void	Lexer::tryWord()
-{
-	while (std::isalpha(*input) || std::isdigit(*input)
-			|| *input == '_' || *input == '-' || *input == '/'
-			|| *input == '=' || *input == '[' || *input == ']')
-	{
-		lexemeBuffer += input.consume().value;
-	}
-}
-
-void	Lexer::tryNumber()
-{
-	while (std::isdigit(*input))
 	{
 		lexemeBuffer += input.consume().value;
 	}

@@ -28,6 +28,15 @@ ConfigError::~ConfigError() throw() { }
 /********************
  * Unexpected Token *
  *******************/
+
+UnexpectedToken::UnexpectedToken(Token::TokenType got)
+{
+	std::stringstream	ss;
+
+	ss << "Unexpeced token " << Token::stringified[got];
+	msg = ss.str();
+}
+
 UnexpectedToken::UnexpectedToken(Token::TokenType expected, Token::TokenType got)
 {
 	std::stringstream	ss;

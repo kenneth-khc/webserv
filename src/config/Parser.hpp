@@ -32,11 +32,11 @@ struct	Parser
 	Token				token;
 	std::stack<Context>	contexts;
 
-
 	Configuration		parseConfig();
 	Optional<Directive>	parseDirective();
 	Directive			parseBlock(Context);
 	std::vector<String>	parseParameters();
+
 	void				expect(Token::TokenType);
 	bool				accept(Token::TokenType);
 };

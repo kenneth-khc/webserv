@@ -39,8 +39,6 @@ struct	Lexer
 	size_t			skipComment();
 	void			tryName();
 	void			tryParameter();
-	void			tryWord();
-	void			tryNumber();
 	
 	static const Predicate	isWSP;
 

@@ -35,6 +35,7 @@ protected:
 class	UnexpectedToken : public ConfigError
 {
 public:
+	UnexpectedToken(Token::TokenType got);
 	UnexpectedToken(Token::TokenType expected, Token::TokenType got);
 	~UnexpectedToken() throw();
 };

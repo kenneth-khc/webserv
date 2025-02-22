@@ -17,7 +17,6 @@
 #include "ConfigValidator.hpp"
 #include "ConfigErrors.hpp"
 #include "Token.hpp"
-#include "Validator.hpp"
 #include "Optional.hpp"
 #include "Configuration.hpp"
 
@@ -64,28 +63,30 @@ Optional<Directive>	Parser::parseDirective()
 	lexer.lookingFor = Token::PARAMETER;
 	expect(Token::NAME);
 
+	std::vector<String>	parameters;
+	while (token.type == Token::PARAMETER)
+	{
+		parameters.push_back(token.lexeme);
+		accept(Token::PARAMETER);
+	}
+	lexer.lookingFor = Token::NAME;
+
 	if (token == Token::LCURLY)
 	{
-		lexer.lookingFor = Token::NAME;
 		Context	newContext = contextify(name);
-
 		Directive	blockDirective = parseBlock(newContext);
 		configValidator.validate(blockDirective);
 		return blockDirective;
 	}
-	// not a {, we are expecting Parameters now
+	else if (token == Token::SEMICOLON)
+	{
+		accept(Token::SEMICOLON);
+		Directive	directive(name, parameters, contexts.top());
+		return directive;
+	}
 	else
 	{
-		std::vector<String>	parameters;
-		while (token.type == Token::PARAMETER)
-		{
-			parameters.push_back(token.lexeme);
-			accept(Token::PARAMETER);
-		}
-		lexer.lookingFor = Token::NAME;
-		Directive	directive(name, parameters, contexts.top());
-		expect(Token::SEMICOLON);
-		return directive;
+		throw UnexpectedToken(token);
 	}
 }
 

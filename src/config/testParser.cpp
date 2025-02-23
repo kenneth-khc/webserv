@@ -1,14 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   testParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:38:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/15 05:12:04 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/23 22:59:54 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#if 0
 
 #include <iostream>
 #include "Parser.hpp"
@@ -28,3 +30,5 @@ int	main(int argc, char** argv)
 		parser.parseConfig();
 	}
 }
+
+#endif

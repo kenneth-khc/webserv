@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 05:44:48 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/13 06:15:44 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/23 23:12:17 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,8 @@ const Token&	Lexer::peek() const
 Token&	Lexer::advance()
 {
 	currentToken = getNextToken();
-	std::cout << Token::stringified[currentToken.type] << ": "
-			  << currentToken.lexeme << '\n';
+	/*std::cout << Token::stringified[currentToken.type] << ": "*/
+	/*		  << currentToken.lexeme << '\n';*/
 	return currentToken;
 }
 

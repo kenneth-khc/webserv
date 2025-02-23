@@ -6,7 +6,7 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/02/12 22:12:45 by kecheong         ###   ########.fr        #
+#    Updated: 2025/02/23 23:02:29 by kecheong         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,13 +19,14 @@ CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes) -fuse-ld=mold
 
 src_dir := src
 dirs := $(src_dir) \
+		$(src_dir)/config \
 		$(src_dir)/server \
 		$(src_dir)/methods \
 		$(src_dir)/URI \
 		$(src_dir)/message \
 		$(src_dir)/headers \
 		$(src_dir)/utils \
-		$(src_dir)/debug 
+		$(src_dir)/debug
 
 srcs := $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))
 # For my own testing purposes
@@ -33,6 +34,7 @@ srcs += main.cpp
 inc_dir := include
 
 includes := -I $(inc_dir)/ \
+			-I $(inc_dir)/config \
 			-I $(inc_dir)/URI \
 			-I $(inc_dir)/message \
 			-I $(inc_dir)/headers \

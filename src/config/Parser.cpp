@@ -6,11 +6,12 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:45:56 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/22 01:45:09 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/23 23:10:01 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <cctype>
+#include <cstdlib>
 #include "String.hpp"
 #include "Parser.hpp"
 #include "Lexer.hpp"
@@ -26,6 +27,11 @@ lexer(fileName),
 token(Token::NONE),
 contexts()
 {
+	if (!configFile.is_open())
+	{
+		std::cerr << "Error. Cannot open file <" << fileName << ">\n";
+		std::exit(1);
+	}
 }
 
 Configuration	Parser::parseConfig()

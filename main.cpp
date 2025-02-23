@@ -6,28 +6,42 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/11 02:49:34 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/23 23:14:13 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
-#include "Server.hpp"
 #include <sys/epoll.h>
-#include "ErrorCode.hpp"
 #include <unistd.h>
 #include <csignal>
 #include <cstdlib>
+#include "Configuration.hpp"
+#include "Parser.hpp"
+#include "Server.hpp"
+#include "ErrorCode.hpp"
 
 void	sigint_exit(int)
 {
+	std::cout << "\nGot a SIGINT, exiting!\n";
 	std::exit(1);
 }
 
-int	main()
+int	main(int argc, char** argv)
 {
-	std::signal(SIGINT, sigint_exit);
-	Server	server;
+	if (argc != 2)
+	{
+		std::cerr << "Error. Usage: ./webserv <config_file>\n";
+		std::exit(1);
+	}
 
+	// TODO: this is just for debugging the server so that it exits
+	//		 cleanly when we CTRL-C, remove later
+	std::signal(SIGINT, sigint_exit);
+
+	Parser			parser(argv[1]);
+	Configuration	config = parser.parseConfig();
+
+	Server	server;
 	server.startListening();
 	server.initEpoll();
 

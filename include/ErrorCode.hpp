@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:25:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/18 03:08:10 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/22 20:44:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,12 @@ class UnsupportedMediaType415 : public ErrorCode {
 /********************/
 /* Server Error 5XX */
 /********************/
+class InternalServerError500 : public ErrorCode {
+	public:
+		InternalServerError500(void);
+		InternalServerError500(const char *title);
+};
+
 class NotImplemented501 : public ErrorCode {
 	public:
 		NotImplemented501(void);

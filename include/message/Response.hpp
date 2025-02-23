@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/19 23:53:19 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/23 22:24:31 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,6 @@ class Response : public Message {
 
 		enum StatusCodes {
 			OK = 200,
-			CREATED = 201,
 			MOVED_PERMANENTLY = 301,
 			SEE_OTHER = 303,
 			NOT_MODIFIED = 304

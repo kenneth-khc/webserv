@@ -6,29 +6,30 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/20 00:01:00 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/24 04:58:19 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <unistd.h>
+#include <dirent.h>
 #include <fstream>
 #include <sstream>
-#include <string>
+#include "String.hpp"
 #include "Optional.hpp"
 #include "Time.hpp"
 #include "Server.hpp"
 #include "ErrorCode.hpp"
 #include "POSTBody.hpp"
 
-using std::string;
+using std::size_t;
 using std::ofstream;
 using std::ifstream;
 using std::stringstream;
-using std::time_t;
 
-static bool		uploadFiles(const POSTBody& body, const string& sid);
-static bool		uploadFile(const string& filename, const String& fileContent);
-static bool		uploadForm(const POSTBody& body, const string& sid);
-static String	getUploadStatusPage(const bool &uploadStatus);
+static String	checkFileName(const String& fileName, const String& sid);
+static void		uploadFiles(const POSTBody& body, const String& sid);
+static String	checkFormName(const String& sid);
+static void		uploadForm(const POSTBody& body, const String& sid);
 
 void	Server::post(Response& response, const Request& request)
 {
@@ -52,28 +53,68 @@ void	Server::post(Response& response, const Request& request)
 
 		if (msgBody.contentType == "application/x-www-form-urlencoded")
 		{
-			response.messageBody = getUploadStatusPage(uploadForm(msgBody, sid));
+			uploadForm(msgBody, sid);
 		}
 		else if (msgBody.contentType == "multipart/form-data")
 		{
-			response.messageBody = getUploadStatusPage(uploadFiles(msgBody, sid));
+			uploadFiles(msgBody, sid);
 		}
 		else
+		{
 			throw UnsupportedMediaType415("Accept", "application/x-www-form-urlencoded, multipart/form-data");
-
-		response.setStatusCode(Response::CREATED);
-		response.insert("Content-Length", response.messageBody.length());
+		}
+		response.setStatusCode(Response::SEE_OTHER);
+		response.insert("Content-Length", 0);
 		response.insert("Location", "http://localhost:8000/pages/form.html");
+	}
+	else
+	{
+		throw NotFound404();
 	}
 	// TODO: location header
 	// TODO: regenerate the page/link to created resource after POSTing
 }
 
-static bool	uploadFiles(const POSTBody& body, const string& sid)
+static String	checkFileName(const String& fileName, const String& sid)
 {
-	String			name;
-	stringstream	stream;
-	bool			uploadStatus = true;
+	Optional<String::size_type>	pos = fileName.find_last_of('.');
+	String						name = fileName;
+	size_t						i = 0;
+	String						extension;
+	stringstream				stream;
+	String						str;
+
+	if (pos.exists == true)
+	{
+		extension = "." + fileName.substr(pos.value + 1);
+		name = Server::uploadsDir + "/" + sid + "_" + fileName.substr(0, pos.value);
+	}
+	while (i < String::npos)
+	{
+		if (i != 0)
+		{
+			stream << i;
+			str = name + stream.str() + extension;
+			stream.str("");
+		}
+		else
+		{
+			str = name + extension;
+		}
+		if (access(str.c_str(), F_OK) != 0)
+		{
+			break ;
+		}
+		i++;
+	}
+	return (str);
+}
+
+static void	uploadFiles(const POSTBody& body, const String& sid)
+{
+	String			uploadDest;
+	ofstream		outfile;
+
 
 	for (vector<POSTBodyPart>::const_iterator it = body.parts.begin();
 		 it != body.parts.end(); ++it)
@@ -81,52 +122,56 @@ static bool	uploadFiles(const POSTBody& body, const string& sid)
 		map<String,String>::const_iterator fname = it->contentDisposition.find("filename");
 		if (fname != it->contentDisposition.end())
 		{
-			name = sid + "_";
-			stream << Time::getTimeSinceEpoch();
-			name += "_" + stream.str() + "_";
-			if (uploadFile(name + fname->second, it->content) == false)
+			uploadDest = checkFileName(fname->second, sid);
+			outfile.open(uploadDest.c_str());
+			if (outfile)
 			{
-				uploadStatus = false;
+				outfile << it->content;
 			}
-			stream.str("");
+			else
+			{
+				throw InternalServerError500();
+			}
+			outfile.close();
 		}
 	}
-	return (uploadStatus);
 }
 
-// TODO: route to proper upload destinations ??
-static bool	uploadFile(const std::string& filename, const String& fileContent)
+static String	checkFormName(const String& sid)
 {
-	string		uploadDest = Server::uploadsDir + "/" + filename;
-	ofstream	outfile;
+	String			name = Server::uploadsDir + "/" + sid + "_form";
+	size_t			i = 0;
+	stringstream	stream;
+	String			str;
 
-	outfile.open(uploadDest.c_str());
-	if (outfile)
+	while (i < String::npos)
 	{
-		outfile << fileContent;
-		return true;
+		if (i != 0)
+		{
+			stream << i;
+			str = name + stream.str() + ".json";
+			stream.str("");
+		}
+		else
+		{
+			str = name + ".json";
+		}
+		if (access(str.c_str(), F_OK) != 0)
+		{
+			break ;
+		}
+		i++;
 	}
-	else
-	{
-		return false;
-	}
+	return (str);
 }
 
-static bool	uploadForm(const POSTBody& body, const string& sid)
+static void	uploadForm(const POSTBody& body, const String& sid)
 {
-	static std::size_t	i = 0;
-	stringstream		stream;
-	string				str;
-	string				uploadDest = Server::uploadsDir + "/" + sid;
-	ofstream			outfile;
+	String			uploadDest = checkFormName(sid);
+	stringstream	stream;
+	String			str;
+	ofstream		outfile;
 
-	if (i != 0)
-	{
-		stream << i;
-		stream >> str;
-		stream.clear();
-	}
-	uploadDest += "form" + str + ".json";
 	outfile.open(uploadDest.c_str());
 	if (outfile)
 	{
@@ -135,32 +180,13 @@ static bool	uploadForm(const POSTBody& body, const string& sid)
 		{
 			stream << "\t\"" << body.urlEncodedKeys[i] << "\": \"" << body.urlEncodedValues[i] << "\",\n";
 		}
-		std::getline(stream, str, '\0');
+		str = stream.str();
 		str = str.substr(0, str.length() - 2);
 		str += "\n}";
 		outfile << str;
-		i++;
-		return true;
 	}
 	else
 	{
-		return false;
+		throw InternalServerError500();
 	}
-}
-
-static String	getUploadStatusPage(const bool &uploadStatus)
-{
-	ifstream	infile;
-	String		pageContent;
-
-	if (uploadStatus == true)
-	{
-		infile.open("misc_pages/upload_success.html");
-	}
-	else
-	{
-		infile.open("misc_pages/upload_failed.html");
-	}
-	String::getline(infile, pageContent, '\0');
-	return pageContent;
 }

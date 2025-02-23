@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 07:07:01 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/23 19:35:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,10 @@ public:
 	Optional<size_type>	find(const String&, size_type searchFrom = 0) const;
 	String				substr(size_type pos = 0, size_type len = npos) const;
 	const char*			c_str() const;
+	Optional<size_type>	find_last_of(char, size_type searchFrom = npos) const;
+	Optional<size_type>	find_last_of(const String&, size_type searchFrom = npos) const;
+	void				resize(size_type);
+	String&				replace(size_type, size_type, const String&);
 
 	/* Custom additions to a String */
 

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 07:06:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/23 19:36:21 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,6 +198,45 @@ String	String::substr(size_type pos, size_type n) const
 const char*	String::c_str() const
 {
 	return (str.c_str());
+}
+
+Optional<String::size_type>
+String::find_last_of(char c, size_type offset) const
+{
+	size_type	pos = str.find_last_of(c, offset);
+	if (pos == str.npos)
+	{
+		return makeNone<size_type>();
+	}
+	else
+	{
+		return makeOptional<size_type>(pos);
+	}
+}
+
+Optional<String::size_type>
+String::find_last_of(const String& expected, size_type offset) const
+{
+	size_type	pos = str.find_last_of(expected, offset);
+	if (pos == str.npos)
+	{
+		return makeNone<size_type>();
+	}
+	else
+	{
+		return makeOptional<size_type>(pos);
+	}
+}
+
+void	String::resize(size_type count)
+{
+	str.resize(count);
+}
+
+String&	String::replace(size_type pos, size_type count, const String& toReplace)
+{
+	str.replace(pos, count, toReplace);
+	return *this;
 }
 
 Optional<String::size_type>

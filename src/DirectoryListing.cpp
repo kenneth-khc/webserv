@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 07:33:32 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/20 15:09:26 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/24 04:42:21 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ void	Server::generateDirectoryListing(Response& response, const std::string& dir
 	{
 		std::string	d_name(entry->d_name);
 		std::string	str;
+		std::string	truncate;
 
 		if (d_name == ".")
 		{
@@ -70,12 +71,26 @@ void	Server::generateDirectoryListing(Response& response, const std::string& dir
 
 		stream.str("");
 		// File/Directory Name
+		truncate = (entry->d_type == DT_DIR) ? d_name + "/" : d_name;
+		if (truncate.length() > FILE_NAME_LEN)
+		{
+			truncate.resize(FILE_NAME_LEN);
+			if (entry->d_type == DT_DIR)
+			{
+				truncate.replace(FILE_NAME_LEN - 4, 4, ".../");
+			}
+			else
+			{
+				truncate.replace(FILE_NAME_LEN - 3, 3, "...");
+			}
+		}
+
 		stream << "<a href=\""
-			   << ((entry->d_type == DT_DIR) ? trimmedRootPath + d_name + "/" : d_name)
+			   << ((entry->d_type == DT_DIR) ? trimmedRootPath + d_name + "/" : trimmedRootPath + d_name)
 			   << "\">"
 			   << std::left
-			   << std::setw(FILE_NAME_LEN)
-			   << ((entry->d_type == DT_DIR) ? d_name + "/" : d_name) + "</a>";
+			   << std::setw(FILE_NAME_LEN + 5)
+			   << truncate + "</a> ";
 
 		str += stream.str();
 		if (d_name == "..")
@@ -99,6 +114,7 @@ void	Server::generateDirectoryListing(Response& response, const std::string& dir
 			streamTwo << statbuf.st_size;
 		}
 		stream << Time::printAutoindexDate(statbuf.st_mtim)
+			   << " "
 			   << std::right
 			   << std::setw(FILE_SIZE_LEN)
 			   << streamTwo.str()

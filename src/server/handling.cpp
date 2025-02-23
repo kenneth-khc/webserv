@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/20 00:21:24 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/24 03:05:24 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,12 +150,11 @@ Response	Server::handleRequest(Request& request)
 {
 	Response	response;
 
-	/*const_cast<Request&>(request).method = POST;*/
 	request.parseCookieHeader();
 	processCookies(request, response);
 	try
 	{
-		if (request.method == Request::GET)
+		if (request.method == Request::GET || request.method == Request::HEAD)
 		{
 			get(response, request);
 		}
@@ -163,17 +162,9 @@ Response	Server::handleRequest(Request& request)
 		{
 			post(response, request);
 		}
-		else if (request.method == Request::PUT)
-		{
-			put(response, request);
-		}
 		else if (request.method == Request::DELETE)
 		{
 			delete_(response, request);
-		}
-		else if (request.method == Request::HEAD)
-		{
-			head(response, request);
 		}
 	}
 	catch (const ErrorCode& e)

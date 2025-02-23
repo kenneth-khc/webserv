@@ -21,7 +21,7 @@ struct	Token
 {
 	enum	TokenType
 	{
-		NAME, PARAMETER, DIGIT, ALPHA, WSP, CHAR, DQUOTE,
+		NONE, NAME, PARAMETER, DIGIT, ALPHA, WSP, CHAR, DQUOTE,
 		LCURLY, RCURLY, SEMICOLON, HASH, NEWLINE, END_OF_FILE
 	};
 	static const char* stringified[];

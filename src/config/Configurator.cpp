@@ -1,24 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ConfigValidator.cpp                                :+:      :+:    :+:   */
+/*   Configurator.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:55:07 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 17:21:22 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/23 18:09:43 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ConfigValidator.hpp"
+#include <stdexcept>
+#include <utility>
+#include "Configurator.hpp"
 #include "ConfigErrors.hpp"
 #include "Validator.hpp"
-#include <stdexcept>
 
 /* TODO: this is where all the supported directives go, being mapped to a
  * Validator that determines how to parse/validate the parameters of each
  * Directive */
-ConfigValidator::ConfigValidator()
+Configurator::Configurator()
 {
 	/*support("key", returnsTrue);*/
 	support("prefix", validatePrefix);
@@ -30,22 +31,24 @@ ConfigValidator::ConfigValidator()
 	support("index", validateIndex);
 }
 
-void	ConfigValidator::support(const String& name, const Validator& validator)
+void	Configurator::support(const String& name, const Validator& validator)
 {
-	directives.insert(std::make_pair(name, validator));
+	std::pair<String,Validator> directiveValidator
+								= std::make_pair(name, validator);
+	supportedDirectives.insert(directiveValidator);
 }
 
-void	ConfigValidator::validate(const Directive& directive)
+void	Configurator::validate(const Directive& directive)
 {
 	const Validator&	validator = operator[](directive.name);
 	validator.validate(directive);
 }
 
-const Validator&	ConfigValidator::operator[](const String& key) const
+const Validator&	Configurator::operator[](const String& key) const
 {
 	try
 	{
-		const Validator&	validator = directives.at(key);
+		const Validator&	validator = supportedDirectives.at(key);
 		return validator;
 	}
 	catch (const std::out_of_range& e)

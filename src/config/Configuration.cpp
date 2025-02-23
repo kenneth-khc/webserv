@@ -15,7 +15,7 @@
 
 Configuration::Configuration() { }
 
-void	Configuration::addDirective(const Directive& dir)
+void	Configuration::add(const Directive& dir)
 {
 	directives.push_back(dir);
 }

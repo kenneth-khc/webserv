@@ -98,6 +98,7 @@ bool	validatePrefix(const Directive& dir)
 // accepted is a single port number
 bool	validateListen(const Directive& dir)
 {
+	validateParameterSize(dir, 1);
 	const String&	str = dir.parameters[0];
 	int	portNum = str.toInt();
 
@@ -113,6 +114,7 @@ bool	validateListen(const Directive& dir)
 
 bool	validateHTTP(const Directive& dir)
 {
+	validateParameterSize(dir, 0);
 	const String&	context = dir.enclosingContext;
 	const String&	name = dir.name;
 	if (context == GLOBAL)
@@ -133,13 +135,23 @@ bool	validateServer(const Directive& dir)
 	return true;
 }
 
-bool	validateLocation(const Directive&)
+bool	validateLocation(const Directive& dir)
 {
+	// TODO: support exact matches?
+	validateParameterSize(dir, 1);
+
 	return true;
 }
 
-bool	validateRoot(const Directive&)
+bool	validateRoot(const Directive& dir)
 {
+	validateParameterSize(dir, 1);
+	
+	std::vector<Context>	allowedContexts;
+	allowedContexts.push_back(HTTP);
+	allowedContexts.push_back(SERVER);
+	allowedContexts.push_back(LOCATION);
+	validateEnclosingContext(dir, allowedContexts);
 	return true;
 }
 

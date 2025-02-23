@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:35:41 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/21 18:47:43 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/23 18:40:30 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,24 +18,26 @@
 #include "Lexer.hpp"
 #include "String.hpp"
 #include "Directive.hpp"
-#include "ConfigValidator.hpp"
-#include "Optional.hpp"
+#include "Configurator.hpp"
 #include "Configuration.hpp"
 
 struct	Parser
 {
 	Parser(const char* fileName);
 
-	Lexer				lexer;
 	std::ifstream		configFile;
-	ConfigValidator		configValidator;
+	Configurator		configurator;
+	Lexer				lexer;
 	Token				token;
 	std::stack<Context>	contexts;
 
 	Configuration		parseConfig();
-	Optional<Directive>	parseDirective();
-	Directive			parseBlock(Context);
+	Directive			parseDirective();
 	std::vector<String>	parseParameters();
+	Directive			parseSimple(const String&,
+									const std::vector<String>&);
+	Directive			parseBlock(const String&,
+								   const std::vector<String>&);
 
 	void				expect(Token::TokenType);
 	bool				accept(Token::TokenType);

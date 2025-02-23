@@ -21,7 +21,8 @@ LDFLAGS := -fuse-ld=mold
 LIBSERV := ../../libserv.a
 
 SRCS := main.cpp Token.cpp Lexer.cpp Parser.cpp Directive.cpp \
-		Validator.cpp Configurator.cpp ConfigErrors.cpp Configuration.cpp
+		Validator.cpp Configurator.cpp ConfigErrors.cpp Configuration.cpp \
+		Context.cpp
 
 OBJS := $(SRCS:.cpp=.o)
 

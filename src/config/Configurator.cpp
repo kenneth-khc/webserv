@@ -21,7 +21,6 @@
  * Directive */
 Configurator::Configurator()
 {
-	/*support("key", returnsTrue);*/
 	support("prefix", validatePrefix);
 	support("http", validateHTTP);
 	support("server", validateServer);
@@ -41,7 +40,7 @@ void	Configurator::support(const String& name, const Validator& validator)
 void	Configurator::validate(const Directive& directive)
 {
 	const Validator&	validator = operator[](directive.name);
-	validator.validate(directive);
+	validator(directive);
 }
 
 const Validator&	Configurator::operator[](const String& key) const

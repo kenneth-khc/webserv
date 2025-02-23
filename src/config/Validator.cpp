@@ -18,144 +18,129 @@
 #include <vector>
 #include <algorithm>
 
-Validator::Validator()
+Validator::Validator(void (*function)(const Directive&)):
+function(function)
 { }
 
-Validator::Validator(bool (*function)(const Directive&)):
-validate(function)
-{ }
-
-bool	Validator::operator()(Directive parameter) const
+void	Validator::operator()(const Directive& directive) const
 {
-	return validate(parameter);
+	return function(directive);
 }
 
-bool	returnsTrue(const Directive&)
-{
-	return true;
-}
+void	no_op(const Directive&) { }
 
-bool	validateParameterSize(const Directive& dir, size_t expected)
+void	validateParameterSize(const Directive& dir, size_t expected)
 {
-	if (dir.parameters.size() == expected)
-	{
-		return true;
-	}
-	else
+	if (dir.parameters.size() != expected)
 	{
 		throw InvalidParameterAmount();
 	}
 }
 
-bool	validateParameterSize(const Directive& dir, size_t min, size_t max)
+void	validateParameterSize(const Directive& dir, size_t min, size_t max)
 {
-	if (dir.parameters.size() >= min &&
-			dir.parameters.size() <= max)
-	{
-		return true;
-	}
-	else
+	if (dir.parameters.size() < min || dir.parameters.size() > max)
 	{
 		throw InvalidParameterAmount();
 	}
 }
 
-bool	validateEnclosingContext(const Directive& dir,
-								 const std::vector<Context>& allowedContexts)
+void	validateEnclosingContext(const Directive& dir, Context context)
 {
-	if (std::find(allowedContexts.begin(),
-				  allowedContexts.end(),
-				  dir.enclosingContext) != allowedContexts.end())
-	{
-		return true;
-	}
-	else
+	if (dir.enclosingContext != context)
 	{
 		throw InvalidContext(dir.name, dir.enclosingContext);
 	}
 }
 
-bool	validatePrefix(const Directive& dir)
+void	validateEnclosingContext(const Directive& dir,
+								 const std::vector<Context>& allowedContexts)
+{
+	if (std::find(allowedContexts.begin(),
+				  allowedContexts.end(),
+				  dir.enclosingContext) == allowedContexts.end())
+	{
+		throw InvalidContext(dir.name, dir.enclosingContext);
+	}
+}
+
+/*
+Syntax : prefix absolutePath;
+Default: —
+Context: global */
+void	validatePrefix(const Directive& dir)
 {
 	validateParameterSize(dir, 1);
-
-	std::vector<Context>	allowedContexts;
-	allowedContexts.push_back(GLOBAL);
-	validateEnclosingContext(dir, allowedContexts);
+	validateEnclosingContext(dir, GLOBAL);
 
 	const String&	path = dir.parameters[0];
-	if (path[0] == '/')
-	{
-		return true;
-	}
-	else
+	if (path[0] != '/')
 	{
 		throw InvalidParameter(path);
 	}
 }
 
-// TODO: accept more options for validate. right now, the only parameter
+
+// TODO: accept more options for listen. right now, the only parameter
 // accepted is a single port number
-bool	validateListen(const Directive& dir)
+
+/*
+Syntax : listen port;
+Default: —
+Context: server */
+void	validateListen(const Directive& dir)
 {
 	validateParameterSize(dir, 1);
 	const String&	str = dir.parameters[0];
 	int	portNum = str.toInt();
 
-	if (portNum > 0 && portNum < 65536)
-	{
-		return true;
-	}
-	else
+	if (portNum < 0 || portNum > 65535)
 	{
 		throw InvalidParameter(str);
 	}
 }
 
-bool	validateHTTP(const Directive& dir)
+/*
+Syntax : http { ... }
+Default: —
+Context: main */
+void	validateHTTP(const Directive& dir)
 {
 	validateParameterSize(dir, 0);
-	const String&	context = dir.enclosingContext;
-	const String&	name = dir.name;
-	if (context == GLOBAL)
-	{
-		return true;
-	}
-	else
-	{
-		throw InvalidContext(name, context);
-	}
+	validateEnclosingContext(dir, GLOBAL);
 }
 
-bool	validateServer(const Directive& dir)
+void	validateServer(const Directive& dir)
 {
-	std::vector<Context>	allowedContexts;
-	allowedContexts.push_back(HTTP);
-	validateEnclosingContext(dir, allowedContexts);
-	return true;
+	validateEnclosingContext(dir, HTTP);
 }
 
-bool	validateLocation(const Directive& dir)
+/*
+Syntax : location uri { ... }
+Default: —
+Context: server, location */
+void	validateLocation(const Directive& dir)
 {
 	// TODO: support exact matches?
 	validateParameterSize(dir, 1);
-
-	return true;
+	validateEnclosingContext(dir, (SERVER, LOCATION));
 }
 
-bool	validateRoot(const Directive& dir)
+/*
+Syntax : root path;
+Default: root html;
+Context: http, server, location, if in location */
+void	validateRoot(const Directive& dir)
 {
 	validateParameterSize(dir, 1);
-	
-	std::vector<Context>	allowedContexts;
-	allowedContexts.push_back(HTTP);
-	allowedContexts.push_back(SERVER);
-	allowedContexts.push_back(LOCATION);
-	validateEnclosingContext(dir, allowedContexts);
-	return true;
+	validateEnclosingContext(dir, (HTTP, SERVER, LOCATION));
 }
 
-bool	validateIndex(const Directive&)
+/*
+Syntax : index file ...;
+Default: index index.html;
+Context: http, server, location */
+void	validateIndex(const Directive& dir)
 {
-	return true;
+	validateEnclosingContext(dir, (HTTP, SERVER, LOCATION));
 }

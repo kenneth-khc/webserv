@@ -6,16 +6,14 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 03:00:41 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 16:44:14 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/23 22:40:20 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef VALIDATOR
-#define VALIDATOR
+#ifndef VALIDATOR_HPP
+#define VALIDATOR_HPP
 
-#include <exception>
 #include "Directive.hpp"
-#include "String.hpp"
 
 /* A Validator is a function object that validates directives.
  * The idea is that the rules and contraints of a directive gets stored here,
@@ -23,23 +21,27 @@
  * When a directive is parsed, we find it in our list of supported directives
  * and call its Validator to ensure the parameters are valid */
 
-struct	Validator
+class	Validator
 {
+public:
+	// Construct a Validator taking in a Directive->void function used to
+	// validate the Directive
+	Validator(void (*)(const Directive&));
 
-	Validator();
-	Validator(bool(*)(const Directive&));
+	// Call operator to invoke the underlying function
+	void	operator()(const Directive&) const;
 
-	bool	(*validate)(const Directive& parameter);
-	bool	operator()(Directive parameter) const;
+private:
+	void	(*function)(const Directive&);
 };
 
-bool	returnsTrue(const Directive&);
-bool	validatePrefix(const Directive&);
-bool	validateListen(const Directive&);
-bool	validateHTTP(const Directive& );
-bool	validateServer(const Directive&);
-bool	validateLocation(const Directive&);
-bool	validateRoot(const Directive&);
-bool	validateIndex(const Directive&);
+void	no_op(const Directive&);
+void	validatePrefix(const Directive&);
+void	validateListen(const Directive&);
+void	validateHTTP(const Directive& );
+void	validateServer(const Directive&);
+void	validateLocation(const Directive&);
+void	validateRoot(const Directive&);
+void	validateIndex(const Directive&);
 
 #endif

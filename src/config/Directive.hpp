@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:32:50 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/21 18:47:39 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/23 22:33:22 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,18 +15,7 @@
 
 #include <vector>
 #include "String.hpp"
-
-enum Context
-{
-	NONE,
-	GLOBAL,
-	HTTP,
-	SERVER,
-	LOCATION
-};
-
-Context	contextify(const String&);
-String	stringifyContext(Context);
+#include "Context.hpp"
 
 struct	Directive
 {

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/20 00:09:22 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/24 03:25:55 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ public:
 	static const String pagesDir;
 	static const String uploadsDir;
 	static const String errorPagesDir;
+	static const String miscPagesDir;
 
 	bool			autoindex;
 
@@ -72,11 +73,8 @@ public:
 	void			get(Response&, const Request&);
 	void			post(Response&, const Request&);
 	void			delete_(Response&, const Request&) const;
-	void			put(Response&, const Request&) const;
-	void			head(Response&, const Request&) const;
 
 	void			generateDirectoryListing(Response&, const std::string&) const;
-	void			sendResponse(int socketFD, Response&) const;
 
 private:
 	int				epollFD; // fd of the epoll instance

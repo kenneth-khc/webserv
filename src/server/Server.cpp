@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 08:16:42 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/23 02:53:01 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,10 @@
 
 const unsigned int	Server::timeoutValue = 5;
 const String		Server::rootDir = "root";
-const String		Server::pagesDir = "root/pages";
+const String		Server::pagesDir = "pages";
 const String		Server::uploadsDir = "uploads";
 const String		Server::errorPagesDir = "error_pages";
+const String		Server::miscPagesDir = "misc_pages";
 
 /* TODO: Configure the server based on the config file */
 Server::Server():

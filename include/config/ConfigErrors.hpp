@@ -20,7 +20,11 @@
 
 #include <exception>
 #include "String.hpp"
+#include "Context.hpp"
 #include "Token.hpp"
+#include "Directive.hpp"
+
+const int E_CONFIG = 1;
 
 class	ConfigError : public std::exception
 {
@@ -65,8 +69,15 @@ public:
 class	InvalidContext : public ConfigError
 {
 public:
-	InvalidContext(const String& directive, const String& context);
+	InvalidContext(const String& directive, Context context);
 	~InvalidContext() throw();
+};
+
+class	DuplicateDirective : public ConfigError
+{
+public:
+	DuplicateDirective(const Directive& directive);
+	~DuplicateDirective() throw();
 };
 
 #endif

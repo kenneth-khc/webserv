@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:55:07 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 18:09:43 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/01 19:24:33 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ Configurator::Configurator()
 	support("location", validateLocation);
 	support("root", validateRoot);
 	support("index", validateIndex);
+	support("types", validateTypes);
 }
 
 void	Configurator::support(const String& name, const Validator& validator)
@@ -37,16 +38,16 @@ void	Configurator::support(const String& name, const Validator& validator)
 	supportedDirectives.insert(directiveValidator);
 }
 
-void	Configurator::validate(const Directive& directive)
+void	Configurator::validate(const Directive& directive,
+							   const std::multimap<String,Directive>& mappings)
 {
 	const Validator&	validator = operator[](directive.name);
-	validator(directive);
+	validator(directive, mappings);
 }
 
 const Validator&	Configurator::operator[](const String& key) const
 {
-	try
-	{
+	try {
 		const Validator&	validator = supportedDirectives.at(key);
 		return validator;
 	}
@@ -54,5 +55,16 @@ const Validator&	Configurator::operator[](const String& key) const
 	{
 		throw InvalidDirective(key);
 	}
+}
+
+void	Configurator::add(const Directive& directive)
+{
+	(void)directive;
+	/*config.add(directive);*/
+}
+
+void	Configurator::add(const Directive& directive, Configuration& config) const
+{
+	config.add(directive);
 }
 

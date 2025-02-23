@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 23:14:13 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/02 03:24:28 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,9 @@ int	main(int argc, char** argv)
 
 	Parser			parser(argv[1]);
 	Configuration	config = parser.parseConfig();
+	config.display();
+	/*config.printMatchingElements("prefix");*/
+	std::cout << "--------------------------------\n";
 
 	Server	server;
 	server.startListening();

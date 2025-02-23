@@ -6,11 +6,12 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/16 15:57:59 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/21 18:43:51 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/01 19:24:22 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
+#include "Context.hpp"
 #include "ConfigErrors.hpp"
 #include "Token.hpp"
 
@@ -33,7 +34,7 @@ UnexpectedToken::UnexpectedToken(Token::TokenType got)
 {
 	std::stringstream	ss;
 
-	ss << "Unexpeced token " << Token::stringified[got];
+	ss << "Unexpected token " << Token::stringified[got];
 	msg = ss.str();
 }
 
@@ -95,12 +96,38 @@ InvalidParameter::~InvalidParameter() throw() { }
  * Invalid Context *
  ******************/
 
-InvalidContext::InvalidContext(const String& directive, const String& context)
+InvalidContext::InvalidContext(const String& directive, Context context)
 {
 	std::stringstream	ss;
 
-	ss << directive << " is in an invalid context " << context;
+	ss << directive << " is in an invalid context " << stringifyContext(context);
 	msg = ss.str();
 }
 
 InvalidContext::~InvalidContext() throw() { }
+
+/***********************
+ * Duplicate Directive *
+ **********************/
+
+DuplicateDirective::DuplicateDirective(const Directive& directive)
+{
+	std::stringstream	ss;
+
+	ss << "Duplicate directive " << directive.name;
+	if (directive.hasParameters())
+	{
+		ss << " ( = ";
+		for (size_t i = 0; i < directive.parameters.size(); ++i)
+		{
+			ss << directive.parameters[i];
+			if (i != directive.parameters.size()-1)
+				ss << " ";
+		}
+		ss << ")";
+	}
+	ss << " found in " << stringifyContext(directive.enclosingContext);
+	msg = ss.str();
+}
+
+DuplicateDirective::~DuplicateDirective() throw() { }

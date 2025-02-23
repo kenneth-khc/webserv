@@ -13,6 +13,7 @@
 #ifndef VALIDATOR_HPP
 #define VALIDATOR_HPP
 
+#include <map>
 #include "Directive.hpp"
 
 /* A Validator is a function object that validates directives.
@@ -26,22 +27,27 @@ class	Validator
 public:
 	// Construct a Validator taking in a Directive->void function used to
 	// validate the Directive
-	Validator(void (*)(const Directive&));
+	Validator(void (*)(const Directive&, const std::multimap<String,Directive>&));
 
 	// Call operator to invoke the underlying function
-	void	operator()(const Directive&) const;
+	void	operator()(const Directive&, const std::multimap<String,Directive>&) const;
 
+	// TODO: testing this. validators require the surrounding mappings
+	//		 to know the frequency of the directive
 private:
-	void	(*function)(const Directive&);
+	void	(*function)(const Directive&, const std::multimap<String,Directive>&);
 };
 
+typedef std::multimap<String,Directive> Mappings;
+
 void	no_op(const Directive&);
-void	validatePrefix(const Directive&);
-void	validateListen(const Directive&);
-void	validateHTTP(const Directive& );
-void	validateServer(const Directive&);
-void	validateLocation(const Directive&);
-void	validateRoot(const Directive&);
-void	validateIndex(const Directive&);
+void	validatePrefix(const Directive&, const Mappings&);
+void	validateListen(const Directive&, const Mappings&);
+void	validateHTTP(const Directive&, const Mappings&);
+void	validateServer(const Directive&, const Mappings&);
+void	validateLocation(const Directive&, const Mappings&);
+void	validateRoot(const Directive&, const Mappings&);
+void	validateIndex(const Directive&, const Mappings&);
+void	validateTypes(const Directive&, const Mappings&);
 
 #endif

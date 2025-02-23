@@ -14,6 +14,7 @@
 #define DIRECTIVE_HPP
 
 #include <vector>
+#include <map>
 #include "String.hpp"
 #include "Context.hpp"
 
@@ -27,13 +28,19 @@ struct	Directive
 	// The context this directive is in
 	Context					enclosingContext;
 	// The directives within the directive
-	std::vector<Directive>	directives;
+	std::multimap<String,Directive>	directives;
 
 	Directive();
 	Directive(const String&, const std::vector<String>&, Context);
 	/*Directive(const String&, const std::vector<String>&, Context, Context);*/
 
 	void	addDirective(const Directive&);
+	void	printMatchingElements(const String& key);
+	bool	hasParameters() const;
 };
+
+typedef std::pair<std::multimap<String,Directive>::const_iterator,
+				  std::multimap<String,Directive>::const_iterator> DirectiveRange;
+
 
 #endif

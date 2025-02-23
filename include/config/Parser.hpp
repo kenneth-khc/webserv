@@ -30,6 +30,7 @@ struct	Parser
 	Lexer				lexer;
 	Token				token;
 	std::stack<Context>	contexts;
+	std::stack< std::multimap<String,Directive> >	mapStack;
 
 	Configuration		parseConfig();
 	Directive			parseDirective();

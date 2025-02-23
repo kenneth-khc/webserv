@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/21 18:45:24 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/01 18:38:30 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,16 +18,18 @@
 #include <vector>
 #include <algorithm>
 
-Validator::Validator(void (*function)(const Directive&)):
+Validator::Validator(void (*function)(const Directive&,
+									  const std::multimap<String,Directive>&)):
 function(function)
 { }
 
-void	Validator::operator()(const Directive& directive) const
+void	Validator::operator()(const Directive& directive,
+							  const std::multimap<String,Directive>& mappings) const
 {
-	return function(directive);
+	return function(directive, mappings);
 }
 
-void	no_op(const Directive&) { }
+void	no_op(const Directive&, const Mappings&) { }
 
 void	validateParameterSize(const Directive& dir, size_t expected)
 {
@@ -64,14 +66,34 @@ void	validateEnclosingContext(const Directive& dir,
 	}
 }
 
+// TODO: right now, directives either allow duplicates or they don't.
+//		 is there a situation where I need to allow a frequency of a certain
+//		 number rather than just 0 or 1?
+void	validateDuplicateDirective(const Directive& dir,
+								   const Mappings& mappings)
+{
+	DirectiveRange	range = mappings.equal_range(dir.name);
+	if (range.first == mappings.end())
+	{
+		return ;
+	}
+	size_t	count = std::distance(range.first, range.second);
+	if (count > 0)
+	{
+		throw DuplicateDirective(dir);
+	}
+}
+
 /*
 Syntax : prefix absolutePath;
 Default: —
-Context: global */
-void	validatePrefix(const Directive& dir)
+Context: global
+Count  : 1 */
+void	validatePrefix(const Directive& dir, const Mappings& mappings)
 {
 	validateParameterSize(dir, 1);
 	validateEnclosingContext(dir, GLOBAL);
+	validateDuplicateDirective(dir, mappings);
 
 	const String&	path = dir.parameters[0];
 	if (path[0] != '/')
@@ -80,7 +102,6 @@ void	validatePrefix(const Directive& dir)
 	}
 }
 
-
 // TODO: accept more options for listen. right now, the only parameter
 // accepted is a single port number
 
@@ -88,7 +109,7 @@ void	validatePrefix(const Directive& dir)
 Syntax : listen port;
 Default: —
 Context: server */
-void	validateListen(const Directive& dir)
+void	validateListen(const Directive& dir, const Mappings&)
 {
 	validateParameterSize(dir, 1);
 	const String&	str = dir.parameters[0];
@@ -103,14 +124,20 @@ void	validateListen(const Directive& dir)
 /*
 Syntax : http { ... }
 Default: —
-Context: main */
-void	validateHTTP(const Directive& dir)
+Context: main
+Count  : 1 */
+void	validateHTTP(const Directive& dir, const Mappings& mappings)
 {
 	validateParameterSize(dir, 0);
 	validateEnclosingContext(dir, GLOBAL);
+	validateDuplicateDirective(dir, mappings);
 }
 
-void	validateServer(const Directive& dir)
+/*
+Syntax : server { ... }
+Default: —
+Context: http */
+void	validateServer(const Directive& dir, const Mappings&)
 {
 	validateEnclosingContext(dir, HTTP);
 }
@@ -119,7 +146,7 @@ void	validateServer(const Directive& dir)
 Syntax : location uri { ... }
 Default: —
 Context: server, location */
-void	validateLocation(const Directive& dir)
+void	validateLocation(const Directive& dir, const Mappings&)
 {
 	// TODO: support exact matches?
 	validateParameterSize(dir, 1);
@@ -130,7 +157,7 @@ void	validateLocation(const Directive& dir)
 Syntax : root path;
 Default: root html;
 Context: http, server, location, if in location */
-void	validateRoot(const Directive& dir)
+void	validateRoot(const Directive& dir, const Mappings&)
 {
 	validateParameterSize(dir, 1);
 	validateEnclosingContext(dir, (HTTP, SERVER, LOCATION));
@@ -140,7 +167,16 @@ void	validateRoot(const Directive& dir)
 Syntax : index file ...;
 Default: index index.html;
 Context: http, server, location */
-void	validateIndex(const Directive& dir)
+void	validateIndex(const Directive& dir, const Mappings&)
 {
 	validateEnclosingContext(dir, (HTTP, SERVER, LOCATION));
+}
+
+/*
+Syntax : types file;
+Default: —
+Context: http */
+void	validateTypes(const Directive&, const Mappings&)
+{
+
 }

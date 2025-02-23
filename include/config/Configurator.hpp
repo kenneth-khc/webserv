@@ -14,20 +14,26 @@
 #define CONFIGURATOR_HPP
 
 #include <map>
+#include <stack>
 #include "String.hpp"
 #include "Validator.hpp"
+#include "Configuration.hpp"
 
 struct	Configurator
 {
 	Configurator();
 
 	void	support(const String&, const Validator&);
-	void	validate(const Directive&);
+	void	validate(const Directive&,
+					 const std::multimap<String,Directive>&);
 
 	/* Returns the Validator for the given Directive */
 	const Validator&	operator[](const String&) const;
 
 	std::map<String,Validator>	supportedDirectives;
+
+	void	add(const Directive&);
+	void	add(const Directive&, Configuration&) const;
 };
 
 #endif

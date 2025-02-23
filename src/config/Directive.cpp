@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:57:05 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/22 01:26:00 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/01 19:24:30 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,12 @@ enclosingContext(context)
 
 void	Directive::addDirective(const Directive& dir)
 {
-	directives.push_back(dir);
+	directives.insert(std::make_pair(dir.name, dir));
+}
+
+bool	Directive::hasParameters() const
+{
+	return !parameters.empty();
 }
 
 /*Directive::Directive(const String& dname,*/
@@ -59,6 +64,14 @@ Context	contextify(const String& str)
 	{
 		return LOCATION;
 	}
+	else if (str == "global")
+	{
+		return GLOBAL;
+	}
+	else if (str == "none")
+	{
+		return NONE;
+	}
 	else
 	{
 		throw InvalidDirective(str);
@@ -79,9 +92,43 @@ String	stringifyContext(Context ctx)
 	{
 		return "location";
 	}
+	else if (ctx == GLOBAL)
+	{
+		return "global";
+	}
+	else if (ctx == NONE)
+	{
+		return "none";
+	}
 	else
 	{
 		throw std::exception();
 	}
 	
+}
+
+void	Directive::printMatchingElements(const String& key)
+{
+	DirectiveRange	range = directives.equal_range(key);
+	size_t			elements = std::distance(range.first, range.second);
+	std::cout << name << " has " << elements
+			  << " elements matching the key " << key << '\n';
+	while (range.first != range.second)
+	{
+		const Directive&	dir = range.first->second;
+		std::cout << dir.name;
+		std::cout << " = ";
+		if (dir.parameters.empty())
+		{
+			std::cout << "\"\"";
+		}
+		else
+		{
+			for (size_t i = 0; i < dir.parameters.size(); ++i)
+			{
+				std::cout << dir.parameters[i];
+			}
+		}
+		std::cout << '\n';
+	}
 }

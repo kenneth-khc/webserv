@@ -10,7 +10,7 @@
 #                                                                              #
 # **************************************************************************** #
 
-.DEFAULT_GOAL := fsan
+.DEFAULT_GOAL := debug_server
 
 NAME := webserv
 

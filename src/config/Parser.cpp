@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:45:56 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 23:10:01 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/02 03:19:01 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,36 +37,27 @@ contexts()
 Configuration	Parser::parseConfig()
 {
 	Configuration	config;
+	Configurator	configurator;
 
 	contexts.push(GLOBAL);
+	// TODO: testing stack of multimaps
+	mapStack.push(std::multimap<String,Directive>());
 	try
 	{
 		token = lexer.advance();
 		while (token != Token::END_OF_FILE)
 		{
 			Directive	directive = parseDirective();
-			config.add(directive);
+			configurator.add(directive, config);
 		}
 	}
+	// TODO: better diagnostics
 	catch (const ConfigError& e)
 	{
 		std::cerr << e.what() << '\n';
+		std::exit(E_CONFIG);
 	}
 	return config;
-}
-
-std::vector<String>	Parser::parseParameters()
-{
-	std::vector<String>	parameters;
-
-	while (token.type == Token::PARAMETER)
-	{
-		const String&	param = token.lexeme;
-		parameters.push_back(param);
-		accept(Token::PARAMETER);
-	}
-	lexer.lookingFor = Token::NAME;
-	return parameters;
 }
 
 Directive	Parser::parseDirective()
@@ -91,8 +82,24 @@ Directive	Parser::parseDirective()
 	{
 		throw UnexpectedToken(token);
 	}
-	configurator.validate(directive);
+	configurator.validate(directive, mapStack.top());
+	std::pair<String,Directive>	mapping = std::make_pair(directive.name, directive);
+	mapStack.top().insert(mapping);
 	return directive;
+}
+
+std::vector<String>	Parser::parseParameters()
+{
+	std::vector<String>	parameters;
+
+	while (token.type == Token::PARAMETER)
+	{
+		const String&	param = token.lexeme;
+		parameters.push_back(param);
+		accept(Token::PARAMETER);
+	}
+	lexer.lookingFor = Token::NAME;
+	return parameters;
 }
 
 Directive	Parser::parseSimple(const String& name,
@@ -108,14 +115,15 @@ Directive	Parser::parseBlock(const String& name,
 	expect(Token::LCURLY);
 	Directive	block = Directive(name, params, contexts.top());
 	contexts.push(contextify(name));
+	mapStack.push(std::multimap<String,Directive>());
 	while (token != Token::RCURLY)
 	{
 		Directive directive = parseDirective();
-		configurator.validate(directive);
 		block.addDirective(directive);
 	}
 	expect(Token::RCURLY);
 	contexts.pop();
+	mapStack.pop();
 	return block;
 }
 

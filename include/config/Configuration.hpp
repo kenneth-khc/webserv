@@ -14,15 +14,19 @@
 #define CONFIGURATION_HPP
 
 #include <vector>
+#include <map>
 #include "Directive.hpp"
 
 struct	Configuration
 {
 	Configuration();
 
-	std::vector<Directive>	directives;
+	std::multimap<String,Directive>	directives;
 
-	void	add(const Directive&);
+	void		add(const Directive&);
+	Directive	find(const String&);
+	void		display() const;
+	void		printMatchingElements(const String& key);
 };
 
 #endif

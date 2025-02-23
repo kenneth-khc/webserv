@@ -35,16 +35,19 @@ body {
 /* Main title, form, and language */
 #title-container,
 #form-container,
+#uploads-container,
 #language-container {
 	width: 100%;
 }
 
-#form-container {
+#form-container,
+#uploads-container {
 	text-decoration: none;
 	color: black;
 }
 
-#form-container:hover {
+#form-container:hover,
+#uploads-container:hover {
 	background-color: #ffe6ee;
 }
 
@@ -76,4 +79,8 @@ h1, h3, form {
 	justify-content: center;
 	align-items: center;
 	flex: 1;
+}
+
+img {
+	min-height: 0;
 }

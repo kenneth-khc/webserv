@@ -6,12 +6,13 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/20 00:01:13 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/27 02:05:21 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <fstream>
 #include <sstream>
+#include "ErrorCode.hpp"
 #include "Response.hpp"
 
 Response::Response(void) :
@@ -19,7 +20,6 @@ Response::Response(void) :
 	flags(0)
 {
 	this->httpVersion = 1.1;
-	this->insert("Server", SERVER_NAME);
 }
 
 Response::~Response(void) {}
@@ -41,6 +41,41 @@ Response&	Response::operator=(const Response& other)
 	this->flags = other.flags;
 	return *this;
 }
+
+Response&	Response::operator=(const ErrorCode& obj)
+{
+	if (this == &obj)
+		return (*this);
+
+	std::multimap<String, String>::const_iterator	it = this->headers.find("Server");
+	String											serverName = it != this->headers.end() ? it->second : "server";
+
+	Message::operator=(obj);
+	this->statusCode = obj.statusCode;
+	this->reasonPhrase = obj.reasonPhrase;
+	this->flags = obj.flags;
+
+	std::stringstream	stream;
+	stream << "<html>\n"
+		   << 	"<head>"
+		   << 		"<title>\n"
+		   << 			this->statusCode << " " + this->reasonPhrase + "\n"
+		   << 		"</title>\n"
+		   << 	"</head>\n"
+		   << 	"<body style=\"background-color:#f4dde7;font-family:'Comic Sans MS';\">\n"
+		   << 		"<center><h1>\n"
+		   << 			this->statusCode << " " + this->reasonPhrase + "\n"
+		   << 		"</h1></center>\n"
+		   << 		"<hr><center>\n"
+		   << 			serverName + "\n"
+		   << 		"</center>\n"
+		   << 	"</body>\n"
+		   << "</html>";
+	this->messageBody = stream.str();
+	this->insert("Content-Length", stream.str().length());
+	return *this;
+}
+
 
 //	Turns the information stored in the Response instance into a complete
 //	HTTP response message
@@ -75,9 +110,6 @@ void	Response::setStatusCode(int statusCode) {
 	switch (statusCode) {
 		case 200:
 			this->reasonPhrase = "OK";
-			break ;
-		case 201:
-			this->reasonPhrase = "Created";
 			break ;
 		case 301:
 			this->reasonPhrase = "Moved Permanently";

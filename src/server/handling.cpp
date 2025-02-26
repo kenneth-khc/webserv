@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/24 03:05:24 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/27 01:48:38 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,9 +86,12 @@ void	Server::processMessages()
 			}
 		}
 	}
-	catch (const Response &e)
+	catch (const ErrorCode &e)
 	{
-		readyResponses.push(e);
+		Response	response;
+		response.insert("Server", name);
+		response = e;
+		readyResponses.push(response);
 	}
 }
 
@@ -102,6 +105,37 @@ void	Server::processReadyRequests()
 		readyResponses.push(response);
 		readyRequests.pop();
 	}
+}
+
+Response	Server::handleRequest(Request& request)
+{
+	Response	response;
+
+	response.insert("Server", name);
+	request.parseCookieHeader();
+	processCookies(request, response);
+	try
+	{
+		if (request.method == Request::GET || request.method == Request::HEAD)
+		{
+			get(response, request);
+		}
+		else if (request.method == Request::POST)
+		{
+			post(response, request);
+		}
+		else if (request.method == Request::DELETE)
+		{
+			delete_(response, request);
+		}
+	}
+	catch (const ErrorCode& e)
+	{
+		response = e;
+	}
+	constructConnectionHeader(request, response);
+	response.insert("Date", Time::printHTTPDate());
+	return response;
 }
 
 void	Server::generateResponses()
@@ -144,34 +178,4 @@ void	Server::processCookies(Request& request, Response& response)
 		cookies.insert(std::make_pair("lang", Cookie("lang", "en")));
 		response.insert("Set-Cookie", "lang=en");
 	}
-}
-
-Response	Server::handleRequest(Request& request)
-{
-	Response	response;
-
-	request.parseCookieHeader();
-	processCookies(request, response);
-	try
-	{
-		if (request.method == Request::GET || request.method == Request::HEAD)
-		{
-			get(response, request);
-		}
-		else if (request.method == Request::POST)
-		{
-			post(response, request);
-		}
-		else if (request.method == Request::DELETE)
-		{
-			delete_(response, request);
-		}
-	}
-	catch (const ErrorCode& e)
-	{
-		response = e;
-	}
-	constructConnectionHeader(request, response);
-	response.insert("Date", Time::printHTTPDate());
-	return response;
 }

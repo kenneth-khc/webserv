@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/19 23:15:28 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/26 23:40:06 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,15 +83,10 @@ void	Request::parseRequestLine(String &line) {
 	String						str;
 	Optional<String::size_type>	terminatorPos = line.find("\r\n");
 
-	try {
-		if (terminatorPos.exists == false)
-			throw BadRequest400();
-		str = line.substr(0, terminatorPos.value);
-		extractRequestLineComponents(str, *this);
-	}
-	catch (const ErrorCode &error) {
-		throw Response(error);
-	}
+	if (terminatorPos.exists == false)
+		throw BadRequest400();
+	str = line.substr(0, terminatorPos.value);
+	extractRequestLineComponents(str, *this);
 	line = line.substr(terminatorPos.value + 2);
 }
 
@@ -102,18 +97,13 @@ void	Request::parseHeaders(String &line) {
 	Optional<String::size_type>	headerSectionTerminator = line.find("\r\n\r\n");
 
 	if (headerSectionTerminator.exists == false)
-		throw (Response(BadRequest400()));
+		throw BadRequest400();
 
 	while (true) {
 		headerLineTerminator = line.find("\r\n", headerLineStart.value);
 		str = line.substr(headerLineStart.value, headerLineTerminator.value - headerLineStart.value);
 
-		try {
-			extractFieldLineComponents(str, *this);
-		}
-		catch (const ErrorCode &error) {
-			throw Response(error);
-		}
+		extractFieldLineComponents(str, *this);
 
 		headerLineStart.value = headerLineTerminator.value + 2;
 		if (headerLineStart.value >= headerSectionTerminator.value)

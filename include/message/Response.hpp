@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/23 22:24:31 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/26 23:56:49 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 # include "String.hpp"
 # include "Message.hpp"
 
-# define SERVER_NAME "42webserv"
+class ErrorCode;
 
 class Response : public Message {
 	public:
@@ -29,6 +29,7 @@ class Response : public Message {
 		~Response(void);
 		Response(const Response &obj);
 		Response	&operator=(const Response &obj);
+		Response	&operator=(const ErrorCode &obj);
 
 		const String	toString(void) const;
 		void			setStatusCode(int statusCode);

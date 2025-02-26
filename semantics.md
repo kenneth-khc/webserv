@@ -95,7 +95,10 @@
 |-|-|-|:-:|
 |Content-Language|[ language-tag *( OWS "," OWS language-tag ) ]|||
 |Content-Length|1*DIGIT|||
-|Content-Type|media-type|||
+|Content-Type|media-type||✅|
+|media-type|type "/" subtype||❕|
+|type|token||❕|
+|subtype|token||❕|
 
 ### Date
 |Rule|Value|Description|Check|

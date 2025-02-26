@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 19:05:34 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 01:58:24 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/26 19:27:14 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,10 +31,11 @@ class MediaType {
 		MediaType(const MediaType &obj);
 		MediaType	&operator=(const MediaType &obj);
 
-		class MIMETypesFileNotFound : public std::exception {
+		class MIMETypesFileError : public std::exception {
+				String	message;
 			public:
-				MIMETypesFileNotFound(void);
-				~MIMETypesFileNotFound(void) throw();
+				MIMETypesFileError(const String &message);
+				~MIMETypesFileError(void) throw();
 				const char	*what(void) const throw();
 		};
 

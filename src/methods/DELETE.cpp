@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:14:43 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/24 03:34:26 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/26 21:23:25 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,14 @@
 // TODO: consider other status codes. 200 OK? 202 Accepted? 403 Forbidden?
 void	Server::delete_(Response& response, const Request& request) const
 {
-	DIR*	dir = opendir(Server::uploadsDir.c_str());
+	DIR*	dir = opendir(uploadsDir.c_str());
 
 	if (!dir)
 	{
 		throw NotFound404();
 	}
 
-	Optional<String::size_type>	uploads = request.requestTarget.find("/" + Server::uploadsDir);
+	Optional<String::size_type>	uploads = request.requestTarget.find("/" + uploadsDir);
 
 	if (uploads.exists == false || uploads.value != 0)
 	{
@@ -47,7 +47,7 @@ void	Server::delete_(Response& response, const Request& request) const
 
 		if (d_name.find(sid).exists == true && d_name.find(fileName).exists == true)
 		{
-			std::remove((Server::uploadsDir + "/" + d_name).c_str());
+			std::remove((uploadsDir + "/" + d_name).c_str());
 			break ;
 		}
 		entry = readdir(dir);
@@ -57,7 +57,7 @@ void	Server::delete_(Response& response, const Request& request) const
 		throw NotFound404();
 	}
 
-	std::ifstream	ifs((Server::miscPagesDir + "/delete_success.html").c_str());
+	std::ifstream	ifs((miscPagesDir + "/delete_success.html").c_str());
 
 	response.setStatusCode(Response::OK);
 	String::getline(ifs, response.messageBody, '\0');

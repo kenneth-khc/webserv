@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 02:53:01 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/26 22:59:27 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,16 +25,10 @@
 #include "Server.hpp"
 
 const unsigned int	Server::timeoutValue = 5;
-const String		Server::rootDir = "root";
-const String		Server::pagesDir = "pages";
-const String		Server::uploadsDir = "uploads";
-const String		Server::errorPagesDir = "error_pages";
-const String		Server::miscPagesDir = "misc_pages";
 
 /* TODO: Configure the server based on the config file */
 Server::Server():
-MIMEMappings("mime.types"),
-autoindex(true),
+name("42webserv"),
 epollFD(-1),
 hostName("localhost"),
 portNum(8000),
@@ -42,7 +36,14 @@ listenerSocketFD(-1),
 numClients(0),
 maxEvents(1),
 readyEvents(NULL),
-numReadyEvents(0)
+numReadyEvents(0),
+MIMEMappings("mime.types"),
+rootDir("root"),
+pagesDir("pages"),
+uploadsDir("uploads"),
+errorPagesDir("error_pages"),
+miscPagesDir("misc_pages"),
+autoindex(true)
 {
 	readyEvents = new epoll_event[maxEvents];
 }

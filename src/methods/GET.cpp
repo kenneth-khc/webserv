@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 22:30:51 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/27 00:32:31 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,16 +29,16 @@
 
 #define FILE_NAME_LEN 45
 
-static void		generateUploadsListing(Response& response, const Request& request);
-static String	getUploadsReference(const Request &request);
+static void		generateUploadsListing(const String& uploadsDir, Response& response, const Request& request);
+static String	getUploadsReference(const String& uploadsDir, const Request &request);
 
 void	Server::get(Response& response, const Request& request)
 {
-	if (request.requestTarget == ("/" + Server::uploadsDir))
+	if (request.requestTarget == ("/" + uploadsDir))
 	{
 		if (request.method == Request::GET)
 		{
-			generateUploadsListing(response, request);
+			generateUploadsListing(uploadsDir, response, request);
 		}
 		response.setStatusCode(Response::OK);
 		response.insert("Content-Length", response.messageBody.length());
@@ -46,18 +46,18 @@ void	Server::get(Response& response, const Request& request)
 		return ;
 	}
 
-	Optional<String::size_type>	uploads = request.requestTarget.find("/" + Server::uploadsDir);
+	Optional<String::size_type>	uploads = request.requestTarget.find("/" + uploadsDir);
 	const String&				lang = request.cookies.find("lang")->second.value;
 	String						file;
 	struct 	stat				statbuf;
 
 	if (uploads.exists == true && uploads.value == 0)
 	{
-		file = getUploadsReference(request);
+		file = getUploadsReference(uploadsDir, request);
 	}
 	else
 	{
-		file = Server::rootDir + "/" + Server::pagesDir + "/" + lang;
+		file = rootDir + "/" + pagesDir + "/" + lang;
 		if (request.requestTarget == "/")
 		{
 			//TODO: try all index pages
@@ -70,7 +70,7 @@ void	Server::get(Response& response, const Request& request)
 	}
 
 	if (access(file.c_str(), R_OK) != 0)
-		file = Server::rootDir + request.requestTarget;
+		file = rootDir + request.requestTarget;
 	if (stat(file.c_str(), &statbuf) == 0 && access(file.c_str(), R_OK) == 0)
 	{
 		if (autoindex == true && S_ISDIR(statbuf.st_mode))
@@ -106,9 +106,12 @@ void	Server::get(Response& response, const Request& request)
 	}
 }
 
-static void	generateUploadsListing(Response& response, const Request& request)
+static void	generateUploadsListing(
+	const String& uploadsDir,
+	Response& response,
+	const Request& request)
 {
-	DIR*	dir = opendir(Server::uploadsDir.c_str());
+	DIR*	dir = opendir(uploadsDir.c_str());
 
 	if (!dir)
 		throw NotFound404();
@@ -149,13 +152,13 @@ static void	generateUploadsListing(Response& response, const Request& request)
 		}
 		stream.str("");
 		stream << "<a href=\""
-			   << "/" + Server::uploadsDir + "/" + trim
+			   << "/" + uploadsDir + "/" + trim
 			   << "\">"
 			   << std::left
 			   << std::setw(FILE_NAME_LEN + 5)
 			   << truncate + "</a> "
 			   << "<button type=\"button\" onclick=\"del("
-			   << "'/" + Server::uploadsDir + "/" + trim + "'"
+			   << "'/" + uploadsDir + "/" + trim + "'"
 			   << ")\">X</button>\n";
 		uploadsList.push_back(stream.str());
 	}
@@ -177,9 +180,11 @@ static void	generateUploadsListing(Response& response, const Request& request)
 	response.messageBody += stream.str();
 }
 
-static String	getUploadsReference(const Request &request)
+static String	getUploadsReference(
+	const String& uploadsDir,
+	const Request &request)
 {
-	DIR*	dir = opendir(Server::uploadsDir.c_str());
+	DIR*	dir = opendir(uploadsDir.c_str());
 
 	if (!dir)
 	{
@@ -196,7 +201,7 @@ static String	getUploadsReference(const Request &request)
 
 		if (d_name.find(sid).exists == true && d_name.find(fileName).exists == true)
 		{
-			return (Server::uploadsDir + "/" + d_name);
+			return (uploadsDir + "/" + d_name);
 		}
 	}
 	throw NotFound404();

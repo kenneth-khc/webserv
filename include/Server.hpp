@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/24 03:25:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/26 22:58:50 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,19 +34,6 @@ public:
 	~Server();
 
 	/* Server configuration, initialization, event loop */
-	// Only include a server-wide mapping for now..,
-	// Nginx allows defining in different http, server, and location blocks
-	MediaType		MIMEMappings;
-
-	// Resources Directories
-	static const String	rootDir;
-	static const String pagesDir;
-	static const String uploadsDir;
-	static const String errorPagesDir;
-	static const String miscPagesDir;
-
-	bool			autoindex;
-
 	void			startListening();
 	void			initEpoll();
 	int				epollWait();
@@ -58,7 +45,8 @@ public:
 	void			processReadyRequests();
 	void			generateResponses();
 
-	// TODO: Change access specifier?
+	const String	name;
+
 	// Server-wide connection timeout value in seconds
 	static const unsigned int	timeoutValue;
 	void			monitorConnections();
@@ -66,10 +54,9 @@ public:
 	/* HTTP requests */
 	Request			receiveRequest(int fd) const;
 	Response		handleRequest(Request&);
-
-	/* Handling HTTP methods */
 	void			processCookies(Request&, Response&);
 
+	/* Handling HTTP methods */
 	void			get(Response&, const Request&);
 	void			post(Response&, const Request&);
 	void			delete_(Response&, const Request&) const;
@@ -87,6 +74,19 @@ private:
 	int				maxEvents; // how many events to handle each poll
 	epoll_event*	readyEvents; // the array of ready events
 	int				numReadyEvents; // how many events are ready after a poll
+
+	// Only include a server-wide configurations for now..,
+	// Nginx allows defining in different http, server, and location blocks
+	MediaType		MIMEMappings;
+
+	// Resources Directories
+	const String 	rootDir;
+	const String 	pagesDir;
+	const String 	uploadsDir;
+	const String 	errorPagesDir;
+	const String 	miscPagesDir;
+
+	bool			autoindex;
 
 	std::map<std::string,std::string>	directoryMappings;
 

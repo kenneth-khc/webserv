@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/24 04:58:19 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/26 22:25:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,10 +26,10 @@ using std::ofstream;
 using std::ifstream;
 using std::stringstream;
 
-static String	checkFileName(const String& fileName, const String& sid);
-static void		uploadFiles(const POSTBody& body, const String& sid);
-static String	checkFormName(const String& sid);
-static void		uploadForm(const POSTBody& body, const String& sid);
+static String	constructFileName(const String& uploadsDir, const String& sid, const String& fileName);
+static void		uploadFiles(const POSTBody& body, const String& uploadsDir, const String& sid);
+static String	constructFormName(const String& uploadsDir, const String& sid);
+static void		uploadForm(const POSTBody& body, const String& uploadsDir, const String& sid);
 
 void	Server::post(Response& response, const Request& request)
 {
@@ -53,11 +53,11 @@ void	Server::post(Response& response, const Request& request)
 
 		if (msgBody.contentType == "application/x-www-form-urlencoded")
 		{
-			uploadForm(msgBody, sid);
+			uploadForm(msgBody, uploadsDir, sid);
 		}
 		else if (msgBody.contentType == "multipart/form-data")
 		{
-			uploadFiles(msgBody, sid);
+			uploadFiles(msgBody, uploadsDir, sid);
 		}
 		else
 		{
@@ -75,7 +75,7 @@ void	Server::post(Response& response, const Request& request)
 	// TODO: regenerate the page/link to created resource after POSTing
 }
 
-static String	checkFileName(const String& fileName, const String& sid)
+static String	constructFileName(const String& uploadsDir, const String& sid, const String& fileName)
 {
 	Optional<String::size_type>	pos = fileName.find_last_of('.');
 	String						name = fileName;
@@ -87,7 +87,7 @@ static String	checkFileName(const String& fileName, const String& sid)
 	if (pos.exists == true)
 	{
 		extension = "." + fileName.substr(pos.value + 1);
-		name = Server::uploadsDir + "/" + sid + "_" + fileName.substr(0, pos.value);
+		name = uploadsDir + "/" + sid + "_" + fileName.substr(0, pos.value);
 	}
 	while (i < String::npos)
 	{
@@ -110,10 +110,10 @@ static String	checkFileName(const String& fileName, const String& sid)
 	return (str);
 }
 
-static void	uploadFiles(const POSTBody& body, const String& sid)
+static void	uploadFiles(const POSTBody& body, const String& uploadsDir, const String& sid)
 {
-	String			uploadDest;
-	ofstream		outfile;
+	String		uploadDest;
+	ofstream	outfile;
 
 
 	for (vector<POSTBodyPart>::const_iterator it = body.parts.begin();
@@ -122,7 +122,7 @@ static void	uploadFiles(const POSTBody& body, const String& sid)
 		map<String,String>::const_iterator fname = it->contentDisposition.find("filename");
 		if (fname != it->contentDisposition.end())
 		{
-			uploadDest = checkFileName(fname->second, sid);
+			uploadDest = constructFileName(uploadsDir, sid, fname->second);
 			outfile.open(uploadDest.c_str());
 			if (outfile)
 			{
@@ -137,9 +137,9 @@ static void	uploadFiles(const POSTBody& body, const String& sid)
 	}
 }
 
-static String	checkFormName(const String& sid)
+static String	constructFormName(const String& uploadsDir, const String& sid)
 {
-	String			name = Server::uploadsDir + "/" + sid + "_form";
+	String			name = uploadsDir + "/" + sid + "_form";
 	size_t			i = 0;
 	stringstream	stream;
 	String			str;
@@ -165,9 +165,9 @@ static String	checkFormName(const String& sid)
 	return (str);
 }
 
-static void	uploadForm(const POSTBody& body, const String& sid)
+static void	uploadForm(const POSTBody& body, const String& uploadsDir, const String& sid)
 {
-	String			uploadDest = checkFormName(sid);
+	String			uploadDest = constructFormName(uploadsDir, sid);
 	stringstream	stream;
 	String			str;
 	ofstream		outfile;

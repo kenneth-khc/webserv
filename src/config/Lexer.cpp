@@ -40,7 +40,7 @@ Token&	Lexer::advance()
 
 void	Lexer::tryParameter()
 {
-	while (!isWSP(*input) && *input != ';')
+	while (!isWSP(*input) && *input != ';' && *input != '{' && *input != '}')
 	{
 		lexemeBuffer += input.consume().value;
 	}

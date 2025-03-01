@@ -37,7 +37,6 @@ contexts()
 Configuration	Parser::parseConfig()
 {
 	Configuration	config;
-	Configurator	configurator;
 
 	contexts.push(GLOBAL);
 	// TODO: testing stack of multimaps

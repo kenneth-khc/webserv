@@ -131,3 +131,17 @@ DuplicateDirective::DuplicateDirective(const Directive& directive)
 }
 
 DuplicateDirective::~DuplicateDirective() throw() { }
+
+/*********************
+ * Missing Directive *
+ ********************/
+
+MissingDirective::MissingDirective(const String& key)
+{
+	std::stringstream	ss;
+
+	ss << "Missing directive " << key;
+	msg = ss.str();
+}
+
+MissingDirective::~MissingDirective() throw() { }

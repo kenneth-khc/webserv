@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/16 05:10:59 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/21 18:45:16 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/04 20:36:36 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,13 @@ class	DuplicateDirective : public ConfigError
 public:
 	DuplicateDirective(const Directive& directive);
 	~DuplicateDirective() throw();
+};
+
+class	MissingDirective : public ConfigError
+{
+public:
+	MissingDirective(const String&);
+	~MissingDirective() throw();
 };
 
 #endif

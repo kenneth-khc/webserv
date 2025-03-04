@@ -22,7 +22,9 @@
 #include "contentType.hpp"
 #include "etag.hpp"
 
-void	Server::get(Response& response, const Request& request) const
+#include "Servers.hpp"
+
+void	Servers::get(Response& response, const Request& request) const
 {
 	std::string	file = request.requestTarget;
 	struct stat	statbuf;

@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 22:10:19 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 18:31:57 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/04 22:40:23 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <map>
+#include "Optional.hpp"
 #include "Directive.hpp"
 
 struct	Configuration
@@ -23,10 +24,11 @@ struct	Configuration
 
 	std::multimap<String,Directive>	directives;
 
-	void		add(const Directive&);
-	Directive	find(const String&);
-	void		display() const;
-	void		printMatchingElements(const String& key);
+	void				add(const Directive&);
+	Optional<Directive>	find(const String&) const;
+	void				display() const;
+	void				printMatchingElements(const String& key);
+	void				assertHasDirective(const String&) const;
 };
 
 #endif

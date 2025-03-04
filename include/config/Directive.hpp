@@ -34,9 +34,13 @@ struct	Directive
 	Directive(const String&, const std::vector<String>&, Context);
 	/*Directive(const String&, const std::vector<String>&, Context, Context);*/
 
-	void	addDirective(const Directive&);
-	void	printMatchingElements(const String& key);
-	bool	hasParameters() const;
+	void				addDirective(const Directive&);
+	void				printMatchingElements(const String& key);
+	bool				hasParameters() const;
+	Optional<Directive>	find(const String& key) const;
+	Optional<String>	get(const String& key) const;
+
+	void				printParameters() const;
 };
 
 typedef std::pair<std::multimap<String,Directive>::const_iterator,

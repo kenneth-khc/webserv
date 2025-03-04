@@ -26,6 +26,8 @@
 
 const unsigned int	Server::timeoutValue = 5;
 
+#if 0
+
 /* TODO: Configure the server based on the config file */
 Server::Server():
 map("mime.types"),
@@ -130,3 +132,9 @@ void	Server::monitorConnections()
 			it++;
 	}
 }
+
+#endif
+
+Srvr::Srvr() { }
+
+Srvr::Srvr(String, int) { }

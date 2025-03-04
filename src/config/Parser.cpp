@@ -49,6 +49,8 @@ Configuration	Parser::parseConfig()
 			Directive	directive = parseDirective();
 			configurator.add(directive, config);
 		}
+		config.assertHasDirective("prefix");
+		config.assertHasDirective("http");
 	}
 	// TODO: better diagnostics
 	catch (const ConfigError& e)

@@ -21,7 +21,9 @@ using std::ofstream;
 static void	uploadFiles(const MessageBody& body);
 static bool	uploadFile(const std::string& filename, const String& fileContent);
 
-void	Server::post(Response& response, const Request& request) const
+#include "Servers.hpp"
+
+void	Servers::post(Response& response, const Request& request) const
 {
 	MessageBody	msgBody(request);
 

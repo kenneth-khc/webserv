@@ -24,6 +24,7 @@ class	Server;
 class	Client
 {
 	friend class Server;
+	friend struct Servers;
 
 public:
 	Client();

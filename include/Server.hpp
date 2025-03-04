@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/11 03:32:52 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/05 13:26:44 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include "Logger.hpp"
 #include "Client.hpp"
 #include "MediaType.hpp"
+#include "Configuration.hpp"
 
 class	Logger;
 
@@ -31,6 +32,8 @@ class	Server
 public:
 	Server();
 	~Server();
+	/*Server(Server const&);*/
+	/*Server&	operator=(Server const&);*/
 
 	/* Server configuration, initialization, event loop */
 	void			startListening();
@@ -92,10 +95,19 @@ private:
 	// TODO:
 	std::queue<Request>		readyRequests;
 	std::queue<Response>	readyResponses;
+};
 
-	/* Disallow copying a server */
-	Server(Server const&);
-	Server&	operator=(Server const&);
+struct	Srvr
+{
+	Srvr();
+	Srvr(String, int);
+
+	String	name;
+	int		portNum;
+	int		socketFD;
+	int		numClients;
+
+	std::map<String,String>	routes;
 };
 
 #endif

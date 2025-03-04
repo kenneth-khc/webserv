@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/02 03:24:28 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/04 18:42:38 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include "Configuration.hpp"
 #include "Parser.hpp"
+#include "Servers.hpp"
 #include "Server.hpp"
 #include "ErrorCode.hpp"
 
@@ -44,27 +45,26 @@ int	main(int argc, char** argv)
 	/*config.printMatchingElements("prefix");*/
 	std::cout << "--------------------------------\n";
 
-	Server	server;
-	server.startListening();
-	server.initEpoll();
+	Servers	servers;
+	servers.configureFrom(config);
 
 	std::cout << "Server is running...\n";
 	while (1)
 	{
-		if (server.epollWait() != 0)
+		if (servers.epollWait() != 0)
 		{
-			server.processReadyEvents();
+			servers.processReadyEvents();
 			try
 			{
-				server.processMessages();
-				server.processReadyRequests();
-				server.generateResponses();
+				servers.processMessages();
+				servers.processReadyRequests();
+				servers.generateResponses();
 			}
 			catch (const ErrorCode& e)
 			{
 				std::cout << e.what() << '\n';
 			}
 		}
-		server.monitorConnections();
+		servers.monitorConnections();
 	}
 }

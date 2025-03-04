@@ -11,9 +11,10 @@
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "Servers.hpp"
 #include "debugUtils.hpp"
 
-void	Server::head(Response&, const Request&) const
+void	Servers::head(Response&, const Request&) const
 {
 	dbg::println("!!!!!!!!!!!!!!!! HEADING !!!!!!!!!!!!!!!!");
 }

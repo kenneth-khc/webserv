@@ -38,6 +38,48 @@ bool	Directive::hasParameters() const
 	return !parameters.empty();
 }
 
+void	Directive::printParameters() const
+{
+	for (size_t i = 0; i < parameters.size(); ++i)
+	{
+		std::cout << parameters[i];
+		if (i != parameters.size()-1)
+			std::cout << " ";
+	}
+}
+
+Optional<Directive>	Directive::find(const String& key) const
+{
+	std::multimap<String,Directive>::const_iterator it = directives.find(key);
+	if (it == directives.end())
+	{
+		return makeNone<Directive>();
+	}
+	else
+	{
+		return makeOptional(it->second);
+	}
+}
+
+Optional<String>	Directive::get(const String& key) const
+{
+	std::multimap<String,Directive>::const_iterator it = directives.find(key);
+	if (it == directives.end())
+	{
+		return makeNone<String>();
+	}
+	else
+	{
+		const Directive&	dir = it->second;
+		String				params;
+		for (size_t i = 0; i < dir.parameters.size(); ++i)
+		{
+			params += dir.parameters[i];
+		}
+		return makeOptional(params);
+	}
+}
+
 /*Directive::Directive(const String& dname,*/
 /*					 const std::vector<String>& parameters,*/
 /*					 Context context,*/

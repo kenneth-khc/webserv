@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/10 01:13:01 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/04 23:51:36 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <string>
 #include <exception>
 #include <vector>
+#include <sstream>
 #include "Optional.hpp"
 
 /* Custom String object that wraps around std::string to provide us with 
@@ -116,6 +117,14 @@ public:
 	String				trim(const String& set) const;
 
 	int					toInt() const;
+
+	template <typename Type>
+	static String	from(const Type& t)
+	{
+		std::stringstream	ss;
+		ss << t;
+		return String(ss.str());
+	}
 
 private:
 	string					str; // the underlying std::string

@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 22:23:35 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/28 21:42:49 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/04 20:49:00 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <algorithm>
 #include "Configuration.hpp"
 #include "Directive.hpp"
+#include "ConfigErrors.hpp"
 
 Configuration::Configuration() { }
 
@@ -63,6 +64,27 @@ void	print(const Directive& dir, int indent = 0, int charStart = 0, bool lastRow
 			print(it->second, indent + 1, charStart + indent + 2, false);
 		else
 			print(it->second, indent + 1, charStart + indent + 2, true);
+	}
+}
+
+Optional<Directive>	Configuration::find(const String& key) const
+{
+	std::multimap<String,Directive>::const_iterator	it = directives.find(key);
+	if (it == directives.end())
+	{
+		return makeNone<Directive>();
+	}
+	else
+	{
+		return makeOptional(it->second);
+	}
+}
+
+void	Configuration::assertHasDirective(const String& key) const
+{
+	if (!find(key).exists)
+	{
+		throw MissingDirective(key);
 	}
 }
 

@@ -28,8 +28,6 @@
 //	construct the 'Content-Type' header.
 class MediaType {
 		MediaType(void);
-		MediaType(const MediaType &obj);
-		MediaType	&operator=(const MediaType &obj);
 
 		class MIMETypesNotFound : public std::exception {
 			public:
@@ -42,6 +40,8 @@ class MediaType {
 		std::map<std::string, std::string>	map;
 
 		MediaType(const std::string &file);
+		MediaType(const MediaType &obj);
+		MediaType	&operator=(const MediaType &obj);
 		~MediaType(void);
 
 		Optional<std::string>		operator[](const std::string &key);

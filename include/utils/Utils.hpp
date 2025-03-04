@@ -1,20 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   PUT.cpp                                            :+:      :+:    :+:   */
+/*   Utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/28 09:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/28 09:18:15 by kecheong         ###   ########.fr       */
+/*   Created: 2025/03/05 13:04:10 by kecheong          #+#    #+#             */
+/*   Updated: 2025/03/05 13:22:47 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server.hpp"
-#include "debugUtils.hpp"
-#include "Servers.hpp"
+#ifndef UTILS_HPP
+#define UTILS_HPP
 
-void	Servers::put(Response&, const Request&) const
+#include "String.hpp"
+#include <sstream>
+
+template <typename ToType>
+ToType	to(const String& str)
 {
-	dbg::println("!!!!!!!!!!!!!!!! PUTTING !!!!!!!!!!!!!!!!");
+	std::istringstream	ss(str);
+	ToType				converted;
+	ss >> converted;
+	return converted;
 }
+
+#endif

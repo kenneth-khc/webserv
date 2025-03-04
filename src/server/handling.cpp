@@ -9,6 +9,7 @@
 /*   Updated: 2025/02/11 05:29:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+#if 0
 
 #include <unistd.h>
 #include "Server.hpp"
@@ -159,3 +160,4 @@ Response	Server::handleRequest(const Request& request) const
 	response.insert("Date", Time::printHTTPDate());
 	return response;
 }
+#endif

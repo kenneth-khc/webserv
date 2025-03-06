@@ -47,7 +47,9 @@ void	Logger::logRequest(const Server& server, Request& request) const
 		std::cout << ipv6 << ":" << portNum;
 	}
 	std::cout << " => ";
-	std::cout << server.hostName << ":"
+	std::cout 
+			  //<< server.hostName 
+			  << ":"
 			  << server.portNum  << CRESET
 			  << " | ";
 	std::cout << GREEN;
@@ -85,7 +87,8 @@ void	Logger::logResponse(const Server& server, Response& response) const
 		std::cout << ipv6 << ":" << portNum;
 	}
 	std::cout << " <= ";
-	std::cout << server.hostName << ":"
+	std::cout 
+			  //<< server.hostName << ":"
 			  << server.portNum  << CRESET
 			  << " | ";
 	std::cout << GREEN;

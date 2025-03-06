@@ -10,11 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include <algorithm>
 #include "Configuration.hpp"
-#include "Directive.hpp"
 #include "ConfigErrors.hpp"
+#include "Directive.hpp"
+#include <iostream>
 
 Configuration::Configuration() { }
 

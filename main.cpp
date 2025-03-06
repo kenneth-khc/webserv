@@ -18,7 +18,6 @@
 #include "Configuration.hpp"
 #include "Parser.hpp"
 #include "Servers.hpp"
-#include "Server.hpp"
 #include "ErrorCode.hpp"
 
 void	sigint_exit(int)

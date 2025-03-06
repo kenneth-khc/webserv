@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/11 02:54:58 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/06 23:10:08 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,11 +19,9 @@
 #include <ctime>
 #include "Request.hpp"
 
-class	Server;
-
 class	Client
 {
-	friend class Server;
+	friend struct Server;
 	friend struct Servers;
 
 public:

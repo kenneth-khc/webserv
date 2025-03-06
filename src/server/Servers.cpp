@@ -25,8 +25,9 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <algorithm>
 #include <dirent.h>
+
+const unsigned int	Servers::timeoutValue = 5;
 
 Servers::Servers():
 epollFD(-1),
@@ -102,14 +103,15 @@ void	Servers::configureFrom(const Configuration& config)
 		event.data.fd = servers[i].socketFD;
 		int	retval = epoll_ctl(epollFD, EPOLL_CTL_ADD, event.data.fd, &event);
 		if (retval == -1)
-			die("epoll error");
+		{ // TODO: error handling
+		}
 	}
 
 }
 
 void	Servers::configNewServer(const Directive& directive)
 {
-	Srvr	newServer;
+	Server	newServer;
 
 	String	listenTo = directive.get("listen").value_or("8000");
 	addrinfo*	localhost = NULL;

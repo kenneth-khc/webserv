@@ -45,6 +45,7 @@ void	validatePrefix(const Directive&, const Mappings&);
 void	validateListen(const Directive&, const Mappings&);
 void	validateHTTP(const Directive&, const Mappings&);
 void	validateServer(const Directive&, const Mappings&);
+void	validateServerName(const Directive&, const Mappings&);
 void	validateLocation(const Directive&, const Mappings&);
 void	validateRoot(const Directive&, const Mappings&);
 void	validateIndex(const Directive&, const Mappings&);

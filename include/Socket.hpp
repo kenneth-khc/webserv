@@ -1,29 +1,32 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Utils.hpp                                          :+:      :+:    :+:   */
+/*   Socket.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/05 13:04:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/05 13:22:47 by kecheong         ###   ########.fr       */
+/*   Created: 2025/03/07 22:33:01 by kecheong          #+#    #+#             */
+/*   Updated: 2025/03/07 22:38:32 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#ifndef SOCKET_HPP
+#define SOCKET_HPP
 
-#include "String.hpp"
-#include <sstream>
+#include <sys/socket.h>
 
-template <typename ToType>
-ToType	to(const String& str)
+struct	Socket
 {
-	std::istringstream	ss(str);
-	ToType				converted;
-	ss >> converted;
-	return converted;
-}
+	Socket();
+	Socket(int);
+	~Socket();
 
+	int	bind();
+	int	bind(const struct sockaddr*, socklen_t);
+	int	listen(int connectionCount);
+
+	int	fd;
+	int	port;
+};
 
 #endif

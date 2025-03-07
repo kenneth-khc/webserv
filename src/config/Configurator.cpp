@@ -29,6 +29,7 @@ Configurator::Configurator()
 	support("root", validateRoot);
 	support("index", validateIndex);
 	support("types", validateTypes);
+	support("server_name", validateServerName);
 }
 
 void	Configurator::support(const String& name, const Validator& validator)

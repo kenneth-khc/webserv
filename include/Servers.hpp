@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 20:15:12 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/06 23:14:30 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/07 22:52:42 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include "Server.hpp"
 #include "Client.hpp"
+#include "Socket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "MediaType.hpp"
@@ -35,6 +36,7 @@ struct	Servers
 	epoll_event*			readyEvents;
 	int						numReadyEvents;
 
+	std::map<int, Socket>	listeners;
 	std::map<int, Client>	clients;
 	std::queue<Request>		readyRequests;
 	std::queue<Response>	readyResponses;

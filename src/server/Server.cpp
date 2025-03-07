@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/11 17:48:45 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/07 23:13:17 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,20 @@
 
 const unsigned int	Server::timeoutValue = 5;
 
-Server::Server() { }
+Server::Server():
+domainNames(),
+portNum(0),
+socketFD(-1),
+numClients(0),
+routes()
+{
 
-Server::Server(String, int) { }
+}
+
+Server::Server(std::vector<String> domainNames, int portNum, Socket* socket):
+domainNames(domainNames),
+portNum(portNum),
+socket(socket)
+{
+
+}

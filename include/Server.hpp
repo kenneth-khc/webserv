@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/06 23:14:21 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/07 23:13:05 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #define SERVER_HPP
 
 #include "String.hpp"
+#include "Socket.hpp"
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <map>
@@ -21,12 +22,13 @@
 struct	Server
 {
 	Server();
-	Server(String, int);
+	Server(std::vector<String>, int, Socket*);
 
-	String	name;
-	int		portNum;
-	int		socketFD;
-	int		numClients;
+	std::vector<String>	domainNames;
+	int					portNum;
+	Socket*				socket;
+	int					socketFD;
+	int					numClients;
 
 	static const unsigned int	timeoutValue;
 

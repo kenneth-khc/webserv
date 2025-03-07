@@ -17,6 +17,7 @@
 #include <dirent.h>
 #include <vector>
 #include <algorithm>
+#include <limits>
 
 Validator::Validator(void (*function)(const Directive&,
 									  const std::multimap<String,Directive>&)):
@@ -140,6 +141,17 @@ Context: http */
 void	validateServer(const Directive& dir, const Mappings&)
 {
 	validateEnclosingContext(dir, HTTP);
+}
+
+/*
+Syntax : server_name name;
+Default : —
+Context: server
+*/
+void	validateServerName(const Directive& dir, const Mappings&)
+{
+	validateParameterSize(dir, 1, std::numeric_limits<size_t>::max());
+	validateEnclosingContext(dir, SERVER);
 }
 
 /*

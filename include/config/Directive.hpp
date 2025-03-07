@@ -38,7 +38,11 @@ struct	Directive
 	void				printMatchingElements(const String& key);
 	bool				hasParameters() const;
 	Optional<Directive>	find(const String& key) const;
-	Optional<String>	get(const String& key) const;
+	/*Optional<String>	get(const String& key) const;*/
+	/*std::vector<String>	get(const String& key) const;*/
+
+	template <typename ReturnType>
+	Optional<ReturnType>	get(const String& key) const;
 
 	void				printParameters() const;
 };
@@ -46,5 +50,45 @@ struct	Directive
 typedef std::pair<std::multimap<String,Directive>::const_iterator,
 				  std::multimap<String,Directive>::const_iterator> DirectiveRange;
 
+template <>
+inline Optional<String>
+Directive::get<String>(const String& key) const
+{
+	std::multimap<String,Directive>::const_iterator it = directives.find(key);
+	if (it == directives.end())
+	{
+		return makeNone<String>();
+	}
+	else
+	{
+		const Directive&	dir = it->second;
+		String				params;
+		for (size_t i = 0; i < dir.parameters.size(); ++i)
+		{
+			params += dir.parameters[i];
+			if (i != dir.parameters.size()-1)
+			{
+				params += ' ';
+			}
+		}
+		return makeOptional(params);
+	}
+}
+
+template <>
+inline Optional< std::vector<String> >
+Directive::get< std::vector<String> >(const String& key) const
+{
+	std::multimap<String,Directive>::const_iterator it = directives.find(key);
+	if (it == directives.end())
+	{
+		return makeNone< std::vector<String> >();
+	}
+	else
+	{
+		const Directive&	dir = it->second;
+		return makeOptional(dir.parameters);
+	}
+}
 
 #endif

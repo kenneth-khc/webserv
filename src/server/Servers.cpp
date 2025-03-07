@@ -98,22 +98,21 @@ void	Servers::configureFrom(const Configuration& config)
 	epoll_event event = {};
 	event.events |= EPOLLIN;
 
-	for (size_t i = 0; i < servers.size(); ++i)
+	for (std::map<int, Socket>::const_iterator it = listeners.begin();
+		 it != listeners.end(); ++it)
 	{
-		event.data.fd = servers[i].socketFD;
+		event.data.fd = it->second.fd;
 		int	retval = epoll_ctl(epollFD, EPOLL_CTL_ADD, event.data.fd, &event);
 		if (retval == -1)
-		{ // TODO: error handling
+		{ //TODO: error handling
 		}
 	}
-
 }
 
 void	Servers::configNewServer(const Directive& directive)
 {
-	Server	newServer;
 
-	String	listenTo = directive.get("listen").value_or("8000");
+	String		listenTo = directive.get<String>("listen").value_or("8000");
 	addrinfo*	localhost = NULL;
 	addrinfo	requirements = {};
 	requirements.ai_family = AF_INET;
@@ -126,39 +125,25 @@ void	Servers::configNewServer(const Directive& directive)
 	{ // TODO: error handling
 	}
 
-	newServer.portNum = to<int>(listenTo);
-	newServer.socketFD = socket(localhost->ai_family,
-						  localhost->ai_socktype | SOCK_NONBLOCK, 0);
-	if (newServer.socketFD == -1)
-	{ // TODO: error handling
+	int		portNum = to<int>(listenTo);
+	if (listeners.find(portNum) == listeners.end())
+	{
+		Socket	s = Socket(portNum);
+		listeners[s.fd] = s;
+		listeners[s.fd].bind();
+		listeners[s.fd].listen(1);
 	}
-
-	int	yes = 1;
-	retval = setsockopt(newServer.socketFD, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
-	if (retval == -1)
-	{ // TODO: error handling
-	}
-	 
-	retval = bind(newServer.socketFD, localhost->ai_addr, sizeof *localhost->ai_addr);
-	if (retval == -1)
-	{ // TODO: error handling
-	}
-	
-	retval = listen(newServer.socketFD, 1);
-	if (retval != 0)
-	{ // TODO: error handling
-	}
-
-	freeaddrinfo(localhost);
-
-	// TODO: set up each server's sockets and stuff
-
+	Socket*	socket = &listeners[portNum];
+	std::vector<String>	domainNames = directive.get< std::vector<String> >("server_name")
+									  .value_or(std::vector<String>());
+	Server	newServer(domainNames, portNum, socket);
 	servers.push_back(newServer);
 }
 
 int	Servers::epollWait()
 {
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, 1000);
+	std::cout << "Ready: " << numReadyEvents << '\n';
 
 	std::cout << "epoll_wait() returned with " << numReadyEvents
 			  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
@@ -183,20 +168,18 @@ void	Servers::processReadyEvents()
 {
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
+		std::cout << "yeh\n";
 		const epoll_event&	ev = readyEvents[i];
 
-		for (size_t j = 0 ; j < servers.size(); ++j)
+		if (listeners.find(ev.data.fd) != listeners.end())
 		{
-			if (ev.data.fd == servers[j].socketFD)
-			{
-				acceptNewClient(servers[j].socketFD);
-			}
-			else if (ev.events & EPOLLIN)
-			{
-				Client&	client = clients[ev.data.fd];
-				client.updateLastActive();
-				receiveBytes(client);
-			}
+			acceptNewClient(ev.data.fd);
+		}
+		else if (ev.events & EPOLLIN)
+		{
+			Client&	client = clients[ev.data.fd];
+			client.updateLastActive();
+			receiveBytes(client);
 		}
 	}
 }
@@ -347,6 +330,7 @@ void	Servers::acceptNewClient(int socketFD)
 	client.addressLen = static_cast<socklen_t>(sizeof client.address);
 	client.socketFD = accept(socketFD, (sockaddr*)&client.address,
 							 &client.addressLen);
+	std::cout << ">> " << client.socketFD << '\n';
 	fcntl(client.socketFD, F_SETFL, O_NONBLOCK);
 	//++numClients;
 	

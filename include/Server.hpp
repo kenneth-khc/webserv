@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/26 22:58:50 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/08 17:22:57 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,12 +18,15 @@
 #include <sys/socket.h>
 #include <queue>
 #include <vector>
+#include <map>
 #include "String.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Logger.hpp"
 #include "Client.hpp"
 #include "MediaType.hpp"
+
+extern "C" char	**environ;
 
 class	Logger;
 
@@ -57,10 +60,12 @@ public:
 	void			processCookies(Request&, Response&);
 
 	/* Handling HTTP methods */
-	void			get(Response&, const Request&);
-	void			post(Response&, const Request&);
-	void			delete_(Response&, const Request&) const;
+	void			get(Response&, Request&) const;
+	void			post(Response&, Request&) const;
+	void			delete_(Response&, Request&) const;
 
+	/* CGI */
+	void			cgi(Response&, const Request&) const;
 	void			generateDirectoryListing(Response&, const std::string&) const;
 
 private:
@@ -83,10 +88,12 @@ private:
 	const String 	rootDir;
 	const String 	pagesDir;
 	const String 	uploadsDir;
-	const String 	errorPagesDir;
 	const String 	miscPagesDir;
+	const String	cgiDir;
 
-	bool			autoindex;
+	bool				autoindex;
+
+	std::vector<String>	cgiScript;
 
 	std::map<std::string,std::string>	directoryMappings;
 
@@ -94,6 +101,8 @@ private:
 
 	friend class Logger;
 	Logger			logger;
+
+	friend class CGI;
 
 	// TODO:
 	std::queue<Request>		readyRequests;

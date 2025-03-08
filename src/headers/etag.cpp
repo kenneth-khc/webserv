@@ -6,14 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 18:09:22 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/16 23:23:07 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/03 06:36:56 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <ios>
 #include <sstream>
-#include "String.hpp"
-#include "Response.hpp"
 #include "Time.hpp"
 #include "terminalValues.hpp"
 #include "etag.hpp"

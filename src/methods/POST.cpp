@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/26 22:25:37 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/07 16:03:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <dirent.h>
 #include <fstream>
 #include <sstream>
+#include <map>
 #include "String.hpp"
 #include "Optional.hpp"
 #include "Time.hpp"
@@ -25,30 +26,24 @@ using std::size_t;
 using std::ofstream;
 using std::ifstream;
 using std::stringstream;
+using std::map;
 
-static String	constructFileName(const String& uploadsDir, const String& sid, const String& fileName);
+static String	constructFilePath(const String& uploadsDir, const String& sid, const String& fileName);
 static void		uploadFiles(const POSTBody& body, const String& uploadsDir, const String& sid);
-static String	constructFormName(const String& uploadsDir, const String& sid);
+static String	constructFormPath(const String& uploadsDir, const String& sid);
 static void		uploadForm(const POSTBody& body, const String& uploadsDir, const String& sid);
 
-void	Server::post(Response& response, const Request& request)
+void	Server::post(Response& response, Request& request) const
 {
-	if (request.requestTarget == "/")
-	{
-		vector<String>	values = request.messageBody.split("=");
-		const String&	lang = request.cookies.find("lang")->second.value;
+	POSTBody					msgBody(request);
+	Optional<String::size_type>	pos = request.requestTarget.find("/" + cgiDir + "/");
 
-		if (lang != values[1])
-		{
-			response.insert("Set-Cookie", "lang=" + values[1]);
-		}
-		response.setStatusCode(Response::SEE_OTHER);
-		response.insert("Content-Length", 0);
-		response.insert("Location", "http://localhost:8000/");
+	if (pos.exists == true && pos.value == 0)
+	{
+		cgi(response, request);
 	}
 	else if (request.requestTarget == "/pages/form.html")
 	{
-		POSTBody		msgBody(request);
 		const String&	sid = request.cookies.find("sid")->second.value;
 
 		if (msgBody.contentType == "application/x-www-form-urlencoded")
@@ -75,39 +70,41 @@ void	Server::post(Response& response, const Request& request)
 	// TODO: regenerate the page/link to created resource after POSTing
 }
 
-static String	constructFileName(const String& uploadsDir, const String& sid, const String& fileName)
+static String	constructFilePath(const String& uploadsDir, const String& sid, const String& fileName)
 {
 	Optional<String::size_type>	pos = fileName.find_last_of('.');
-	String						name = fileName;
+	String						tempFilePath = fileName;
 	size_t						i = 0;
 	String						extension;
 	stringstream				stream;
-	String						str;
+	String						filePath;
 
 	if (pos.exists == true)
 	{
-		extension = "." + fileName.substr(pos.value + 1);
-		name = uploadsDir + "/" + sid + "_" + fileName.substr(0, pos.value);
+		extension = fileName.substr(pos.value);
+		tempFilePath = uploadsDir + "/" + sid + "_" + fileName.substr(0, pos.value);
 	}
 	while (i < String::npos)
 	{
 		if (i != 0)
 		{
 			stream << i;
-			str = name + stream.str() + extension;
+			filePath = tempFilePath + stream.str() + extension;
 			stream.str("");
 		}
 		else
 		{
-			str = name + extension;
+			filePath = tempFilePath + extension;
 		}
-		if (access(str.c_str(), F_OK) != 0)
+		if (access(filePath.c_str(), F_OK) != 0)
 		{
 			break ;
 		}
 		i++;
 	}
-	return (str);
+	if (i == String::npos)
+		filePath = tempFilePath + extension;
+	return (filePath);
 }
 
 static void	uploadFiles(const POSTBody& body, const String& uploadsDir, const String& sid)
@@ -122,7 +119,7 @@ static void	uploadFiles(const POSTBody& body, const String& uploadsDir, const St
 		map<String,String>::const_iterator fname = it->contentDisposition.find("filename");
 		if (fname != it->contentDisposition.end())
 		{
-			uploadDest = constructFileName(uploadsDir, sid, fname->second);
+			uploadDest = constructFilePath(uploadsDir, sid, fname->second);
 			outfile.open(uploadDest.c_str());
 			if (outfile)
 			{
@@ -137,37 +134,39 @@ static void	uploadFiles(const POSTBody& body, const String& uploadsDir, const St
 	}
 }
 
-static String	constructFormName(const String& uploadsDir, const String& sid)
+static String	constructFormPath(const String& uploadsDir, const String& sid)
 {
-	String			name = uploadsDir + "/" + sid + "_form";
+	String			tempFormPath = uploadsDir + "/" + sid + "_form";
 	size_t			i = 0;
 	stringstream	stream;
-	String			str;
+	String			formPath;
 
 	while (i < String::npos)
 	{
 		if (i != 0)
 		{
 			stream << i;
-			str = name + stream.str() + ".json";
+			formPath = tempFormPath + stream.str() + ".json";
 			stream.str("");
 		}
 		else
 		{
-			str = name + ".json";
+			formPath = tempFormPath + ".json";
 		}
-		if (access(str.c_str(), F_OK) != 0)
+		if (access(formPath.c_str(), F_OK) != 0)
 		{
 			break ;
 		}
 		i++;
 	}
-	return (str);
+	if (i == String::npos)
+		formPath = tempFormPath + ".json";
+	return (formPath);
 }
 
 static void	uploadForm(const POSTBody& body, const String& uploadsDir, const String& sid)
 {
-	String			uploadDest = constructFormName(uploadsDir, sid);
+	String			uploadDest = constructFormPath(uploadsDir, sid);
 	stringstream	stream;
 	String			str;
 	ofstream		outfile;

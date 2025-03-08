@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 18:04:21 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/16 23:20:11 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/03 05:26:57 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 //	A string containing one or more symbols listed below, digits, and/or
 //	alphabet characters.
 bool	isToken(const String &line) {
-	static const String	values = "!#$%&'*+-.^_`|~";
+	const String	values = "!#$%&'*+-.^_`|~";
 
 	if (line.length() == 0)
 		return (false);
@@ -31,7 +31,7 @@ bool	isToken(const String &line) {
 
 //	A character that is alphanumeric or one of the symbols listed below.
 bool	isUnreservedCharacter(const unsigned char &character) {
-	static const String	values = "-._~";
+	const String	values = "-._~";
 
 	if (std::isalnum(character) != 0)
 		return (true);
@@ -56,7 +56,7 @@ bool	isPercentEncoded(const String &line, int index) {
 
 //	A character that is one of the symbols listed below.
 bool	isSubDelimiter(const unsigned char &character) {
-	static const String	values = "!$&'()*+,;=";
+	const String	values = "!$&'()*+,;=";
 
 	if (values.find(character).exists == true)
 		return (true);

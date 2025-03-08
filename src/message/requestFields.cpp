@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/26 02:00:53 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/18 05:12:28 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/03 05:27:43 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ bool	isFieldVisibleCharacter(const unsigned char &character) {
 }
 
 bool	isFieldContent(const String &line) {
-	static const String	values = " \t";
+	const String	values = " \t";
 	String::size_type	length = line.length();
 
 	if (length == 0 || values.find(line[length - 1]).exists == true)
@@ -50,7 +50,7 @@ bool	isFieldValue(const String &line) {
 }
 
 void	extractFieldLineComponents(const String &line, Request &request) {
-	static const String	optionalWhiteSpaces = " \t";
+	const String	optionalWhiteSpaces = " \t";
 
 	if (line.find(':').exists == false)
 		throw BadRequest400();

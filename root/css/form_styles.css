@@ -78,3 +78,9 @@ input {
 #simple-form-container input:focus {
 	outline: none;
 }
+
+.form-inputs {
+	overflow: auto;
+	display: flex;
+	gap: 16px;
+}

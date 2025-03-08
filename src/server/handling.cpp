@@ -6,12 +6,14 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/27 01:48:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/07 19:28:10 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <map>
 #include <unistd.h>
+#include "Optional.hpp"
+#include "String.hpp"
 #include "Server.hpp"
 #include "ErrorCode.hpp"
 #include "Time.hpp"
@@ -19,6 +21,7 @@
 #include "Base64.hpp"
 #include "connection.hpp"
 #include "date.hpp"
+#include "contentLength.hpp"
 
 ssize_t	Server::receiveBytes(Client& client)
 {
@@ -40,16 +43,6 @@ ssize_t	Server::receiveBytes(Client& client)
 	return bytes;
 }
 
-static bool	endOfRequestLineFound(const std::string& message)
-{
-	return message.find("\r\n") != message.npos;
-}
-
-static bool	endOfHeaderFound(const std::string& message)
-{
-	return message.find("\r\n\r\n") != message.npos;
-}
-
 void	Server::processMessages()
 {
 	if (listenerSocketFD == readyEvents[0].data.fd)
@@ -61,29 +54,51 @@ void	Server::processMessages()
 
 	try
 	{
-		if (!request.requestLineFound && endOfRequestLineFound(client.message))
+		if (!request.requestLineFound && client.endOfRequestLineFound())
 		{
 			request.parseRequestLine(client.message);
 			request.requestLineFound = true;
 		}
 		if (request.requestLineFound &&
 			!request.headersFound &&
-			endOfHeaderFound(client.message))
+			client.endOfHeaderFound())
 		{
 			request.parseHeaders(client.message);
 			request.headersFound = true;
-		}
-		if (request.requestLineFound && request.headersFound)
-		{
-			Optional<int>	bodyLength = request.find< Optional<int> >("Content-Length");
 
-			request.messageBody = client.message;
-			if (client.message.size() == (size_t)bodyLength.value)
+			Optional<String>	contentLength = request["Content-Length"];
+			Optional<String>	transferEncoding = request["Transfer-Encoding"];
+
+			if (contentLength.exists && transferEncoding.exists)
 			{
-				readyRequests.push(request);
-				client.message = "";
-				logger.logRequest(*this, request, (sockaddr*)&client.address);
+				request.headers.erase(Request::stringToLower("Content-Length"));
 			}
+			else if (!contentLength.exists && !transferEncoding.exists)
+			{
+				request.insert(Request::stringToLower("Content-Length"), 0);
+			}
+			else if (contentLength.exists && !transferEncoding.exists)
+			{
+				if (isContentLengthHeader(contentLength.value) == false)
+					throw BadRequest400();
+			}
+			else if (!contentLength.exists && transferEncoding.exists)
+			{
+				transferEncoding.value = Request::stringToLower(transferEncoding.value);
+				if (transferEncoding.value.find("chunked").exists == false)
+					throw BadRequest400();
+			}
+		}
+		if (request.requestLineFound &&
+			request.headersFound &&
+			!request.messageBodyFound)
+		{
+			request.parseMessageBody(client.message);
+		}
+		if (request.messageBodyFound)
+		{
+			readyRequests.push(request);
+			logger.logRequest(*this, request, client);
 		}
 	}
 	catch (const ErrorCode &e)
@@ -116,15 +131,15 @@ Response	Server::handleRequest(Request& request)
 	processCookies(request, response);
 	try
 	{
-		if (request.method == Request::GET || request.method == Request::HEAD)
+		if (request.method == "GET" || request.method == "HEAD")
 		{
 			get(response, request);
 		}
-		else if (request.method == Request::POST)
+		else if (request.method == "POST")
 		{
 			post(response, request);
 		}
-		else if (request.method == Request::DELETE)
+		else if (request.method == "DELETE")
 		{
 			delete_(response, request);
 		}
@@ -144,9 +159,10 @@ void	Server::generateResponses()
 	{
 		Client&		client = clients[readyEvents[0].data.fd];
 		Response&	response = readyResponses.front();
-
 		std::string	formattedResponse = response.toString();
+
 		send(client.socketFD, formattedResponse.c_str(), formattedResponse.size(), 0);
+		logger.logResponse(*this, response, client);
 
 		if (response.flags & Response::CONNECTION_CLOSE)
 		{
@@ -158,7 +174,6 @@ void	Server::generateResponses()
 		{
 			client.request = Request();
 		}
-		logger.logResponse(*this, response, (sockaddr*)&client.address);
 		readyResponses.pop();
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:41:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/19 23:52:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/08 17:06:00 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,6 @@
 # include <vector>
 # include <map>
 # include "String.hpp"
-
-# define NUM_OF_NAMES 1
 
 class Response;
 
@@ -38,6 +36,7 @@ class Cookie {
 		Cookie(const Cookie &obj);
 		Cookie	&operator=(const Cookie &obj);
 
+		void	operator=(const String &value);
 		bool	operator==(const Cookie &obj);
 };
 

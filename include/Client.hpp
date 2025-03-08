@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 07:30:59 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/03 11:20:51 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,12 @@ class	Client
 
 public:
 	Client();
+
+	String	getIPAddr() const;
+	String	getPortNum() const;
+
+	bool	endOfRequestLineFound() const;
+	bool	endOfHeaderFound() const;
 
 	bool	isTimeout() const;
 	void	updateLastActive();

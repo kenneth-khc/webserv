@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 17:34:45 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/19 07:30:03 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/02 08:53:24 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ Time	&Time::operator=(const Time &obj) {
 }
 
 std::time_t Time::getTimeSinceEpoch(void) {
-	return (std::time(NULL));
+	return (std::time(0));
 }
 
 std::time_t	Time::getTimeSinceEpoch(std::tm &time) {
@@ -40,7 +40,7 @@ std::time_t	Time::convertToGMT(const std::time_t &time) {
 String	Time::printHTTPDate(void) {
 	char	buffer[sizeof("DAY, DD MMM YYYY HH:MM:SS GMT")];
 
-	std::time_t	time = std::time(NULL);
+	std::time_t	time = std::time(0);
 	std::tm		*timeStruct = std::gmtime(&time);
 
 	std::strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", timeStruct);

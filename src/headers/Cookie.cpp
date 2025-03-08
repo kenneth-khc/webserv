@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:41:12 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/19 23:53:32 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/06 00:21:09 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,10 @@ Cookie	&Cookie::operator=(const Cookie &obj) {
 	return (*this);
 }
 
+void	Cookie::operator=(const String &value) {
+	this->value = value;
+}
+
 bool	Cookie::operator==(const Cookie &obj) {
 	if (this->name == obj.name)
 		return (true);
@@ -94,20 +98,15 @@ bool	isCookiePair(const String &line) {
 }
 
 bool	isCookieValue(const String &line) {
-	if ((line[0] == '=' && line[line.size() - 1] != '=') || (line[0] != '=' && line[line.size() - 1] == '='))
-		return (false);
-
-	String	trim = line.trim("=");
-
-	for (String::size_type i = 0; i < trim.length(); i++) {
-		if (isCookieOctet(trim[i]) == false)
+	for (String::size_type i = 0; i < line.length(); i++) {
+		if (isCookieOctet(line[i]) == false)
 			return (false);
 	}
 	return (true);
 }
 
 bool	isCookieOctet(const unsigned &character) {
-	static const String	values = "\",;\\";
+	const String	values = "\",;\\";
 
 	if (std::isgraph(character) == 0)
 		return (false);

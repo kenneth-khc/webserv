@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/26 22:59:27 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/07 19:28:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 #include <sys/epoll.h>
 #include <netdb.h>
 #include <cstring>
-#include <cstdlib>
 #include <cstdio>
 #include <string>
 #include <unistd.h>
@@ -41,11 +40,13 @@ MIMEMappings("mime.types"),
 rootDir("root"),
 pagesDir("pages"),
 uploadsDir("uploads"),
-errorPagesDir("error_pages"),
 miscPagesDir("misc_pages"),
+cgiDir("cgi-bin"),
 autoindex(true)
 {
 	readyEvents = new epoll_event[maxEvents];
+	cgiScript.push_back("py");
+	cgiScript.push_back("php");
 }
 
 Server::~Server()
@@ -68,10 +69,10 @@ int	Server::epollWait()
 	else if (numReadyEvents > 0 && (readyEvents[0].events & EPOLLRDHUP))
 	{
 		//	Closes socket in cases where client-side closes the connection on their end.
+		logger.logConnection(*this, Logger::CLOSE, readyEvents[0].data.fd,
+			clients[readyEvents[0].data.fd]);
 		close(readyEvents[0].data.fd);
 		epoll_ctl(epollFD, EPOLL_CTL_DEL, readyEvents[0].data.fd, 0);
-		logger.logConnection(*this, Logger::CLOSE, readyEvents[0].data.fd,
-			(sockaddr*)&clients[readyEvents[0].data.fd].address);
 		clients.erase(clients.find(readyEvents[0].data.fd));
 		numReadyEvents = 0;
 	}
@@ -119,7 +120,7 @@ void	Server::acceptNewClient()
 	event.data.fd = client.socketFD;
 	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socketFD, &event);
 	clients.insert(std::make_pair(client.socketFD, client));
-	logger.logConnection(*this, Logger::ESTABLISHED, client.socketFD, (sockaddr*)&client.address);
+	logger.logConnection(*this, Logger::ESTABLISHED, client.socketFD, client);
 }
 
 void	Server::monitorConnections()
@@ -130,9 +131,9 @@ void	Server::monitorConnections()
 	{
 		if (it->second.firstDataRecv == true && it->second.isTimeout() == true)
 		{
+			logger.logConnection(*this, Logger::TIMEOUT, it->first, it->second);
 			close(it->first);
 			epoll_ctl(epollFD, EPOLL_CTL_DEL, it->first, 0);
-			logger.logConnection(*this, Logger::TIMEOUT, it->first, (sockaddr*)&it->second.address);
 			clients.erase(it++);
 		}
 		else

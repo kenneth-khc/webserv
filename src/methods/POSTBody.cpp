@@ -22,17 +22,17 @@
 POSTBody::POSTBody(const Request& request):
 body(request.messageBody)
 {
-	Optional<String>	field = request["Content-Type"];
-	String				contentTypeField = field.value_or("");
+	String				contentType = request["Content-Type"].value;
+	std::vector<String>	split = contentType.split("; ");
 
-	if (contentTypeField.match("application/x-www-form-urlencoded"))
+	if (split[0] == "application/x-www-form-urlencoded")
 	{
 		parseURLEncoded();
 	}
 	// TODO: more content types ?
-	else if (contentTypeField.match("multipart/form-data"))
+	else if (split[0] == "multipart/form-data")
 	{
-		parseMultipartFormData(contentTypeField);
+		parseMultipartFormData(contentType);
 	}
 }
 
@@ -44,6 +44,7 @@ void	POSTBody::parseURLEncoded()
 		 it != keyValuePairs.end(); ++it)
 	{
 		std::vector<String>	splitted = it->split("=");
+		urlEncodedKeyValues.insert(std::make_pair(splitted[0], splitted[1]));
 		urlEncodedKeys.push_back(splitted[0]);
 		urlEncodedValues.push_back(splitted[1]);
 	}

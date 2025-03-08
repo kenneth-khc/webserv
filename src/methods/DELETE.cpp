@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:14:43 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/26 21:23:25 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/05 23:59:59 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 
 // TODO: use cookies for authorization? user can only delete what is theirs
 // TODO: consider other status codes. 200 OK? 202 Accepted? 403 Forbidden?
-void	Server::delete_(Response& response, const Request& request) const
+void	Server::delete_(Response& response, Request& request) const
 {
 	DIR*	dir = opendir(uploadsDir.c_str());
 
@@ -41,7 +41,7 @@ void	Server::delete_(Response& response, const Request& request) const
 	String						sid = request.cookies.find("sid")->second.value;
 	dirent*						entry = readdir(dir);
 
-	while (entry != NULL)
+	while (entry != 0)
 	{
 		String	d_name(entry->d_name);
 
@@ -52,7 +52,7 @@ void	Server::delete_(Response& response, const Request& request) const
 		}
 		entry = readdir(dir);
 	}
-	if (entry == NULL)
+	if (entry == 0)
 	{
 		throw NotFound404();
 	}

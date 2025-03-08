@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/27 02:05:21 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/05 17:23:24 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,8 +105,6 @@ const String	Response::toString(void) const {
 }
 
 void	Response::setStatusCode(int statusCode) {
-	this->statusCode = statusCode;
-
 	switch (statusCode) {
 		case 200:
 			this->reasonPhrase = "OK";
@@ -120,7 +118,22 @@ void	Response::setStatusCode(int statusCode) {
 		case 304:
 			this->reasonPhrase = "Not Modified";
 			break ;
+		case 400:
+			throw BadRequest400();
+		case 404:
+			throw NotFound404();
+		case 412:
+			throw PreconditionFailed412();
+		case 415:
+			throw UnsupportedMediaType415();
+		case 500:
+			throw InternalServerError500();
+		case 501:
+			throw NotImplemented501();
+		case 505:
+			throw VersionNotSupported505();
 	}
+	this->statusCode = statusCode;
 }
 
 void	Response::getFileContents(const String& file)

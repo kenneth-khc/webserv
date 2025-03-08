@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 14:00:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/19 03:46:32 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/05 22:33:14 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,31 +46,25 @@ void	Logger::logIPPort(sockaddr* client)
 }
 
 // TODO: clean this up nicely
-void	Logger::logRequest(const Server& server, Request& request, sockaddr* client) const
+void	Logger::logRequest(const Server& server, Request& request, Client& client) const
 {
 	std::cout << YELLOW;
-	logIPPort(client);
+	std::cout << client.getIPAddr() << ":" << client.getPortNum();
 	std::cout << " => ";
 	std::cout << server.hostName << ":"
 			  << server.portNum  << CRESET
 			  << " | ";
 	std::cout << GREEN;
-	for (int i = 0; i < NUM_OF_METHODS; ++i)
-	{
-		if (request.method == i)
-		{
-			std::cout << request.methods[i];
-		}
-	}
+	std::cout << request.method;
 	std::cout << ' ' << request.requestTarget << ' ' << "HTTP/" << request.httpVersion;
 	std::cout << " | " << request["User-Agent"].value << CRESET;
 	std::cout << "\n";
 }
 
-void	Logger::logResponse(const Server& server, Response& response, sockaddr*	client) const
+void	Logger::logResponse(const Server& server, Response& response, Client& client) const
 {
 	std::cout << YELLOW;
-	logIPPort(client);
+	std::cout << client.getIPAddr() << ":" << client.getPortNum();
 	std::cout << " <= ";
 	std::cout << server.hostName << ":"
 			  << server.portNum  << CRESET
@@ -82,10 +76,10 @@ void	Logger::logResponse(const Server& server, Response& response, sockaddr*	cli
 	std::cout << "\n";
 }
 
-void	Logger::logConnection(const Server& server, int status, int fd, sockaddr* client) const
+void	Logger::logConnection(const Server& server, int status, int fd, Client& client) const
 {
 	std::cout << YELLOW;
-	logIPPort(client);
+	std::cout << client.getIPAddr() << ":" << client.getPortNum();
 	std::cout << " <> ";
 	std::cout << server.hostName << ":"
 			  << server.portNum  << CRESET

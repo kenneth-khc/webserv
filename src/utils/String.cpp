@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 19:36:21 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/07 16:29:34 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,7 +197,7 @@ String	String::substr(size_type pos, size_type n) const
 
 const char*	String::c_str() const
 {
-	return (str.c_str());
+	return str.c_str();
 }
 
 Optional<String::size_type>
@@ -237,6 +237,31 @@ String&	String::replace(size_type pos, size_type count, const String& toReplace)
 {
 	str.replace(pos, count, toReplace);
 	return *this;
+}
+
+String::iterator	String::begin()
+{
+	return str.begin();
+}
+
+String::const_iterator	String::begin() const
+{
+	return str.begin();
+}
+
+String::iterator	String::end()
+{
+	return str.end();
+}
+
+String::const_iterator	String::end() const
+{
+	return str.end();
+}
+
+String::iterator	String::erase(String::iterator first, String::iterator last)
+{
+	return str.erase(first, last);
 }
 
 Optional<String::size_type>

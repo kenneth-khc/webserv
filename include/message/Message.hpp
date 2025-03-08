@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:29:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/15 23:26:30 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/04 08:39:47 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ class Message {
 		type	find(const String &key) const;
 
 		void	insert(const String &key, const String &value);
-		void	insert(const String &key, const int &value);
+		void	insert(const String &key, const String::size_type &value);
 
 		Optional<String>		operator[](const String &key);
 		const Optional<String>	operator[](const String &key) const;
@@ -73,16 +73,16 @@ inline Optional<int>	Message::find< Optional<int> >(const String &key) const {
 }
 
 template<>
-inline Optional<float>	Message::find< Optional<float> >(const String &key) const {
+inline Optional<String::size_type>	Message::find< Optional<String::size_type> >(const String &key) const {
 	std::multimap<String, String>::const_iterator	it;
 	String	lowercaseKey = Message::stringToLower(key);
 
 	it = this->headers.find(lowercaseKey);
 	if (it == this->headers.end())
-		return (Optional<float>());
+		return Optional<String::size_type>();
 
 	std::stringstream	stream;
-	float				value;
+	String::size_type	value;
 
 	stream << it->second;
 	stream >> value;

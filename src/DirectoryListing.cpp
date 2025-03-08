@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/10 07:33:32 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/24 04:42:21 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/02 08:52:41 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ void	Server::generateDirectoryListing(Response& response, const std::string& dir
 	std::vector<std::string>	directories;
 	std::vector<std::string>	regularFiles;
 
-	for (dirent* entry = readdir(dir); entry != NULL; entry = readdir(dir))
+	for (dirent* entry = readdir(dir); entry != 0; entry = readdir(dir))
 	{
 		std::string	d_name(entry->d_name);
 		std::string	str;

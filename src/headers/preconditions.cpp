@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 21:22:47 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 02:24:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/05 22:20:19 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ bool	processPreconditions(const Request &request, const struct stat &statbuf) {
 		String	etag = constructETagHeader(statbuf.st_mtim, statbuf.st_size);
 
 		if (processIfNoneMatchHeader(value.value, etag) == false) {
-			if (request.method != Request::GET && request.method != Request::HEAD)
+			if (request.method != "GET" && request.method != "HEAD")
 				throw PreconditionFailed412();
 			else
 				return (false);
@@ -39,14 +39,14 @@ bool	processPreconditions(const Request &request, const struct stat &statbuf) {
 	value = request["If-Modified-Since"];
 
 	//	Should check for existence of last modified date
-	if (value.exists && (request.method == Request::GET || request.method == Request::HEAD))
+	if (value.exists && (request.method == "GET" || request.method == "HEAD"))
 		return (processIfModifiedHeader(value.value, statbuf.st_mtim));
 
 	return (true);
 }
 
 bool	processIfNoneMatchHeader(const String &value, const String &etag) {
-	static const String	optionalWhiteSpaces = " \t";
+	const String	optionalWhiteSpaces = " \t";
 
 	//	Have to check for existence of the specified representation for target resource
 	if (value.length() == 1 && value[0] == '*')
@@ -59,8 +59,6 @@ bool	processIfNoneMatchHeader(const String &value, const String &etag) {
 		if (isEntityTag(*it) == true)
 			validETagValues.push_back(*it);
 	}
-	if (etagValues.size() == 0)
-		return (false);
 	for (std::vector<String>::const_iterator it = validETagValues.begin(); it != validETagValues.end(); it++) {
 		if (compareETagWeak(etag, *it) == true)
 			return (false);

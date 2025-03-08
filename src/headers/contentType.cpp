@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 01:09:40 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/26 19:10:01 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/03 06:46:07 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include "terminalValues.hpp"
 #include "contentType.hpp"
 
-bool	isContentType(const String &line) {
+bool	isContentTypeHeader(const String &line) {
 	if (isMediaType(line) == false)
 		return (false);
 	return (true);
@@ -33,7 +33,7 @@ bool	isMediaType(const String &line) {
 	String::getline(stream, str, '/');
 	if (isToken(str) == false)
 		return (false);
-	pos = line.find(';', pos.value + 1);
+	pos = line.find(';', pos.value + 1);	// No support for media type parameters
 	if (pos.exists == true)
 		String::getline(stream, str, ';');
 	else

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:26:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/18 05:33:12 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/05 17:53:24 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,8 @@ public:
 
 	vector<POSTBodyPart>	parts;
 	String					contentType;
-	// std::map sorts the keys so we use vectors as substitutes
+	map<String, String>		urlEncodedKeyValues;
+	// std::map sorts the keys so we use also use vectors to preserve order
 	vector<String>			urlEncodedKeys;
 	vector<String>			urlEncodedValues;
 

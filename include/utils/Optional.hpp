@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 06:04:17 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/05 20:20:57 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/06 00:00:43 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,7 @@ Optional<T>&	Optional<T>::operator=(const T& thing)
 	}
 	value = thing;
 	exists = true;
+	return *this;
 }
 
 template <typename T>

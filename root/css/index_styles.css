@@ -34,20 +34,17 @@ body {
 
 /* Main title, form, and language */
 #title-container,
-#form-container,
-#uploads-container,
+.pseudo-button,
 #language-container {
 	width: 100%;
 }
 
-#form-container,
-#uploads-container {
+.pseudo-button {
 	text-decoration: none;
 	color: black;
 }
 
-#form-container:hover,
-#uploads-container:hover {
+.pseudo-button:hover {
 	background-color: #ffe6ee;
 }
 

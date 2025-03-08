@@ -26,6 +26,9 @@
 |unreserved|ALPHA / DIGIT / "-" / "." / "_" / "~"||✅|
 |VCHAR|%x21-7E|Visible Character|✅(std::isgraph)|
 |WSP|SP / HTAB||✅|
+|quoted-string|DQUOTE *( qdtext / quoted-pair ) DQUOTE|||
+|qdtext|HTAB / SP / "!" / %x23-5B / %x5D-7E / obs-text|HTAB / SP / "!" / '#'-'[' / ']'-'~' / obs-text||
+|quoted-pair|"\\" ( HTAB / SP / VCHAR / obs-text )|||
 
 ## URI Rules
 |Rule|Value|Description|Check|
@@ -83,22 +86,39 @@
 |field-vchar|VCHAR / obs-text||✅|
 |message-body|*OCTET||❌|
 
+## Chunked Transfer Coding
+|Rule|Value|Description|Check|
+|-|-|-|:-:|
+|chunked-body|*chunk last-chunk trailer-section CRLF|||
+|chunk|chunk-size [ chunk-ext ] CRLF chunk-data CRLF|||
+|chunk-size|1*HEXDIG|||
+|last-chunk|1*("0") [ chunk-ext ] CRLF|||
+|chunk-data|1*OCTET|||
+
 ## Headers
 ### Connection
 |Rule|Value|Description|Check|
 |-|-|-|:-:|
-|Connection|[ connection-option *( OWS "," OWS connection-option ) ]|||
+|Connection|#connection-option|||
 |connection-option|token|||
 
-### Content
+### Content-Type
 |Rule|Value|Description|Check|
 |-|-|-|:-:|
-|Content-Language|[ language-tag *( OWS "," OWS language-tag ) ]|||
-|Content-Length|1*DIGIT|||
 |Content-Type|media-type||✅|
-|media-type|type "/" subtype||❕|
+|media-type|type "/" subtype parameters||❕|
 |type|token||❕|
 |subtype|token||❕|
+
+### Content-Language
+|Rule|Value|Description|Check|
+|-|-|-|:-:|
+|Content-Language|#language-tag|||
+
+### Content-Length
+|Rule|Value|Description|Check|
+|-|-|-|:-:|
+|Content-Length|1*DIGIT||✅|
 
 ### Date
 |Rule|Value|Description|Check|
@@ -146,7 +166,6 @@
 |product-version|token|||
 |comment|"(" *( ctext / quoted-pair / comment ) ")"|||
 |ctext|HTAB / SP / %x21-27 / %x2A-5B / %x5D-7E / obs-text|HTAB / SP / '!'-''' / '*'-'[' / ']'-'~' / obs-text||
-|quoted-pair|"\\" ( HTAB / SP / VCHAR / obs-text )|||
 
 ### Cookies
 |Rule|Value|Description|Check|
@@ -187,3 +206,9 @@
 |Rule|Value|Description|Check|
 |-|-|-|:-:|
 |If-Modified-Since|HTTP-date||❕|
+
+### Transfer-Encoding
+|Rule|Value|Description|Check|
+|-|-|-|:-:|
+|Transfer-Encoding|#transfer-coding|||
+|transfer-coding|token|||

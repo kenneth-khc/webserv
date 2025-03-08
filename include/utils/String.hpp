@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 19:35:11 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/07 16:29:56 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,9 @@ struct	Predicate;
 class	String
 {
 public:
-	typedef string::size_type	size_type;
+	typedef string::size_type		size_type;
+	typedef string::iterator		iterator;
+	typedef string::const_iterator	const_iterator;
 
 	const static size_type	npos = std::string::npos;
 
@@ -76,6 +78,11 @@ public:
 	Optional<size_type>	find_last_of(const String&, size_type searchFrom = npos) const;
 	void				resize(size_type);
 	String&				replace(size_type, size_type, const String&);
+	iterator			begin();
+	const_iterator		begin() const;
+	iterator			end();
+	const_iterator		end() const;
+	iterator			erase(iterator, iterator);
 
 	/* Custom additions to a String */
 

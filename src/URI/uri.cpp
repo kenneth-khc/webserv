@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:02:09 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/16 23:25:59 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/03 05:28:16 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ bool	isAbsoluteURI(const String &line) {
 /**********/
 //	Refers to the specification/protocol to be used in processing the URI.
 bool	isScheme(const String &line) {
-	static const String	values = "+-.";
+	const String	values = "+-.";
 
 	if (std::isalpha(line[0]) == 0)
 		return (false);
@@ -130,7 +130,7 @@ bool	isPort(const String &line) {
 //	Used to help (along with the path) identify the specific resource being
 //	requested, by acting as information to be used in processing.
 bool	isQuery(const String &line) {
-	static const String	values = "/?";
+	const String	values = "/?";
 
 	for (String::size_type i = 0; i < line.length(); i++) {
 		if (isPrintableCharacter(line, i) == true)
@@ -149,7 +149,7 @@ bool	isQuery(const String &line) {
 //	primary resource. Example of secondary resource is a webpage anchor in an
 //	HTML, which represents a specific view of the document.
 bool	isFragment(const String &line) {
-	static const String	values = "/?";
+	const String	values = "/?";
 
 	for (String::size_type i = 0; i < line.length(); i++) {
 		if (isPrintableCharacter(line, i) == true)

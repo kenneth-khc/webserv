@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 02:14:54 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/16 23:22:25 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/03 05:27:16 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ bool	isIMFFixDate(const String &date, std::tm &time) {
 }
 
 bool	isDayName(const String &day, std::tm &time) {
-	static const String	days[NUM_OF_DAYS] = {
+	const String	days[NUM_OF_DAYS] = {
 		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
 	};
 
@@ -119,7 +119,7 @@ bool	isDay(const String &day, std::tm &time) {
 }
 
 bool	isMonth(const String &month, std::tm &time) {
-	static const String	months[NUM_OF_MONTHS] = {
+	const String	months[NUM_OF_MONTHS] = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 	};
@@ -239,7 +239,7 @@ bool	isRFC850Date(const String &date, std::tm &time) {
 }
 
 bool	isDayNameOne(const String &day, std::tm &time) {
-	static const String	days[NUM_OF_DAYS] = {
+	const String	days[NUM_OF_DAYS] = {
 		"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
 		"Friday", "Saturday"
 	};
@@ -276,7 +276,7 @@ bool	isDateTwo(const String &date, std::tm &time) {
 			return (false);
 	}
 
-	std::time_t	currTime = std::time(NULL);
+	std::time_t	currTime = std::time(0);
 	std::tm		*currTimeStruct = std::gmtime(&currTime);
 
 	time.tm_year = (currTimeStruct->tm_year / 100) * 100 + std::atoi(str.c_str());

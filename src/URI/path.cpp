@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:05:10 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/16 23:25:36 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/03 05:28:00 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,7 +142,7 @@ bool	isSegmentNZNC(const String &line) {
 }
 
 bool	isPrintableCharacter(const String &line, String::size_type &index) {
-	static const String	values = ":@";
+	const String	values = ":@";
 
 	if (isUnreservedCharacter(line[index]) == true)
 		return (true);

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:13:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/12 02:16:16 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/05 22:51:33 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,21 @@ void	extractRequestLineComponents(const String &line, Request &request) {
 	if (isRequestTarget(str) == false)
 		throw BadRequest400();
 	request.requestTarget = str;
+
+	Optional<String::size_type>	queryPos = str.find("?");
+	if (queryPos.exists == true) {
+		request.absolutePath = str.substr(0, queryPos.value);
+		request.query = Optional<String>(str.substr(queryPos.value + 1));
+
+		const std::vector<String>	queries = request.query.value.split("&");
+		for (std::vector<String>::const_iterator it = queries.begin(); it != queries.end(); it++) {
+			std::vector<String>	split = it->split("=");
+
+			request.queryPairs.insert(std::make_pair(split[0], split[1]));
+		}
+	}
+	else
+		request.absolutePath = str;
 
 	String::getline(stream, str, '/');
 	if (str != "HTTP")

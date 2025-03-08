@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 03:36:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/13 23:07:07 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/03 05:28:26 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include "Base64.hpp"
 
 String	Base64::encode(const String &str) {
-	static const std::string	base64Characters = \
+	const std::string	base64Characters = \
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 	std::string	encodedStr;

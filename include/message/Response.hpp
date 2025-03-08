@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/26 23:56:49 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/05 17:20:58 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,14 @@ class Response : public Message {
 			OK = 200,
 			MOVED_PERMANENTLY = 301,
 			SEE_OTHER = 303,
-			NOT_MODIFIED = 304
+			NOT_MODIFIED = 304,
+			BAD_REQUEST = 400,
+			NOT_FOUND = 404,
+			PRECONDITION_FAILED = 412,
+			UNSUPPORTED_MEDIA_TYPE = 415,
+			INTERNAL_SEVER_ERROR = 500,
+			NOT_IMPLEMENTED = 501,
+			VERSION_NOT_SUPPORTED = 505
 		};
 };
 

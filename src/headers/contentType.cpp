@@ -6,21 +6,51 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 01:09:40 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 16:40:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/03 06:46:07 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <sstream>
 #include "Optional.hpp"
+#include "terminalValues.hpp"
 #include "contentType.hpp"
 
-void	constructContentTypeHeader(
-const std::string &file,
-const MediaType &map,
-Response &response) {
-	std::size_t	pos = file.find('.');
-	std::string	extension = file.substr(pos + 1);
+bool	isContentTypeHeader(const String &line) {
+	if (isMediaType(line) == false)
+		return (false);
+	return (true);
+}
 
-	Optional<std::string>	mediaType = map[extension];
+bool	isMediaType(const String &line) {
+	Optional<String::size_type>	pos = line.find('/');
+
+	if (pos.exists == false)
+		return (false);
+
+	std::stringstream	stream(line);
+	String				str;
+
+	String::getline(stream, str, '/');
+	if (isToken(str) == false)
+		return (false);
+	pos = line.find(';', pos.value + 1);	// No support for media type parameters
+	if (pos.exists == true)
+		String::getline(stream, str, ';');
+	else
+		String::getline(stream, str);
+	if (isToken(str) == false)
+		return (false);
+	return (true);
+}
+
+void	constructContentTypeHeader(
+	const String &file,
+	const MediaType &MIMEMappings,
+	Response &response)
+{
+	Optional<String::size_type>	pos = file.find('.');
+	String						extension = file.substr(pos.value + 1);
+	Optional<String>			mediaType = MIMEMappings[extension];
 
 	if (mediaType.exists == false)
 		response.insert("Content-Type", "application/octet-stream");

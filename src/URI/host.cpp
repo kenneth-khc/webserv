@@ -6,18 +6,19 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:49:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/01/31 19:01:22 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/16 23:24:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 #include <vector>
+#include "Optional.hpp"
 #include "terminalValues.hpp"
 #include "host.hpp"
 
 //	Subcomponent of the authority in a URI, identified by an IP address or a
 //	registered name
-bool	isHost(const std::string &line) {
+bool	isHost(const String &line) {
 	if (isIPLiteral(line) == true)
 		return (true);
 	if (isIPV4(line) == true)
@@ -27,11 +28,11 @@ bool	isHost(const std::string &line) {
 	return (false);
 }
 
-bool	isIPLiteral(const std::string &line) {
+bool	isIPLiteral(const String &line) {
 	if (line[0] != '[' || line[line.length() - 1] != ']')
 		return (false);
 
-	std::string	str = line.substr(1, line.length() - 1);
+	String	str = line.substr(1, line.length() - 1);
 	if (isIPV6(str) == true)
 		return (true);
 	if (isIPVFuture(str) == true)
@@ -39,20 +40,20 @@ bool	isIPLiteral(const std::string &line) {
 	return (false);
 }
 
-bool	isIPV6(const std::string &line) {
-	std::stringstream			stream(line);
-	std::string					str;
-	std::vector<std::string>	values;
+bool	isIPV6(const String &line) {
+	std::stringstream		stream(line);
+	String					str;
+	std::vector<String>		values;
 
-	while (std::getline(stream, str, ':'))
+	while (String::getline(stream, str, ':'))
 		values.push_back(str);
 	if (values.size() > 8)
 		return (false);
-	
-	for (std::vector<std::string>::const_iterator it = values.begin(); it != values.end(); it++) {
+
+	for (std::vector<String>::const_iterator it = values.begin(); it != values.end(); it++) {
 		if (it->length() == 0)
 			continue ;
-		if (it->find('.') != std::string::npos) {
+		if (it->find('.').exists == true) {
 			if (isIPV4(*it) == false)
 				return (false);
 		}
@@ -62,26 +63,26 @@ bool	isIPV6(const std::string &line) {
 	return (true);
 }
 
-bool	isIPVFuture(const std::string &line) {
+bool	isIPVFuture(const String &line) {
 	if (line.length() < 4)
 		return (false);
 	if (line[0] != 'v')
 		return (false);
 
-	std::size_t	dotPos = line.find('.');
-	if (dotPos == std::string::npos || dotPos == 1)
+	Optional<String::size_type>	dotPos = line.find('.');
+	if (dotPos.exists == false || dotPos.value == 1)
 		return (false);
 
-	std::string	str = line.substr(1, dotPos);
-	for (std::size_t i = 0; i < str.length(); i++) {
+	String	str = line.substr(1, dotPos.value);
+	for (String::size_type i = 0; i < str.length(); i++) {
 		if (std::isxdigit(str[i]) == 0)
 			return (false);
 	}
 
-	str = line.substr(dotPos);
+	str = line.substr(dotPos.value);
 	if (str.length() == 0)
 		return (false);
-	for (std::size_t i = 0; i < str.length(); i++) {
+	for (String::size_type i = 0; i < str.length(); i++) {
 		if (isUnreservedCharacter(str[i]) == true)
 			continue ;
 		if (isSubDelimiter(str[i]) == true)
@@ -93,12 +94,12 @@ bool	isIPVFuture(const std::string &line) {
 	return (true);
 }
 
-bool	isIPV4(const std::string &line) {
+bool	isIPV4(const String &line) {
 	std::stringstream	stream(line);
-	std::string			str;
+	String				str;
 	int					counter = 0;
 
-	while (std::getline(stream, str, '.')) {
+	while (String::getline(stream, str, '.')) {
 		counter++;
 		if (isDecOctet(str) == false)
 			return (false);
@@ -108,20 +109,20 @@ bool	isIPV4(const std::string &line) {
 	return (true);
 }
 
-bool	is16BitsHexa(const std::string &line) {
-	std::size_t	length = line.length();
+bool	is16BitsHexa(const String &line) {
+	String::size_type	length = line.length();
 
 	if (length == 0 || length > 4)
 		return (false);
 
-	for (std::size_t i = 0; i < length; i++) {
+	for (String::size_type i = 0; i < length; i++) {
 		if (std::isxdigit(line[i]) == 0)
 			return (false);
 	}
 	return (true);
 }
 
-bool	isDecOctet(const std::string &line) {
+bool	isDecOctet(const String &line) {
 	std::stringstream	stream(line);
 	int					octetValue;
 
@@ -131,8 +132,8 @@ bool	isDecOctet(const std::string &line) {
 	return (false);
 }
 
-bool	isRegName(const std::string &line) {
-	for (std::size_t i = 0; i < line.length(); i++) {
+bool	isRegName(const String &line) {
+	for (String::size_type i = 0; i < line.length(); i++) {
 		if (isUnreservedCharacter(line[i]) == true)
 			continue ;
 		if (isPercentEncoded(line, i) == true) {

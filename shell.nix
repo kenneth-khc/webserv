@@ -4,6 +4,8 @@
 			gnumake
 			gcc
 			gdb
+			php
+			python314
 		];
 	hardeningDisable = [ "all" ];
 }

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 17:49:28 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/05 18:03:03 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/11 22:35:49 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,8 @@
 
 # define NUM_OF_MANDATORY_HEADERS 1
 
-# include <string>
+# include "String.hpp"
 
-bool	checkMandatoryHeaders(std::string fieldName, const std::string &fieldValue);
+bool	checkMandatoryHeaders(String fieldName, const String &fieldValue);
 
 #endif

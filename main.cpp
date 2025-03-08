@@ -17,7 +17,7 @@
 #include <cstdlib>
 #include "Configuration.hpp"
 #include "Parser.hpp"
-#include "Servers.hpp"
+#include "Driver.hpp"
 #include "ErrorCode.hpp"
 
 void	sigint_exit(int)
@@ -44,7 +44,7 @@ int	main(int argc, char** argv)
 	/*config.printMatchingElements("prefix");*/
 	std::cout << "--------------------------------\n";
 
-	Servers	servers;
+	Driver	servers;
 	servers.configureFrom(config);
 
 	std::cout << "Server is running...\n";

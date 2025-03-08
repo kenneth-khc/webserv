@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Servers.hpp                                        :+:      :+:    :+:   */
+/*   Driver.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SERVERS_HPP
-#define SERVERS_HPP
+#ifndef DRIVER_HPP
+#define DRIVER_HPP
 
 #include "Server.hpp"
 #include "Client.hpp"
@@ -25,9 +25,9 @@
 #include <map>
 #include <queue>
 
-struct	Servers
+struct	Driver
 {
-	Servers();
+	Driver();
 
 	std::vector<Server>		servers;
 

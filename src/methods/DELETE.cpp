@@ -16,11 +16,11 @@
 #include <unistd.h>
 #include "ErrorCode.hpp"
 #include "Server.hpp"
-#include "Servers.hpp"
+#include "Driver.hpp"
 
 // TODO: use cookies for authorization? user can only delete what is theirs
 // TODO: consider other status codes. 200 OK? 202 Accepted? 403 Forbidden?
-void	Servers::delete_(Response& response, const Request& request) const
+void	Driver::delete_(Response& response, const Request& request) const
 {
 	std::string	target = request.requestTarget;
 

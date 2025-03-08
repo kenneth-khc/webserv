@@ -22,9 +22,9 @@
 #include "contentType.hpp"
 #include "etag.hpp"
 
-#include "Servers.hpp"
+#include "Driver.hpp"
 
-void	Servers::get(Response& response, const Request& request) const
+void	Driver::get(Response& response, const Request& request) const
 {
 	std::string	file = request.requestTarget;
 	struct stat	statbuf;

@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Servers.cpp                                        :+:      :+:    :+:   */
+/*   Driver.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Servers.hpp"
+#include "Driver.hpp"
 #include "Server.hpp"
 #include "Configuration.hpp"
 #include "ConfigErrors.hpp"
@@ -27,9 +27,9 @@
 #include <fcntl.h>
 #include <dirent.h>
 
-const unsigned int	Servers::timeoutValue = 5;
+const unsigned int	Driver::timeoutValue = 5;
 
-Servers::Servers():
+Driver::Driver():
 epollFD(-1),
 maxEvents(1),
 readyEvents(NULL),
@@ -69,7 +69,7 @@ findChildren(const std::multimap<String,Directive>&	allChildren,
 }
 
 // TODO: refactor this crap holy
-void	Servers::configureFrom(const Configuration& config)
+void	Driver::configureFrom(const Configuration& config)
 {
 	epollFD = epoll_create(1);
 	if (epollFD == -1){
@@ -109,7 +109,7 @@ void	Servers::configureFrom(const Configuration& config)
 	}
 }
 
-void	Servers::configNewServer(const Directive& directive)
+void	Driver::configNewServer(const Directive& directive)
 {
 
 	String		listenTo = directive.get<String>("listen").value_or("8000");
@@ -126,21 +126,22 @@ void	Servers::configNewServer(const Directive& directive)
 	}
 
 	int		portNum = to<int>(listenTo);
+	Socket*	socket = NULL;
 	if (listeners.find(portNum) == listeners.end())
 	{
 		Socket	s = Socket(portNum);
 		listeners[s.fd] = s;
 		listeners[s.fd].bind();
 		listeners[s.fd].listen(1);
+		socket = &listeners[s.fd];
 	}
-	Socket*	socket = &listeners[portNum];
 	std::vector<String>	domainNames = directive.get< std::vector<String> >("server_name")
 									  .value_or(std::vector<String>());
 	Server	newServer(domainNames, portNum, socket);
 	servers.push_back(newServer);
 }
 
-int	Servers::epollWait()
+int	Driver::epollWait()
 {
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, 1000);
 	std::cout << "Ready: " << numReadyEvents << '\n';
@@ -150,6 +151,7 @@ int	Servers::epollWait()
 
 	if (numReadyEvents == -1)
 	{
+		//TODO: error handling
 		perror("epw");
 	}
 	else if (numReadyEvents > 0 && (readyEvents[0].events & EPOLLRDHUP))
@@ -164,11 +166,10 @@ int	Servers::epollWait()
 	return numReadyEvents;
 }
 
-void	Servers::processReadyEvents()
+void	Driver::processReadyEvents()
 {
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
-		std::cout << "yeh\n";
 		const epoll_event&	ev = readyEvents[i];
 
 		if (listeners.find(ev.data.fd) != listeners.end())
@@ -194,7 +195,7 @@ static bool	endOfHeaderFound(const std::string& message)
 	return message.find("\r\n\r\n") != message.npos;
 }
 
-void	Servers::processMessages()
+void	Driver::processMessages()
 {
 	/*if (listenerSocketFD == readyEvents[0].data.fd)*/
 	/*	return ;*/
@@ -229,7 +230,7 @@ void	Servers::processMessages()
 
 }
 
-void	Servers::processReadyRequests()
+void	Driver::processReadyRequests()
 {
 	while (!readyRequests.empty())
 	{
@@ -243,7 +244,7 @@ void	Servers::processReadyRequests()
 	}
 }
 
-Response	Servers::handleRequest(const Request& request) const
+Response	Driver::handleRequest(const Request& request) const
 {
 	Response	response;
 
@@ -280,7 +281,7 @@ Response	Servers::handleRequest(const Request& request) const
 	return response;
 }
 
-void	Servers::generateResponses()
+void	Driver::generateResponses()
 {
 	while (!readyResponses.empty())
 	{
@@ -305,7 +306,7 @@ void	Servers::generateResponses()
 	}
 }
 
-void	Servers::monitorConnections()
+void	Driver::monitorConnections()
 {
 	std::map<int, Client>::iterator	it = clients.begin();
 
@@ -323,7 +324,7 @@ void	Servers::monitorConnections()
 	}
 }
 
-void	Servers::acceptNewClient(int socketFD)
+void	Driver::acceptNewClient(int socketFD)
 {
 	Client	client;
 
@@ -347,7 +348,7 @@ void	Servers::acceptNewClient(int socketFD)
 	clients.insert(std::make_pair(client.socketFD, client));
 }
 
-ssize_t	Servers::receiveBytes(Client& client)
+ssize_t	Driver::receiveBytes(Client& client)
 {
 	ssize_t	bytes = recv(client.socketFD,
 						 &client.messageBuffer[0],
@@ -371,7 +372,7 @@ ssize_t	Servers::receiveBytes(Client& client)
 	return bytes;
 }
 
-void	Servers::generateDirectoryListing(Response& response, const std::string& dirName) const
+void	Driver::generateDirectoryListing(Response& response, const std::string& dirName) const
 {
 	DIR*	dir = opendir(dirName.c_str());
 	std::cout << dirName << '\n';

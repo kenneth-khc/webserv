@@ -22,7 +22,7 @@
 class	Client
 {
 	friend struct Server;
-	friend struct Servers;
+	friend struct Driver;
 
 public:
 	Client();

@@ -21,17 +21,11 @@
 #include "ConfigErrors.hpp"
 
 Parser::Parser(const char *fileName):
-configFile(fileName),
 configurator(),
 lexer(fileName),
 token(Token::NONE),
 contexts()
 {
-	if (!configFile.is_open())
-	{
-		std::cerr << "Error. Cannot open file <" << fileName << ">\n";
-		std::exit(1);
-	}
 }
 
 Configuration	Parser::parseConfig()

@@ -39,35 +39,6 @@ map("mime.types")
 	readyEvents = new epoll_event[maxEvents];
 }
 
-// TODO: remove
-void	die(const String& str)
-{
-	std::cerr << str << '\n';
-	std::exit(1);
-}
-
-// TODO: beautify
-std::pair<String,Directive>	findChild(const std::multimap<String,Directive>& children,
-									  const String& key)
-{
-	return *children.find(key);
-}
-
-// TODO: beautify
-std::vector<std::pair<String,Directive> >
-findChildren(const std::multimap<String,Directive>&	allChildren,
-			 const String& key)
-{
-	std::vector<std::pair<String,Directive> >	children;
-	DirectiveRange	childRange = allChildren.equal_range(key);
-	while (childRange.first != childRange.second)
-	{
-		children.push_back(*childRange.first);
-		++childRange.first;
-	}
-	return children;
-}
-
 // TODO: refactor this crap holy
 void	Driver::configureFrom(const Configuration& config)
 {
@@ -76,19 +47,14 @@ void	Driver::configureFrom(const Configuration& config)
 		// TODO: error handling 
 	}
 
-	const std::pair<String,Directive>	http = findChild(config.directives, "http");
-	const Directive&	httpDirective = http.second;
-	std::vector<std::pair<String,Directive> >	children = findChildren(httpDirective.directives, "server");
-	for (size_t i = 0; i < children.size(); ++i)
+	const Directive&		http = config.get("http");
+	std::vector<Directive>	serverDirectives = http.getDirectives("server");
+	for (size_t i = 0; i < serverDirectives.size(); ++i)
 	{
-		const Directive&	server = children[i].second;
-		std::cout << server.name << " : ";
-		server.printParameters();
-		std::cout << '\n';
-
+		const Directive&	serverDirective = serverDirectives[i];
 		try
 		{
-			configNewServer(server);
+			configNewServer(serverDirective);
 		}
 		catch (const ConfigError& e)
 		{
@@ -112,7 +78,7 @@ void	Driver::configureFrom(const Configuration& config)
 void	Driver::configNewServer(const Directive& directive)
 {
 
-	String		listenTo = directive.get<String>("listen").value_or("8000");
+	String		listenTo = directive.getParams<String>("listen").value_or("8000");
 	addrinfo*	localhost = NULL;
 	addrinfo	requirements = {};
 	requirements.ai_family = AF_INET;
@@ -133,19 +99,21 @@ void	Driver::configNewServer(const Directive& directive)
 		listeners[s.fd] = s;
 		listeners[s.fd].bind();
 		listeners[s.fd].listen(1);
+		// WARN: something sussy here with the socket pointer
+		// what happens if I have a listen in another server
+		// trying to point to an existing socket
 		socket = &listeners[s.fd];
 	}
-	std::vector<String>	domainNames = directive.get< std::vector<String> >("server_name")
+	std::vector<String>	domainNames = directive.getParams< std::vector<String> >("server_name")
 									  .value_or(std::vector<String>());
 	Server	newServer(domainNames, portNum, socket);
+	newServer.root = directive.getParams<String>("root").value_or("html");
 	servers.push_back(newServer);
 }
 
 int	Driver::epollWait()
 {
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, 1000);
-	std::cout << "Ready: " << numReadyEvents << '\n';
-
 	std::cout << "epoll_wait() returned with " << numReadyEvents
 			  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
 

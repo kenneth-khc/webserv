@@ -18,33 +18,34 @@
 #include "String.hpp"
 #include "Context.hpp"
 
+struct	Directive;
+
+typedef std::multimap<String,Directive>	Mappings;
+
 struct	Directive
 {
 	// Name of the current directive
-	String					name;
+	String				name;
 	// Parameters of the current directive
-	std::vector<String>		parameters;
-	/*Context				context;*/
+	std::vector<String>	parameters;
 	// The context this directive is in
-	Context					enclosingContext;
+	Context				enclosingContext;
 	// The directives within the directive
-	std::multimap<String,Directive>	directives;
+	Mappings			directives;
 
 	Directive();
 	Directive(const String&, const std::vector<String>&, Context);
-	/*Directive(const String&, const std::vector<String>&, Context, Context);*/
 
-	void				addDirective(const Directive&);
-	void				printMatchingElements(const String& key);
-	bool				hasParameters() const;
-	Optional<Directive>	find(const String& key) const;
-	/*Optional<String>	get(const String& key) const;*/
-	/*std::vector<String>	get(const String& key) const;*/
+	void					addDirective(const Directive&);
+	const Directive&		getDirective(const String&);
+	std::vector<Directive>	getDirectives(const String& key) const;
+	Optional<Directive>		find(const String& key) const;
 
+	bool					hasParameters() const;
 	template <typename ReturnType>
-	Optional<ReturnType>	get(const String& key) const;
+	Optional<ReturnType>	getParams(const String& key) const;
+	void					printParameters() const;
 
-	void				printParameters() const;
 };
 
 typedef std::pair<std::multimap<String,Directive>::const_iterator,
@@ -52,7 +53,7 @@ typedef std::pair<std::multimap<String,Directive>::const_iterator,
 
 template <>
 inline Optional<String>
-Directive::get<String>(const String& key) const
+Directive::getParams<String>(const String& key) const
 {
 	std::multimap<String,Directive>::const_iterator it = directives.find(key);
 	if (it == directives.end())
@@ -77,7 +78,7 @@ Directive::get<String>(const String& key) const
 
 template <>
 inline Optional< std::vector<String> >
-Directive::get< std::vector<String> >(const String& key) const
+Directive::getParams< std::vector<String> >(const String& key) const
 {
 	std::multimap<String,Directive>::const_iterator it = directives.find(key);
 	if (it == directives.end())

@@ -13,7 +13,6 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
-#include <fstream>
 #include <stack>
 #include "Lexer.hpp"
 #include "String.hpp"
@@ -25,7 +24,6 @@ struct	Parser
 {
 	Parser(const char* fileName);
 
-	std::ifstream		configFile;
 	Configurator		configurator;
 	Lexer				lexer;
 	Token				token;

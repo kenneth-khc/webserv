@@ -41,29 +41,28 @@ int	main(int argc, char** argv)
 	Parser			parser(argv[1]);
 	Configuration	config = parser.parseConfig();
 	config.display();
-	/*config.printMatchingElements("prefix");*/
 	std::cout << "--------------------------------\n";
 
-	Driver	servers;
-	servers.configureFrom(config);
+	Driver	driver;
+	driver.configureFrom(config);
 
 	std::cout << "Server is running...\n";
 	while (1)
 	{
-		if (servers.epollWait() != 0)
+		if (driver.epollWait() != 0)
 		{
-			servers.processReadyEvents();
+			driver.processReadyEvents();
 			try
 			{
-				servers.processMessages();
-				servers.processReadyRequests();
-				servers.generateResponses();
+				driver.processMessages();
+				driver.processReadyRequests();
+				driver.generateResponses();
 			}
 			catch (const ErrorCode& e)
 			{
 				std::cout << e.what() << '\n';
 			}
 		}
-		servers.monitorConnections();
+		driver.monitorConnections();
 	}
 }

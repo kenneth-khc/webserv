@@ -37,7 +37,11 @@ routes()
 Server::Server(std::vector<String> domainNames, int portNum, Socket* socket):
 domainNames(domainNames),
 portNum(portNum),
-socket(socket)
+socket(socket),
+socketFD(socket->fd),
+numClients(0),
+root(),
+routes()
 {
 
 }

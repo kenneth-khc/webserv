@@ -79,6 +79,11 @@ Optional<Directive>	Configuration::find(const String& key) const
 	}
 }
 
+const Directive&	Configuration::get(const String& key) const
+{
+	return directives.find(key)->second;
+}
+
 void	Configuration::assertHasDirective(const String& key) const
 {
 	if (!find(key).exists)
@@ -96,29 +101,3 @@ void	Configuration::display() const
 	}
 }
 
-void	Configuration::printMatchingElements(const String& key)
-{
-	DirectiveRange	range = directives.equal_range(key);
-	size_t			elements = std::distance(range.first, range.second);
-	std::cout << "global" << " has " << elements
-			  << " elements matching the key " << key << '\n';
-	while (range.first != range.second)
-	{
-		const Directive&	dir = range.first->second;
-		std::cout << dir.name;
-		std::cout << " = ";
-		if (dir.parameters.empty())
-		{
-			std::cout << "\"\"";
-		}
-		else
-		{
-			for (size_t i = 0; i < dir.parameters.size(); ++i)
-			{
-				std::cout << dir.parameters[i];
-			}
-		}
-		std::cout << '\n';
-		++range.first;
-	}
-}

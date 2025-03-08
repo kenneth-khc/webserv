@@ -12,7 +12,6 @@
 
 #include "Directive.hpp"
 #include "ConfigErrors.hpp"
-#include <typeinfo>
 
 Directive::Directive()
 {
@@ -32,6 +31,25 @@ enclosingContext(context)
 void	Directive::addDirective(const Directive& dir)
 {
 	directives.insert(std::make_pair(dir.name, dir));
+}
+
+const Directive&	Directive::getDirective(const String& key)
+{
+	return directives.find(key)->second;
+}
+
+std::vector<Directive>	Directive::getDirectives(const String& key) const
+{
+	std::vector<Directive>	matchingDirectives;
+	DirectiveRange	range = directives.equal_range(key);
+	while (range.first != range.second)
+	{
+		const std::pair<String,Directive>&	entry = *range.first;
+		const Directive&					directive = entry.second;
+		matchingDirectives.push_back(directive);
+		++range.first;
+	}
+	return matchingDirectives;
 }
 
 bool	Directive::hasParameters() const
@@ -119,28 +137,3 @@ String	stringifyContext(Context ctx)
 	
 }
 
-void	Directive::printMatchingElements(const String& key)
-{
-	DirectiveRange	range = directives.equal_range(key);
-	size_t			elements = std::distance(range.first, range.second);
-	std::cout << name << " has " << elements
-			  << " elements matching the key " << key << '\n';
-	while (range.first != range.second)
-	{
-		const Directive&	dir = range.first->second;
-		std::cout << dir.name;
-		std::cout << " = ";
-		if (dir.parameters.empty())
-		{
-			std::cout << "\"\"";
-		}
-		else
-		{
-			for (size_t i = 0; i < dir.parameters.size(); ++i)
-			{
-				std::cout << dir.parameters[i];
-			}
-		}
-		std::cout << '\n';
-	}
-}

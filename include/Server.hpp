@@ -32,6 +32,7 @@ struct	Server
 
 	static const unsigned int	timeoutValue;
 
+	String					root;
 	std::map<String,String>	routes;
 };
 

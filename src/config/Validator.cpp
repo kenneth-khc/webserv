@@ -169,10 +169,11 @@ void	validateLocation(const Directive& dir, const Mappings&)
 Syntax : root path;
 Default: root html;
 Context: http, server, location, if in location */
-void	validateRoot(const Directive& dir, const Mappings&)
+void	validateRoot(const Directive& dir, const Mappings& mappings)
 {
 	validateParameterSize(dir, 1);
 	validateEnclosingContext(dir, (HTTP, SERVER, LOCATION));
+	validateDuplicateDirective(dir, mappings);
 }
 
 /*

@@ -13,6 +13,7 @@
 #include "Lexer.hpp"
 #include "Token.hpp"
 #include <cctype>
+#include <cstdlib>
 
 const Predicate Lexer::isWSP(" \t\n");
 
@@ -22,7 +23,11 @@ input(configFile),
 currentToken(),
 lookingFor(Token::NAME)
 {
-
+	if (!configFile.is_open())
+	{
+		std::cerr << "Error. Cannot open file <" << fileName << ">\n";
+		std::exit(EXIT_FAILURE);
+	}
 }
 
 const Token&	Lexer::peek() const

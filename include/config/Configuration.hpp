@@ -13,8 +13,6 @@
 #ifndef CONFIGURATION_HPP
 #define CONFIGURATION_HPP
 
-#include <vector>
-#include <map>
 #include "Optional.hpp"
 #include "Directive.hpp"
 
@@ -22,12 +20,12 @@ struct	Configuration
 {
 	Configuration();
 
-	std::multimap<String,Directive>	directives;
+	Mappings	directives;
 
 	void				add(const Directive&);
 	Optional<Directive>	find(const String&) const;
 	void				display() const;
-	void				printMatchingElements(const String& key);
+	const Directive&	get(const String&) const;
 	void				assertHasDirective(const String&) const;
 };
 

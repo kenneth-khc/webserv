@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   MessageBody.hpp                                    :+:      :+:    :+:   */
+/*   POSTBody.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:26:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/10 01:12:58 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/05 17:53:24 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MESSAGEBODY_HPP
-#define MESSAGEBODY_HPP
+#ifndef POSTBODY_HPP
+#define POSTBODY_HPP
 
 #include <map>
 #include <vector>
@@ -21,7 +21,7 @@
 using std::map;
 using std::vector;
 
-class	MessageBodyPart
+class	POSTBodyPart
 {
 public:
 	map<String,String>	contentDisposition;
@@ -31,19 +31,22 @@ public:
 	void	extractKeyValue(const String&);
 };
 
-class	MessageBody
+class	POSTBody
 {
 public:
-	MessageBody(const Request&);
+	POSTBody(const Request&);
 
-	vector<MessageBodyPart>	parts;
+	vector<POSTBodyPart>	parts;
 	String					contentType;
+	map<String, String>		urlEncodedKeyValues;
+	// std::map sorts the keys so we use also use vectors to preserve order
+	vector<String>			urlEncodedKeys;
+	vector<String>			urlEncodedValues;
 
 private:
 	void	parseURLEncoded();
 	void	parseMultipartFormData(String&);
 
-	map<String,String>	urlEncodedKeyValues;
 	String				dashBoundary;
 	String				closeBoundary;
 	String				body;

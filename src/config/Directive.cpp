@@ -12,6 +12,7 @@
 
 #include "Directive.hpp"
 #include "ConfigErrors.hpp"
+#include <iostream>
 
 Directive::Directive()
 {

@@ -1,20 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   HEAD.cpp                                           :+:      :+:    :+:   */
+/*   handling.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/28 09:16:13 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/28 09:18:22 by kecheong         ###   ########.fr       */
+/*   Created: 2025/02/02 04:05:29 by kecheong          #+#    #+#             */
+/*   Updated: 2025/03/07 19:28:10 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <map>
+#include <unistd.h>
+#include "Optional.hpp"
+#include "String.hpp"
 #include "Server.hpp"
-#include "Driver.hpp"
-#include "debugUtils.hpp"
-
-void	Driver::head(Response&, const Request&) const
-{
-	dbg::println("!!!!!!!!!!!!!!!! HEADING !!!!!!!!!!!!!!!!");
-}
+#include "ErrorCode.hpp"
+#include "Time.hpp"
+#include "Cookie.hpp"
+#include "Base64.hpp"
+#include "connection.hpp"
+#include "date.hpp"
+#include "contentLength.hpp"

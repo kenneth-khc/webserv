@@ -6,15 +6,15 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 19:05:34 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 05:42:28 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/26 19:27:14 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MEDIATYPE_HPP
 # define MEDIATYPE_HPP
 
-# include <string>
 # include <map>
+# include "String.hpp"
 # include "Optional.hpp"
 
 /***************************************/
@@ -29,23 +29,24 @@
 class MediaType {
 		MediaType(void);
 
-		class MIMETypesNotFound : public std::exception {
+		class MIMETypesFileError : public std::exception {
+				String	message;
 			public:
-				MIMETypesNotFound(void);
-				~MIMETypesNotFound(void) throw();
+				MIMETypesFileError(const String &message);
+				~MIMETypesFileError(void) throw();
 				const char	*what(void) const throw();
 		};
 
 	public:
-		std::map<std::string, std::string>	map;
+		std::map<String, String>	map;
 
-		MediaType(const std::string &file);
 		MediaType(const MediaType &obj);
 		MediaType	&operator=(const MediaType &obj);
+		MediaType(const String &file);
 		~MediaType(void);
 
-		Optional<std::string>		operator[](const std::string &key);
-		const Optional<std::string>	operator[](const std::string &key) const;
+		Optional<String>		operator[](const String &key);
+		const Optional<String>	operator[](const String &key) const;
 };
 
 #endif

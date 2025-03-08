@@ -1,20 +1,20 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   PUT.cpp                                            :+:      :+:    :+:   */
+/*   contentLength.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/28 09:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/01/28 09:18:15 by kecheong         ###   ########.fr       */
+/*   Created: 2025/03/03 06:01:37 by cteoh             #+#    #+#             */
+/*   Updated: 2025/03/03 06:06:20 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server.hpp"
-#include "debugUtils.hpp"
-#include "Driver.hpp"
+#ifndef CONTENTLENGTH_HPP
+# define CONTENTLENGTH_HPP
 
-void	Driver::put(Response&, const Request&) const
-{
-	dbg::println("!!!!!!!!!!!!!!!! PUTTING !!!!!!!!!!!!!!!!");
-}
+# include "String.hpp"
+
+bool	isContentLengthHeader(const String &line);
+
+#endif

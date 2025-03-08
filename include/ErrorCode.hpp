@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:25:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 06:03:18 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/02/22 20:44:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,14 @@
 # define ERRORCODE_HPP
 
 # include <exception>
-# include <string>
+# include "String.hpp"
 # include "Response.hpp"
 
 class ErrorCode : public std::exception, public Response {
 	public:
-		std::string	title;
-
 		ErrorCode(void);
-		ErrorCode(float httpVersion, int statusCode, std::string reasonPhrase);
-		ErrorCode(float httpVersion, int statusCode, std::string reasonPhrase, const char *title);
+		ErrorCode(float httpVersion, int statusCode, String reasonPhrase);
+		ErrorCode(float httpVersion, int statusCode, String reasonPhrase, const char *title);
 		~ErrorCode(void) throw();
 		ErrorCode(const ErrorCode &obj);
 		ErrorCode	&operator=(const ErrorCode &obj);
@@ -51,9 +49,22 @@ class PreconditionFailed412 : public ErrorCode {
 		PreconditionFailed412(const char *title);
 };
 
+class UnsupportedMediaType415 : public ErrorCode {
+	public:
+		UnsupportedMediaType415(void);
+		UnsupportedMediaType415(const char *title);
+		UnsupportedMediaType415(const char *header, const char *value);
+};
+
 /********************/
 /* Server Error 5XX */
 /********************/
+class InternalServerError500 : public ErrorCode {
+	public:
+		InternalServerError500(void);
+		InternalServerError500(const char *title);
+};
+
 class NotImplemented501 : public ErrorCode {
 	public:
 		NotImplemented501(void);

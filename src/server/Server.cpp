@@ -15,7 +15,6 @@
 #include <sys/epoll.h>
 #include <netdb.h>
 #include <cstring>
-#include <cstdlib>
 #include <cstdio>
 #include <unistd.h>
 #include <fcntl.h>
@@ -43,5 +42,4 @@ numClients(0),
 root(),
 routes()
 {
-
 }

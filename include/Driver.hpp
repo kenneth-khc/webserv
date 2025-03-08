@@ -25,10 +25,13 @@
 #include <map>
 #include <queue>
 
+extern "C" char	**environ;
+
 struct	Driver
 {
 	Driver();
 
+	String					name;
 	std::vector<Server>		servers;
 
 	int						epollFD;
@@ -41,10 +44,11 @@ struct	Driver
 	std::queue<Request>		readyRequests;
 	std::queue<Response>	readyResponses;
 
+
 	//	TODO: Change access specifier?
 	//	Only include a server-wide mapping for now..,
 	//	Nginx allows defining in different http, server, and location blocks
-	MediaType				map;
+	MediaType				MIMEMappings;
 
 	//	TODO: Change access specifier?
 	/* Server-wide connection timeout value in seconds */
@@ -53,30 +57,45 @@ struct	Driver
 	friend class Logger;
 	Logger	logger;
 
-	void	configureFrom(const Configuration&);
-	void	configNewServer(const Directive&);
+	void		configureFrom(const Configuration&);
+	void		configNewServer(const Directive&);
 
-	int		epollWait();
-	void	acceptNewClient(int);
-	ssize_t	receiveBytes(Client&);
-	Response	handleRequest(const Request&) const;
+	int			epollWait();
+	void		acceptNewClient(const Socket&);
+	ssize_t		receiveBytes(Client&);
+	Request		receiveRequest(int fd) const;
+	Response	handleRequest(Request&);
 
-	void	processReadyEvents();
-	void	processMessages();
-	void	processReadyRequests();
-	void	generateResponses();
+	void		processReadyEvents();
+	void		processMessages();
+	void		processReadyRequests();
+	void		generateResponses();
 
-	void	monitorConnections();
+	void		processCookies(Request&, Response&);
+	void		monitorConnections();
 
 	/* Handling HTTP methods */
-	void			get(Response&, const Request&) const;
-	void			post(Response&, const Request&) const;
-	void			delete_(Response&, const Request&) const;
-	void			put(Response&, const Request&) const;
-	void			head(Response&, const Request&) const;
+	void		get(Response&, Request&) const;
+	void		post(Response&, Request&) const;
+	void		delete_(Response&, Request&) const;
 
-	void			generateDirectoryListing(Response&, const std::string&) const;
+	void		cgi(Response&, const Request&) const;
+	void		generateDirectoryListing(Response&, const std::string&) const;
 
+	// Resources Directories
+	const String 	rootDir;
+	const String 	pagesDir;
+	const String 	uploadsDir;
+	const String 	miscPagesDir;
+	const String	cgiDir;
+
+	bool				autoindex;
+
+	std::vector<String>	cgiScript;
+
+	std::map<std::string,std::string>	directoryMappings;
+
+	friend class CGI;
 
 };
 

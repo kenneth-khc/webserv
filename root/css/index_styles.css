@@ -1,0 +1,83 @@
+html {
+	box-sizing: border-box;
+	font-family: 'Comic Sans MS';
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: inherit;
+}
+
+body {
+	margin: 0px;
+	background-color: #f4dde7;
+}
+
+/* Container for the entire viewport */
+#container {
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+}
+
+/* Container for all the main aspects of the page */
+#main-container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	flex: 1;
+	gap: 10px;
+}
+
+/* Main title, form, and language */
+#title-container,
+.pseudo-button,
+#language-container {
+	width: 100%;
+}
+
+.pseudo-button {
+	text-decoration: none;
+	color: black;
+}
+
+.pseudo-button:hover {
+	background-color: #ffe6ee;
+}
+
+form {
+	margin-top: 4px;
+}
+
+#language-container {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.main-element {
+	border: 2px solid black;
+	border-radius: 8px;
+	padding: 8px;
+}
+
+h1, h3, form {
+	text-align: center;
+	margin: 0px;
+}
+
+/* Image fillers to make it less bland */
+.image-container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	flex: 1;
+}
+
+img {
+	min-height: 0;
+}

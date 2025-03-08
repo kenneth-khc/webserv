@@ -6,12 +6,13 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:45:56 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/02 03:19:01 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/08 19:52:23 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <cctype>
 #include <cstdlib>
+#include <iostream>
 #include "String.hpp"
 #include "Parser.hpp"
 #include "Lexer.hpp"

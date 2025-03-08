@@ -3,14 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   String.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/08 06:08:56 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/07 16:29:34 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <stdexcept>
@@ -109,7 +108,17 @@ String	String::operator+(const String& rhs)
 	return String(str + rhs.str);
 }
 
+String	String::operator+(const String& rhs) const
+{
+	return String(str + rhs.str);
+}
+
 String	String::operator+(const char* rhs)
+{
+	return *this + String(rhs);
+}
+
+String	String::operator+(const char* rhs) const
 {
 	return *this + String(rhs);
 }
@@ -224,6 +233,70 @@ void	String::clear()
 const char*	String::c_str() const
 {
 	return str.c_str();
+}
+
+Optional<String::size_type>
+String::find_last_of(char c, size_type offset) const
+{
+	size_type	pos = str.find_last_of(c, offset);
+	if (pos == str.npos)
+	{
+		return makeNone<size_type>();
+	}
+	else
+	{
+		return makeOptional<size_type>(pos);
+	}
+}
+
+Optional<String::size_type>
+String::find_last_of(const String& expected, size_type offset) const
+{
+	size_type	pos = str.find_last_of(expected, offset);
+	if (pos == str.npos)
+	{
+		return makeNone<size_type>();
+	}
+	else
+	{
+		return makeOptional<size_type>(pos);
+	}
+}
+
+void	String::resize(size_type count)
+{
+	str.resize(count);
+}
+
+String&	String::replace(size_type pos, size_type count, const String& toReplace)
+{
+	str.replace(pos, count, toReplace);
+	return *this;
+}
+
+String::iterator	String::begin()
+{
+	return str.begin();
+}
+
+String::const_iterator	String::begin() const
+{
+	return str.begin();
+}
+
+String::iterator	String::end()
+{
+	return str.end();
+}
+
+String::const_iterator	String::end() const
+{
+	return str.end();
+}
+
+String::iterator	String::erase(String::iterator first, String::iterator last)
+{
+	return str.erase(first, last);
 }
 
 Optional<String::size_type>
@@ -461,4 +534,3 @@ std::string	String::toStdString(const Type& T)
 	ss << T;
 	return ss.str();
 }
-

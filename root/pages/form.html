@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="/css/form_styles.css">
+	</head>
+
+	<body>
+		<div id="container">
+			<div id="title-container">
+				<a id="back-button" href="/">Back</a>
+				<h1 id="title">Testing a form!</h1>
+			</div>
+			<div id="simple-form-container">
+				<h2>Simple form (POST: application/x-www-form-urlencoded)</h2>
+				<form method="post" autocomplete="off">
+					<div class="form-inputs">
+						<div class="form-input">
+							<label for="name">Username</label>
+							<input type="text" id="name" name="username" required>
+						</div>
+						<div class="form-input">
+							<label for="first_name">First name</label>
+							<input type="text" id="first_name" name="first_name" required>
+						</div>
+						<div class="form-input">
+							<label for="last_name">Last name</label>
+							<input type="text" id="last_name" name="last_name" required>
+						</div>
+					</div>
+
+					<button type="submit">Server</button>
+					<button type="submit" formaction="/cgi-bin/upload.py">CGI (Python)</button>
+					<button type="submit" formaction="/cgi-bin/upload.php">CGI (PHP)</button>
+				</form>
+			</div>
+			<div id="file-uploads-container">
+				<h2>File uploads (POST: multipart/form-data)</h2>
+				<form method="post" enctype="multipart/form-data" autocomplete="off">
+					<div class="form-inputs">
+						<div class="form-input">
+							<input type="file" name="filename[]" required>
+						</div>
+						<div class="form-input">
+							<input type="file" name="filename[]" required>
+						</div>
+					</div>
+
+					<button type="submit">Server</button>
+					<button type="submit" formaction="/cgi-bin/upload.py">CGI (Python)</button>
+					<button type="submit" formaction="/cgi-bin/upload.php">CGI (PHP)</button>
+				</form>
+			</div>
+			<div id="simple-form-container">
+				<h2>Simple form (GET)</h2>
+				<form method="get" autocomplete="off">
+					<div class="form-inputs">
+						<div class="form-input">
+							<label for="name">Username</label>
+							<input type="text" id="name" name="username" required>
+						</div>
+						<div class="form-input">
+							<label for="first_name">First name</label>
+							<input type="text" id="first_name" name="first_name" required>
+						</div>
+						<div class="form-input">
+							<label for="last_name">Last name</label>
+							<input type="text" id="last_name" name="last_name" required>
+						</div>
+					</div>
+
+					<button type="submit" formaction="/cgi-bin/upload.py">CGI (Python)</button>
+					<button type="submit" formaction="/cgi-bin/upload.php">CGI (PHP)</button>
+				</form>
+			</div>
+		</div>
+	</body>
+</html>

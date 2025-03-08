@@ -52,16 +52,9 @@ int	main(int argc, char** argv)
 		if (driver.epollWait() != 0)
 		{
 			driver.processReadyEvents();
-			try
-			{
-				driver.processMessages();
-				driver.processReadyRequests();
-				driver.generateResponses();
-			}
-			catch (const ErrorCode& e)
-			{
-				std::cout << e.what() << '\n';
-			}
+			driver.processMessages();
+			driver.processReadyRequests();
+			driver.generateResponses();
 		}
 		driver.monitorConnections();
 	}

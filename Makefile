@@ -43,9 +43,11 @@ includes := -I $(inc_dir)/ \
 obj_dir := obj
 objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)
 
+uploads_dir := uploads
+
 all: $(NAME)
 
-$(NAME): $(objs)
+$(NAME): $(objs) $(uploads_dir)
 	$(CXX) $(CXXFLAGS) $(objs) -o $(NAME)
 
 $(obj_dir):
@@ -54,6 +56,9 @@ $(obj_dir):
 $(obj_dir)/%.o: $(src_dir)/%.cpp | obj
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(includes) $< -c -o $@
+
+$(uploads_dir):
+	mkdir -p $(uploads_dir)
 
 clean:
 	$(RM) -r $(obj_dir)
@@ -69,7 +74,7 @@ optimized: all
 debug_server: CXXFLAGS += -O -g3
 debug_server: all
 
-fsan: CXXFLAGS += -fsanitize=address,undefined -O -g3
+fsan: CXXFLAGS += -fsanitize=address,undefined -g3
 fsan: all
 
 lib:

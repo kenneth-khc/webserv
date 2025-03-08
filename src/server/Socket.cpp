@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/07 22:34:17 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/07 22:39:12 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/08 19:59:32 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,13 +58,12 @@ int	Socket::bind()
 	requirements.ai_flags |= AI_CANONNAME | AI_PASSIVE;
 	requirements.ai_socktype = SOCK_STREAM;
 
-	int	retval = getaddrinfo("localhost", String::from(port).c_str(),
+	int	retval = getaddrinfo("127.0.0.1", String::from(port).c_str(),
 							 &requirements, &localhost);
 	if (retval == -1)
 	{
 		// TODO: ERROR HANDLING
 	}
-
 	return ::bind(fd, localhost->ai_addr, sizeof *localhost->ai_addr);
 	// TODO: error handling;
 }

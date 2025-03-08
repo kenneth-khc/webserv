@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Driver.cpp                                        :+:      :+:    :+:   */
+/*   Driver.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/04 18:59:41 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/08 19:52:33 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,13 @@
 #include "Server.hpp"
 #include "Configuration.hpp"
 #include "ConfigErrors.hpp"
+#include "contentLength.hpp"
 #include "Directive.hpp"
 #include "Utils.hpp"
 #include "connection.hpp"
 #include "ErrorCode.hpp"
 #include "Time.hpp"
+#include "Base64.hpp"
 #include <cstddef>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -26,17 +28,27 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <iostream>
 
 const unsigned int	Driver::timeoutValue = 5;
 
 Driver::Driver():
+name("42webserv"),
 epollFD(-1),
 maxEvents(1),
 readyEvents(NULL),
 numReadyEvents(0),
-map("mime.types")
+MIMEMappings("mime.types"),
+rootDir("root"),
+pagesDir("pages"),
+uploadsDir("uploads"),
+miscPagesDir("misc_pages"),
+cgiDir("cgi-bin"),
+autoindex(true)
 {
 	readyEvents = new epoll_event[maxEvents];
+	cgiScript.push_back("py");
+	cgiScript.push_back("php");
 }
 
 // TODO: refactor this crap holy
@@ -77,20 +89,7 @@ void	Driver::configureFrom(const Configuration& config)
 
 void	Driver::configNewServer(const Directive& directive)
 {
-
-	String		listenTo = directive.getParams<String>("listen").value_or("8000");
-	addrinfo*	localhost = NULL;
-	addrinfo	requirements = {};
-	requirements.ai_family = AF_INET;
-	requirements.ai_flags |= AI_CANONNAME | AI_PASSIVE;
-	requirements.ai_socktype = SOCK_STREAM;
-
-	int	retval = getaddrinfo("localhost", listenTo.c_str(),
-				 &requirements, &localhost);
-	if (retval == -1)
-	{ // TODO: error handling
-	}
-
+	String	listenTo = directive.getParams<String>("listen").value_or("8000");
 	int		portNum = to<int>(listenTo);
 	Socket*	socket = NULL;
 	if (listeners.find(portNum) == listeners.end())
@@ -120,12 +119,12 @@ int	Driver::epollWait()
 	if (numReadyEvents == -1)
 	{
 		//TODO: error handling
-		perror("epw");
 	}
 	else if (numReadyEvents > 0 && (readyEvents[0].events & EPOLLRDHUP))
 	{
 		//	Closes socket in cases where client-side closes the connection on their end.
-		std::cout << "FD " << readyEvents[0].data.fd << " connection closed by client!\n";
+		logger.logConnection(Logger::CLOSE, readyEvents[0].data.fd,
+			clients[readyEvents[0].data.fd]);
 		close(readyEvents[0].data.fd);
 		epoll_ctl(epollFD, EPOLL_CTL_DEL, readyEvents[0].data.fd, 0);
 		clients.erase(clients.find(readyEvents[0].data.fd));
@@ -142,7 +141,8 @@ void	Driver::processReadyEvents()
 
 		if (listeners.find(ev.data.fd) != listeners.end())
 		{
-			acceptNewClient(ev.data.fd);
+			const Socket&	socket = listeners.find(ev.data.fd)->second;
+			acceptNewClient(socket);
 		}
 		else if (ev.events & EPOLLIN)
 		{
@@ -153,49 +153,68 @@ void	Driver::processReadyEvents()
 	}
 }
 
-static bool	endOfRequestLineFound(const std::string& message)
-{
-	return message.find("\r\n") != message.npos;
-}
-
-static bool	endOfHeaderFound(const std::string& message)
-{
-	return message.find("\r\n\r\n") != message.npos;
-}
-
 void	Driver::processMessages()
 {
-	/*if (listenerSocketFD == readyEvents[0].data.fd)*/
-	/*	return ;*/
-	/**/
 	// TODO: get all ready clients instead of just the first one
 	Client&		client = clients[readyEvents[0].data.fd];
 	Request&	request = client.request;
 
-	if (!client.requestLineFound && endOfRequestLineFound(client.message))
+	try
 	{
-		request.parseRequestLine(client.message);
-		client.requestLineFound = true;
-	}
-	if (client.requestLineFound &&
-		!client.headersFound &&
-		endOfHeaderFound(client.message))
-	{
-		request.parseHeaders(client.message);
-		client.headersFound = true;
-	}
-	if (client.requestLineFound && client.headersFound)
-	{
-		Optional<int>	bodyLength = request.find< Optional<int> >("Content-Length");
+		if (!request.requestLineFound && client.endOfRequestLineFound())
+		{
+			request.parseRequestLine(client.message);
+			request.requestLineFound = true;
+		}
+		if (request.requestLineFound &&
+			!request.headersFound &&
+			client.endOfHeaderFound())
+		{
+			request.parseHeaders(client.message);
+			request.headersFound = true;
 
-		request.messageBody = client.message;
-		if (client.message.size() == (size_t)bodyLength.value)
+			Optional<String>	contentLength = request["Content-Length"];
+			Optional<String>	transferEncoding = request["Transfer-Encoding"];
+
+			if (contentLength.exists && transferEncoding.exists)
+			{
+				request.headers.erase(Request::stringToLower("Content-Length"));
+			}
+			else if (!contentLength.exists && !transferEncoding.exists)
+			{
+				request.insert(Request::stringToLower("Content-Length"), 0);
+			}
+			else if (contentLength.exists && !transferEncoding.exists)
+			{
+				if (isContentLengthHeader(contentLength.value) == false)
+					throw BadRequest400();
+			}
+			else if (!contentLength.exists && transferEncoding.exists)
+			{
+				transferEncoding.value = Request::stringToLower(transferEncoding.value);
+				if (transferEncoding.value.find("chunked").exists == false)
+					throw BadRequest400();
+			}
+		}
+		if (request.requestLineFound &&
+			request.headersFound &&
+			!request.messageBodyFound)
+		{
+			request.parseMessageBody(client.message);
+		}
+		if (request.messageBodyFound)
 		{
 			readyRequests.push(request);
-			/*logger.logRequest(*this, request);*/
+			logger.logRequest(request, client);
 		}
 	}
-
+	catch (const ErrorCode &e)
+	{
+		Response	response;
+		response.insert("Server", name);
+		response = e;
+		readyResponses.push(response);
+	}
 }
 
 void	Driver::processReadyRequests()
@@ -205,39 +224,48 @@ void	Driver::processReadyRequests()
 		Request&	request = readyRequests.front();
 		Response	response = handleRequest(request);
 
-		response.socketFD = request.socketFD;
-		response.destAddress = request.srcAddress;
 		readyResponses.push(response);
 		readyRequests.pop();
 	}
 }
 
-Response	Driver::handleRequest(const Request& request) const
+void	Driver::processCookies(Request& request, Response& response)
+{
+	std::map<String, Cookie>&	cookies = request.cookies;
+
+	if (cookies.find("sid") == cookies.end())
+	{
+		String	sid = Base64::encode(Time::printHTTPDate());
+		cookies.insert(std::make_pair("sid", Cookie("sid", sid)));
+		response.insert("Set-Cookie", "sid=" + sid);
+	}
+	if (cookies.find("lang") == cookies.end())
+	{
+		cookies.insert(std::make_pair("lang", Cookie("lang", "en")));
+		response.insert("Set-Cookie", "lang=en");
+	}
+}
+
+Response	Driver::handleRequest(Request& request)
 {
 	Response	response;
 
-	/*const_cast<Request&>(request).method = POST;*/
+	response.insert("Server", name);
+	request.parseCookieHeader();
+	processCookies(request, response);
 	try
 	{
-		if (request.method == Request::GET)
+		if (request.method == "GET" || request.method == "HEAD")
 		{
 			get(response, request);
 		}
-		else if (request.method == Request::POST)
+		else if (request.method == "POST")
 		{
 			post(response, request);
 		}
-		else if (request.method == Request::PUT)
-		{
-			put(response, request);
-		}
-		else if (request.method == Request::DELETE)
+		else if (request.method == "DELETE")
 		{
 			delete_(response, request);
-		}
-		else if (request.method == Request::HEAD)
-		{
-			head(response, request);
 		}
 	}
 	catch (const ErrorCode& e)
@@ -255,20 +283,20 @@ void	Driver::generateResponses()
 	{
 		Client&		client = clients[readyEvents[0].data.fd];
 		Response&	response = readyResponses.front();
-		/*logger.logResponse(*this, response);*/
-
 		std::string	formattedResponse = response.toString();
-		send(response.socketFD, formattedResponse.c_str(), formattedResponse.size(), 0);
+
+		send(client.socket.fd, formattedResponse.c_str(), formattedResponse.size(), 0);
+		logger.logResponse(response, client);
 
 		if (response.flags & Response::CONNECTION_CLOSE)
 		{
-			close(response.socketFD);
-			epoll_ctl(epollFD, EPOLL_CTL_DEL, response.socketFD, 0);
-			clients.erase(clients.find(response.socketFD));
+			close(client.socket.fd);
+			epoll_ctl(epollFD, EPOLL_CTL_DEL, client.socket.fd, 0);
+			clients.erase(clients.find(client.socket.fd));
 		}
 		else
 		{
-			client.reset();
+			client.request = Request();
 		}
 		readyResponses.pop();
 	}
@@ -282,7 +310,7 @@ void	Driver::monitorConnections()
 	{
 		if (it->second.firstDataRecv == true && it->second.isTimeout() == true)
 		{
-			std::cout << "FD " << it->first << " connection timeout!\n";
+			logger.logConnection(Logger::TIMEOUT, it->first, it->second);
 			close(it->first);
 			epoll_ctl(epollFD, EPOLL_CTL_DEL, it->first, 0);
 			clients.erase(it++);
@@ -292,45 +320,44 @@ void	Driver::monitorConnections()
 	}
 }
 
-void	Driver::acceptNewClient(int socketFD)
+void	Driver::acceptNewClient(const Socket& socket)
 {
 	Client	client;
 
 	client.addressLen = static_cast<socklen_t>(sizeof client.address);
-	client.socketFD = accept(socketFD, (sockaddr*)&client.address,
+	Socket	clientSocket;
+	clientSocket.fd = accept(socket.fd, (sockaddr*)&client.address,
 							 &client.addressLen);
-	std::cout << ">> " << client.socketFD << '\n';
-	fcntl(client.socketFD, F_SETFL, O_NONBLOCK);
+	std::cout << ">> " << client.socket.fd << '\n';
+	fcntl(client.socket.fd, F_SETFL, O_NONBLOCK);
 	//++numClients;
 	
 	//	SO_LINGER prevents close() from returning when there's still data in
 	//	the socket buffer. This avoids the "TCP reset problem" and allows
 	//	graceful closure.
 	linger	linger = {.l_onoff = 1, .l_linger = 5};
-	setsockopt(client.socketFD, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
+	setsockopt(client.socket.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
 
-	epoll_event	event;
+	epoll_event	event = epoll_event();
 	event.events = EPOLLIN | EPOLLRDHUP;
-	event.data.fd = client.socketFD;
-	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socketFD, &event);
-	clients.insert(std::make_pair(client.socketFD, client));
+	event.data.fd = clientSocket.fd;
+	client.socket = clientSocket;
+	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socket.fd, &event);
+	clients.insert(std::make_pair(client.socket.fd, client));
+	logger.logConnection(Logger::ESTABLISHED, client.socket.fd, client);
 }
 
 ssize_t	Driver::receiveBytes(Client& client)
 {
-	ssize_t	bytes = recv(client.socketFD,
+	ssize_t	bytes = recv(client.socket.fd,
 						 &client.messageBuffer[0],
 						 client.messageBuffer.size(), 0);
-
-	// TODO: fix where this belongs
-	client.request.socketFD = client.socketFD;
-	client.request.srcAddress = client.address;
 
 	if (bytes > 0)
 	{
 		for (ssize_t i = 0; i < bytes; ++i)
 		{
-			client.message.push_back(client.messageBuffer[i]);
+			client.message += client.messageBuffer[i];
 		}
 		if (client.firstDataRecv == false)
 		{
@@ -340,36 +367,134 @@ ssize_t	Driver::receiveBytes(Client& client)
 	return bytes;
 }
 
+#include <iomanip>
+#include <algorithm>
+#include <sys/stat.h>
+
+#define FILE_NAME_LEN 45
+#define FILE_SIZE_LEN 20
+
 void	Driver::generateDirectoryListing(Response& response, const std::string& dirName) const
 {
 	DIR*	dir = opendir(dirName.c_str());
-	std::cout << dirName << '\n';
-	if (dir)
+
+	if (!dir)
+		throw NotFound404();
+
+	struct stat			statbuf;
+	std::string			path = dirName;
+	std::string			trimmedRootPath;
+	std::stringstream	stream;
+
+	if (path[path.length() - 1] != '/')
+		path += "/";
+
+	trimmedRootPath = path.substr(path.find_first_of('/'));
+	stream << "<html>\n"
+		   << 	"<head>\n"
+		   << 		"<title>Index of " + trimmedRootPath + "</title>\n"
+		   << 		"<style>\n\t"
+		   << 			"html { font-family: 'Comic Sans MS' }\n\t"
+		   << 			"body { background-color: #f4dde7 }\n\t"
+		   << 			"p { display: inline }\n"
+		   << 		"</style>\n"
+		   << 	"</head>\n"
+		   << 	"<body>\n"
+		   << 		"<h1>Index of " + trimmedRootPath + "</h1>\n"
+		   << 		"<hr><pre>\n";
+
+	response.messageBody += stream.str();
+
+	std::string					parentDir;
+	std::vector<std::string>	directories;
+	std::vector<std::string>	regularFiles;
+
+	for (dirent* entry = readdir(dir); entry != 0; entry = readdir(dir))
 	{
-		response.messageBody += "<html>\n";
-		response.messageBody += "<head><title>Index of " + dirName + "</title></head>\n";
-		response.messageBody += "<body>\n";
-		response.messageBody += "<h1>Index of " + dirName + "</h1>\n";
-		response.messageBody += "<hr>\n";
-		response.messageBody += "<pre>\n";
+		std::string	d_name(entry->d_name);
+		std::string	str;
+		std::string	truncate;
 
-		dirent*	entry = readdir(dir);
-		while (entry != NULL)
+		if (d_name == ".")
 		{
-			response.messageBody += "<a href=\"";
-			response.messageBody += entry->d_name;
-			response.messageBody += "\">";
-
-			response.messageBody += entry->d_name;
-			response.messageBody += "</a>\n";
-			entry = readdir(dir);
+			continue ;
 		}
-		response.messageBody += "</pre>\n";
-		response.messageBody += "<hr>\n";
-		response.messageBody += "</body>\n";
-		response.messageBody += "</html>";
-	}
-	response.statusCode = 200;
-	response.reasonPhrase = "OK";
 
+		stream.str("");
+		// File/Directory Name
+		truncate = (entry->d_type == DT_DIR) ? d_name + "/" : d_name;
+		if (truncate.length() > FILE_NAME_LEN)
+		{
+			truncate.resize(FILE_NAME_LEN);
+			if (entry->d_type == DT_DIR)
+			{
+				truncate.replace(FILE_NAME_LEN - 4, 4, ".../");
+			}
+			else
+			{
+				truncate.replace(FILE_NAME_LEN - 3, 3, "...");
+			}
+		}
+
+		stream << "<a href=\""
+			   << ((entry->d_type == DT_DIR) ? trimmedRootPath + d_name + "/" : trimmedRootPath + d_name)
+			   << "\">"
+			   << std::left
+			   << std::setw(FILE_NAME_LEN + 5)
+			   << truncate + "</a> ";
+
+		str += stream.str();
+		if (d_name == "..")
+		{
+			parentDir = str + "\n";
+			continue ;
+		}
+
+		// Last Modified Date and File Size in Bytes
+		std::stringstream	streamTwo;
+
+		stream.str("");
+		stat(path.c_str(), &statbuf);
+		stream << "<p>";
+		if (entry->d_type == DT_DIR)
+		{
+			streamTwo << "-";
+		}
+		else
+		{
+			streamTwo << statbuf.st_size;
+		}
+		stream << Time::printAutoindexDate(statbuf.st_mtim)
+			   << " "
+			   << std::right
+			   << std::setw(FILE_SIZE_LEN)
+			   << streamTwo.str()
+			   << "</p>\n";
+
+		str += stream.str();
+		if (entry->d_type == DT_DIR)
+			directories.push_back(str);
+		else
+			regularFiles.push_back(str);
+	}
+
+	std::sort(directories.begin(), directories.end());
+	std::sort(regularFiles.begin(), regularFiles.end());
+
+	response.messageBody += parentDir;
+	for (std::vector<std::string>::const_iterator it = directories.begin(); it != directories.end(); it++)
+	{
+		response.messageBody += *it;
+	}
+	for (std::vector<std::string>::const_iterator it = regularFiles.begin(); it != regularFiles.end(); it++)
+	{
+		response.messageBody += *it;
+	}
+
+	stream.str("");
+	stream << 		"</pre><hr>\n"
+		   << 	"</body>\n"
+		   << "</html>";
+	response.messageBody += stream.str();
+	closedir(dir);
 }

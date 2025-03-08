@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 05:44:48 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/28 21:20:28 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/08 19:52:10 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "Token.hpp"
 #include <cctype>
 #include <cstdlib>
+#include <iostream>
 
 const Predicate Lexer::isWSP(" \t\n");
 

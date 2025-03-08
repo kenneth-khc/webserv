@@ -1,41 +1,42 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   MessageBody.cpp                                    :+:      :+:    :+:   */
+/*   POSTBody.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:41:42 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/08 06:12:07 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/02/12 02:04:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <string>
 #include <cctype>
 #include <utility>
-#include "MessageBody.hpp"
+#include "POSTBody.hpp"
 #include "ErrorCode.hpp"
 #include "Request.hpp"
 #include "String.hpp"
 
-/* Extract a MessageBody from a Request */
-MessageBody::MessageBody(const Request& request):
+/* Extract a POSTBody from a Request */
+POSTBody::POSTBody(const Request& request):
 body(request.messageBody)
 {
-	Optional<std::string>	field = request["Content-Type"];
-	String	contentTypeField = field.value_or("");
-	if (contentTypeField.match("application/x-www-form-urlencoded"))
+	String				contentType = request["Content-Type"].value;
+	std::vector<String>	split = contentType.split("; ");
+
+	if (split[0] == "application/x-www-form-urlencoded")
 	{
 		parseURLEncoded();
 	}
 	// TODO: more content types ?
-	else if (contentTypeField.match("multipart/form-data"))
+	else if (split[0] == "multipart/form-data")
 	{
-		parseMultipartFormData(contentTypeField);
+		parseMultipartFormData(contentType);
 	}
 }
 
-void	MessageBody::parseURLEncoded()
+void	POSTBody::parseURLEncoded()
 {
 	contentType = "application/x-www-form-urlencoded";
 	std::vector<String>	keyValuePairs = body.split("&");
@@ -43,13 +44,13 @@ void	MessageBody::parseURLEncoded()
 		 it != keyValuePairs.end(); ++it)
 	{
 		std::vector<String>	splitted = it->split("=");
-		String&	key = splitted[0];
-		String&	value = splitted[1];
-		urlEncodedKeyValues.insert(std::make_pair(key, value));
+		urlEncodedKeyValues.insert(std::make_pair(splitted[0], splitted[1]));
+		urlEncodedKeys.push_back(splitted[0]);
+		urlEncodedValues.push_back(splitted[1]);
 	}
 }
 
-void	MessageBody::parseMultipartFormData(String& field)
+void	POSTBody::parseMultipartFormData(String& field)
 {
 	contentType = field.consumeUntil(";").value_or("");
 	Optional<String::size_type>	boundaryPos = field.findAfter("boundary=");
@@ -65,7 +66,7 @@ void	MessageBody::parseMultipartFormData(String& field)
 	{
 		try
 		{
-			MessageBodyPart	part;
+			POSTBodyPart	part;
 			body.consume(dashBoundary);
 			body.consumeIfUntil(Predicate(" \t"), "\r\n");
 			body.consume("\r\n");
@@ -95,7 +96,7 @@ void	MessageBody::parseMultipartFormData(String& field)
 }
 
 // TODO: what to do with the stored header values?
-void	MessageBodyPart::extractKeyValue(const String& headerLine)
+void	POSTBodyPart::extractKeyValue(const String& headerLine)
 {
 	std::vector<String>	tokens = headerLine.split(":; ");
 

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/08 16:37:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/09 13:17:41 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,13 +72,11 @@ CGI::~CGI(void) {
 	delete [] this->argv;
 }
 
-void	CGI::generateEnv(void)
-{
+void	CGI::generateEnv(void) {
 	std::stringstream	stream;
 	String				portNumStr;
 	String				serverProtocolStr;
-	const Client&		client = driver.clients.find(driver.readyEvents[0].data.fd)->second;
-	String				contentLength = request["Content-Length"].value;
+	const Client		&client = driver.clients.find(driver.readyEvents[0].data.fd)->second;
 
 	stream << client.socket.port;
 	portNumStr = stream.str();
@@ -87,11 +85,12 @@ void	CGI::generateEnv(void)
 	stream << std::setprecision(2) << request.httpVersion;
 	serverProtocolStr = stream.str();
 
-	if (contentLength == "0")
-		contentLength = "";
+	this->inputContentLength = request["Content-Length"].value;
+	if (this->inputContentLength == "0")
+		this->inputContentLength = "";
 
 	const String	metaVariables[NUM_OF_META_VARIABLES] = {
-		"CONTENT_LENGTH=" + contentLength,
+		"CONTENT_LENGTH=" + this->inputContentLength,
 		"CONTENT_TYPE=" + request["Content-Type"].value,
 		"GATEWAY_INTERFACE=CGI/1.1",
 		"PATH_INFO=" + pathInfo,
@@ -138,69 +137,64 @@ void	CGI::generateEnv(void)
 }
 
 void	CGI::execute(void) {
-	const String	&contentLength = request["Content-Length"].value;
-
-	socketpair(AF_UNIX, SOCK_STREAM, 0, this->dataSend);
-	socketpair(AF_UNIX, SOCK_STREAM, 0, this->dataRecv);
+	pipe(this->input);
+	pipe(this->output);
 	this->pid = fork();
 	if (this->pid == 0) {
-		close(this->dataSend[1]);
-		dup2(this->dataSend[0], STDIN_FILENO);
-		close(this->dataSend[0]);
-		close(this->dataRecv[0]);
-		dup2(this->dataRecv[1], STDOUT_FILENO);
-		close(this->dataRecv[1]);
-		execve(this->execPath.c_str(), argv, this->envp.data());
+		close(this->input[1]);
+		dup2(this->input[0], STDIN_FILENO);
+		close(this->input[0]);
+		close(this->output[0]);
+		dup2(this->output[1], STDOUT_FILENO);
+		close(this->output[1]);
+		execve(this->execPath.c_str(), this->argv, this->envp.data());
 		std::exit(1);
 	}
 
-	if (contentLength != "" && contentLength != "0") {
-		(void)!write(this->dataSend[1], request.messageBody.c_str(), request.find< Optional<String::size_type> >("Content-Length").value);
-	}
-	close(this->dataSend[0]);
-	close(this->dataSend[1]);
-	close(this->dataRecv[1]);
+	close(this->input[0]);
+	close(this->output[1]);
+	if (this->inputContentLength != "")
+		(void)!write(this->input[1], request.messageBody.c_str(), request.find< Optional< String::size_type> >("Content-Length").value);
+	close(this->input[1]);
+
+	ssize_t	bytes = 0;
+	char	buffer[1024];
 
 	std::time_t	startTime = Time::getTimeSinceEpoch();
 	std::time_t	currTime;
-	char		buffer[1024];
-	bool		isEmpty = false;
-	ssize_t		bytes = 0;
 
-	while (true) {
-		bytes = recv(this->dataRecv[0], buffer, 1023, MSG_DONTWAIT);
+	while (true)
+	{
+		bytes = read(this->output[0], buffer, 1023);
 		currTime = Time::getTimeSinceEpoch();
-		if (bytes <= 0)
-			isEmpty = true;
-		else {
+		if (bytes > 0) {
 			startTime = currTime;
-			isEmpty = false;
 			buffer[bytes] = '\0';
-			this->output += buffer;
+			this->response += buffer;
 		}
-		if (bytes <= 0 && waitpid(this->pid, NULL, WNOHANG) == this->pid)
+		if (waitpid(this->pid, 0, WNOHANG) == this->pid)
 			break ;
-		else if (isEmpty == true && currTime - startTime > CGI_TIMEOUT_VALUE) {
+		else if (currTime - startTime > CGI_TIMEOUT_VALUE) {
 			kill(this->pid, SIGKILL);
 			throw InternalServerError500();
 		}
 	};
-	close(this->dataRecv[0]);
+	close(this->output[0]);
 }
 
 void	CGI::parseOutput(Response &response) const {
 	String						delimiter = "\r\n\r\n";
-	Optional<String::size_type>	delimiterPos = this->output.find(delimiter);
+	Optional<String::size_type>	delimiterPos = this->response.find(delimiter);
 
 	if (delimiterPos.exists == false) {
 		delimiter = "\n\n";
-		delimiterPos = this->output.find(delimiter);
+		delimiterPos = this->response.find(delimiter);
 		if (delimiterPos.exists == false)
 			throw InternalServerError500();
 	}
 
-	String						headerPart = this->output.substr(0, delimiterPos.value);
-	String						bodyPart = this->output.substr(delimiterPos.value + delimiter.length());
+	String						headerPart = this->response.substr(0, delimiterPos.value);
+	String						bodyPart = this->response.substr(delimiterPos.value + delimiter.length());
 	std::vector<String>			headers;
 	std::map<String, String>	headerKeyValues;
 

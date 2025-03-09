@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Driver.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/08 19:52:33 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/09 10:07:49 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void	Driver::configureFrom(const Configuration& config)
 {
 	epollFD = epoll_create(1);
 	if (epollFD == -1){
-		// TODO: error handling 
+		// TODO: error handling
 	}
 
 	const Directive&		http = config.get("http");
@@ -113,8 +113,8 @@ void	Driver::configNewServer(const Directive& directive)
 int	Driver::epollWait()
 {
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, 1000);
-	std::cout << "epoll_wait() returned with " << numReadyEvents
-			  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
+	// std::cout << "epoll_wait() returned with " << numReadyEvents
+			//   << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
 
 	if (numReadyEvents == -1)
 	{
@@ -331,7 +331,7 @@ void	Driver::acceptNewClient(const Socket& socket)
 	std::cout << ">> " << client.socket.fd << '\n';
 	fcntl(client.socket.fd, F_SETFL, O_NONBLOCK);
 	//++numClients;
-	
+
 	//	SO_LINGER prevents close() from returning when there's still data in
 	//	the socket buffer. This avoids the "TCP reset problem" and allows
 	//	graceful closure.

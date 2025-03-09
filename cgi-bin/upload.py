@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os, sys, json, email
-from email.message import EmailMessage
 from urllib import parse
 
 def printError(errorCode: int, reasonPhrase: str) -> None:
@@ -9,7 +8,7 @@ def printError(errorCode: int, reasonPhrase: str) -> None:
 	print(f"Status:{errorCode} {reasonPhrase}")
 	print("")
 	print(f"<html>{errorCode} {reasonPhrase}</html>")
-	sys.exit()
+	sys.exit(1)
 
 def constructFormPath(uploadsDir: str, sid: str) -> str:
 	tempFormPath = f"{uploadsDir}/{sid}_form"
@@ -28,12 +27,13 @@ def constructFormPath(uploadsDir: str, sid: str) -> str:
 
 def constructFilePath(uploadsDir: str, sid: str, fileName: str) -> str:
 	pos = fileName.rfind(".")
-	tempFilePath = fileName
 	i = 0
 
 	if pos != -1:
 		extension = fileName[pos:]
 		tempFilePath = f"{uploadsDir}/{sid}_{fileName[0:pos]}"
+	else:
+		tempFilePath = f"{uploadsDir}/{sid}_{fileName}"
 	while i < sys.maxsize:
 		if i != 0:
 			filePath = f"{tempFilePath}{i}{extension}"
@@ -47,8 +47,10 @@ def constructFilePath(uploadsDir: str, sid: str, fileName: str) -> str:
 	return filePath
 
 def postMethod(uploadsDir: str, sid: str) -> None:
+	messageBody = bytes(sys.stdin.buffer.read())
 	contentType = os.environ.get('CONTENT_TYPE')
-	messageObject = email.message_from_string(f"Content-Type: {contentType}\n{messageBody}")
+	contentType = bytes(f"Content-Type: {contentType}\n", encoding='utf-8')
+	messageObject = email.message_from_bytes(contentType + messageBody)
 
 	if messageObject.get_content_type() == "application/x-www-form-urlencoded":
 		uploadDest = constructFormPath(uploadsDir, sid)
@@ -59,10 +61,6 @@ def postMethod(uploadsDir: str, sid: str) -> None:
 		try:
 			with open(uploadDest, mode='w') as file:
 				json.dump(form, file, indent=4)
-			print("Location:http://localhost:8000/pages/form.html")
-			print("Status:303 See Other")
-			print("Content-Length:0")
-			print("")
 		except:
 			printError(500, "Internal Server Error")
 	elif messageObject.get_content_type() == "multipart/form-data":
@@ -70,16 +68,17 @@ def postMethod(uploadsDir: str, sid: str) -> None:
 			for part in messageObject.get_payload():
 				uploadDest = constructFilePath(uploadsDir, sid, part.get_filename())
 
-				with open(uploadDest, mode='w') as file:
-					file.write(part.get_payload())
-			print("Location:http://localhost:8000/pages/form.html")
-			print("Status:303 See Other")
-			print("Content-Length:0")
-			print("")
+				with open(uploadDest, mode='wb') as file:
+					file.write(part.get_payload(decode=True))
 		except:
 			printError(500, "Internal Server Error")
 	else:
 		printError(415, "Unsupported Media Type")
+
+	print("Location:http://localhost:8000/pages/form.html")
+	print("Status:303 See Other")
+	print("Content-Length:0")
+	print("")
 
 def getMethod(uploadsDir: str, sid: str) -> None:
 	queryString = os.environ.get("QUERY_STRING")
@@ -92,15 +91,15 @@ def getMethod(uploadsDir: str, sid: str) -> None:
 	try:
 		with open(uploadDest, mode='w') as file:
 			json.dump(form, file, indent=4)
-		print("Location:http://localhost:8000/pages/form.html")
-		print("Status:303 See Other")
-		print("Content-Length:0")
-		print("")
 	except:
 		printError(500, "Internal Server Error")
 
+	print("Location:http://localhost:8000/pages/form.html")
+	print("Status:303 See Other")
+	print("Content-Length:0")
+	print("")
+
 if __name__ == "__main__":
-	messageBody = sys.stdin.read()
 	method = os.environ.get('REQUEST_METHOD')
 	uploadsDir = os.environ.get('X_UPLOADS_DIR')
 	sid = os.environ.get('X_SID')

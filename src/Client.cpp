@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/05 22:41:37 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/09 09:47:44 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ String	Client::getIPAddr() const
 String	Client::getPortNum() const
 {
 	sockaddr*		client = (sockaddr*)&address;
-	unsigned short	portNum;
+	unsigned short	portNum = 0;
 	if (client->sa_family == AF_INET)
 	{
 		sockaddr_in*	addr = reinterpret_cast<sockaddr_in*>(client);

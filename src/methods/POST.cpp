@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/07 16:03:28 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/09 10:42:43 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ void	Driver::post(Response& response, Request& request) const
 static String	constructFilePath(const String& uploadsDir, const String& sid, const String& fileName)
 {
 	Optional<String::size_type>	pos = fileName.find_last_of('.');
-	String						tempFilePath = fileName;
+	String						tempFilePath;
 	size_t						i = 0;
 	String						extension;
 	stringstream				stream;
@@ -86,6 +86,8 @@ static String	constructFilePath(const String& uploadsDir, const String& sid, con
 		extension = fileName.substr(pos.value);
 		tempFilePath = uploadsDir + "/" + sid + "_" + fileName.substr(0, pos.value);
 	}
+	else
+		tempFilePath = uploadsDir + "/" + sid + "_" + fileName;
 	while (i < String::npos)
 	{
 		if (i != 0)

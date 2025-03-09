@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/08 16:19:33 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/09 10:10:52 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,10 +35,11 @@ class CGI {
 		String				pathInfo;
 		std::vector<char *>	envp;
 		char				**argv;
-		int					dataSend[2];
-		int					dataRecv[2];
+		int					input[2];
+		int					output[2];
 		pid_t				pid;
-		String				output;
+		String				response;
+		String				inputContentLength;
 
 		CGI(const Driver &driver, const Request &request);
 		~CGI(void);

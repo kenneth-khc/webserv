@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/09 17:49:37 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/10 00:24:25 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,8 +137,8 @@ void	CGI::generateEnv(void) {
 }
 
 void	CGI::execute(void) {
-	pipe(this->input);
-	pipe(this->output);
+	(void)!pipe(this->input);
+	(void)!pipe(this->output);
 	this->pid = fork();
 	if (this->pid == 0) {
 		close(this->input[1]);
@@ -244,7 +244,11 @@ void	CGI::parseOutput(Response &response) const {
 	}
 
 	for (it = headerKeyValues.begin(); it != headerKeyValues.end(); it++)
-		response.insert(it->first, it->second);
+		response.insert(Response::stringToLower(it->first), it->second);
+
+	response.messageBody = bodyPart;
+	if (response["Content-Length"].exists == false)
+		response.insert("Content-Length", response.messageBody.length());
 }
 
 void	Driver::cgi(Response &response, const Request &request) const {

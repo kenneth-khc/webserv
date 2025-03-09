@@ -1,10 +1,10 @@
 #!/usr/bin/env php-cgi
 <?php
 	function printError($errorCode, $reasonPhrase) {
-		echo "Content-Type:text/html\n";
-		echo "Status:{$errorCode} {$reasonPhrase}\n";
-		echo "\n";
-		echo "<html>{$errorCode} {$reasonPhrase}</html>\n";
+		echo "Content-Type:text/html";
+		echo "Status:{$errorCode} {$reasonPhrase}";
+		echo "";
+		echo "<html>{$errorCode} {$reasonPhrase}</html>";
 		exit(1);
 	}
 
@@ -98,12 +98,14 @@
 		}
 		$json = json_encode($queryPairs, JSON_PRETTY_PRINT);
 
-		if (file_put_contents($uploadDest, $json) === false)
-			printError(500, "Internal Server Error");
-		header("Location:http://localhost:8000/pages/form.html");
-		header("Status:303 See Other");
-		header("Content-Length:0");
-		echo "";
+		header("Content-Type:text/html");
+		echo "<html>";
+		echo "<style>body { background-color: #f4dde7 }</style>";
+		echo "<h1>I'm from PHP-CGI!</h1>";
+		echo "<pre>";
+		echo $json;
+		echo "</pre>";
+		echo "</html>";
 	}
 
 	$method = $_ENV['REQUEST_METHOD'];

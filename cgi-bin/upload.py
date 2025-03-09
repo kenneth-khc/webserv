@@ -80,24 +80,24 @@ def postMethod(uploadsDir: str, sid: str) -> None:
 	print("Content-Length:0")
 	print("")
 
-def getMethod(uploadsDir: str, sid: str) -> None:
+def getMethod() -> None:
 	queryString = os.environ.get("QUERY_STRING")
-	uploadDest = constructFormPath(uploadsDir, sid)
 	form = parse.parse_qs(queryString)
 
 	for key, value in form.items():
 		form[key] = value[0]
 
-	try:
-		with open(uploadDest, mode='w') as file:
-			json.dump(form, file, indent=4)
-	except:
-		printError(500, "Internal Server Error")
+	output = json.dumps(form, indent=4)
 
-	print("Location:http://localhost:8000/pages/form.html")
-	print("Status:303 See Other")
-	print("Content-Length:0")
+	print("Content-Type:text/html")
 	print("")
+	print("<html>")
+	print("<style>body { background-color: #f4dde7 }</style>")
+	print("<h1>I'm from Python CGI!</h1>")
+	print("<pre>")
+	print(output)
+	print("</pre>")
+	print("</html>")
 
 if __name__ == "__main__":
 	method = os.environ.get('REQUEST_METHOD')
@@ -105,7 +105,7 @@ if __name__ == "__main__":
 	sid = os.environ.get('X_SID')
 
 	if (method == "GET"):
-		getMethod(uploadsDir, sid)
+		getMethod()
 	elif (method == "POST"):
 		postMethod(uploadsDir, sid)
 	else:

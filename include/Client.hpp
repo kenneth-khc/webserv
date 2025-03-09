@@ -18,7 +18,8 @@
 #include "Time.hpp"
 #include "String.hpp"
 #include "Request.hpp"
-#include "Socket.hpp"
+
+struct	Socket;
 
 class	Client
 {
@@ -37,7 +38,8 @@ public:
 	bool	isTimeout() const;
 	void	updateLastActive();
 
-	Socket				socket;
+	Socket*				socket;
+	const Socket*		receivedBy;
 private:
 	sockaddr_storage	address;
 	socklen_t			addressLen;

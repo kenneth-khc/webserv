@@ -89,12 +89,14 @@ void	Driver::configureFrom(const Configuration& config)
 
 void	Driver::configNewServer(const Directive& directive)
 {
+	//TODO: dynamic address
+	String	address = "127.0.0.1";
 	String	listenTo = directive.getParams<String>("listen").value_or("8000");
 	int		portNum = to<int>(listenTo);
 	Socket*	socket = NULL;
 	if (listeners.find(portNum) == listeners.end())
 	{
-		Socket	s = Socket(portNum);
+		Socket	s = Socket(address, portNum);
 		listeners[s.fd] = s;
 		listeners[s.fd].bind();
 		listeners[s.fd].listen(1);
@@ -113,8 +115,8 @@ void	Driver::configNewServer(const Directive& directive)
 int	Driver::epollWait()
 {
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, 1000);
-	std::cout << "epoll_wait() returned with " << numReadyEvents
-			  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
+	/*std::cout << "epoll_wait() returned with " << numReadyEvents*/
+	/*		  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");*/
 
 	if (numReadyEvents == -1)
 	{
@@ -138,11 +140,13 @@ void	Driver::processReadyEvents()
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
 		const epoll_event&	ev = readyEvents[i];
+		int	readyFD = ev.data.fd;
 
-		if (listeners.find(ev.data.fd) != listeners.end())
+		if (listeners.find(readyFD) != listeners.end())
 		{
-			const Socket&	socket = listeners.find(ev.data.fd)->second;
+			const Socket&	socket = listeners.find(readyFD)->second;
 			acceptNewClient(socket);
+			socket.acceptNewConnection();
 		}
 		else if (ev.events & EPOLLIN)
 		{
@@ -320,16 +324,21 @@ void	Driver::monitorConnections()
 	}
 }
 
-void	Driver::acceptNewClient(const Socket& socket)
+void	Driver::acceptNewClient(const Socket& listenerSocket)
 {
+	Socket	clientSocket;
 	Client	client;
 
+	client.receivedBy = &listenerSocket;
 	client.addressLen = static_cast<socklen_t>(sizeof client.address);
-	Socket	clientSocket;
-	clientSocket.fd = accept(socket.fd, (sockaddr*)&client.address,
+	sockaddr_storage	addr;
+	socklen_t			addrlen;
+	int	newSocketFD = accept(listenerSocket.fd, (sockaddr*)&addr, &addrlen);
+	clientSocket.fd = accept(listenerSocket.fd, (sockaddr*)&client.address,
 							 &client.addressLen);
-	std::cout << ">> " << client.socket.fd << '\n';
+	client.socket.fd = clientSocket.fd;
 	fcntl(client.socket.fd, F_SETFL, O_NONBLOCK);
+	activeSockets[clientSocket.fd] = Socket(addr);
 	//++numClients;
 	
 	//	SO_LINGER prevents close() from returning when there's still data in
@@ -340,8 +349,7 @@ void	Driver::acceptNewClient(const Socket& socket)
 
 	epoll_event	event = epoll_event();
 	event.events = EPOLLIN | EPOLLRDHUP;
-	event.data.fd = clientSocket.fd;
-	client.socket = clientSocket;
+	event.data.fd = client.socket.fd;
 	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socket.fd, &event);
 	clients.insert(std::make_pair(client.socket.fd, client));
 	logger.logConnection(Logger::ESTABLISHED, client.socket.fd, client);

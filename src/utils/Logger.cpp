@@ -11,11 +11,9 @@
 /* ************************************************************************** */
 
 #include <iostream>
-#include <string>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include "Server.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
@@ -51,10 +49,8 @@ void	Logger::logRequest(Request& request, Client& client) const
 	std::cout << YELLOW;
 	std::cout << client.getIPAddr() << ":" << client.getPortNum();
 	std::cout << " => ";
-	std::cout 
-			  //<< server.hostName 
-			  << ":"
-			  << client.socket.port  << CRESET
+	std::cout << client.receivedBy->getIPAddr() << ":" << client.receivedBy->getPortNum()
+			  << CRESET
 			  << " | ";
 	std::cout << GREEN;
 	std::cout << request.method;
@@ -68,9 +64,8 @@ void	Logger::logResponse(Response& response, Client& client) const
 	std::cout << YELLOW;
 	std::cout << client.getIPAddr() << ":" << client.getPortNum();
 	std::cout << " <= ";
-	std::cout 
-			  //<< server.hostName << ":"
-			  << client.socket.port  << CRESET
+	std::cout << client.receivedBy->getIPAddr() << ":" << client.receivedBy->getPortNum()
+			  << CRESET
 			  << " | ";
 	std::cout << GREEN;
 	std::cout << "HTTP/" << response.httpVersion << " "
@@ -84,8 +79,8 @@ void	Logger::logConnection(int status, int fd, Client& client) const
 	std::cout << YELLOW;
 	std::cout << client.getIPAddr() << ":" << client.getPortNum();
 	std::cout << " <> ";
-	std::cout //<< ":"
-			  << client.socket.port  << CRESET
+	std::cout << client.receivedBy->getIPAddr() << ":" << client.receivedBy->getPortNum()
+			  << CRESET
 			  << " | ";
 	std::cout << RED
 			  << "FD " << fd << " ";

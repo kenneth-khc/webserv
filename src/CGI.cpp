@@ -80,7 +80,7 @@ void	CGI::generateEnv(void)
 	const Client&		client = driver.clients.find(driver.readyEvents[0].data.fd)->second;
 	String				contentLength = request["Content-Length"].value;
 
-	stream << client.socket.port;
+	stream << client.socket->port;
 	portNumStr = stream.str();
 	stream.str("");
 
@@ -96,7 +96,7 @@ void	CGI::generateEnv(void)
 		"GATEWAY_INTERFACE=CGI/1.1",
 		"PATH_INFO=" + pathInfo,
 		"QUERY_STRING=" + request.query.value,
-		"REMOTE_ADDR=" + client.getIPAddr(),
+		"REMOTE_ADDR=" + client.socket->ip,
 		"REMOTE_HOST=" + request["Host"].value,
 		"REQUEST_METHOD=" + request.method,
 		"SCRIPT_NAME=" + this->execPath,

@@ -99,5 +99,6 @@ void	Configuration::display() const
 	{
 		print(it->second, 0, 0, false);
 	}
+	std::cout << "--------------------------------\n";
 }
 

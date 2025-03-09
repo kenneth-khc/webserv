@@ -14,6 +14,7 @@
 #include "Server.hpp"
 #include "Configuration.hpp"
 #include "ConfigErrors.hpp"
+#include "Socket.hpp"
 #include "contentLength.hpp"
 #include "Directive.hpp"
 #include "Utils.hpp"
@@ -87,21 +88,30 @@ void	Driver::configureFrom(const Configuration& config)
 	}
 }
 
+#include <algorithm>
+
 void	Driver::configNewServer(const Directive& directive)
 {
+	//TODO: dynamic address
+	String	address = "127.0.0.1";
 	String	listenTo = directive.getParams<String>("listen").value_or("8000");
 	int		portNum = to<int>(listenTo);
 	Socket*	socket = NULL;
 	if (listeners.find(portNum) == listeners.end())
 	{
-		Socket	s = Socket(portNum);
-		listeners[s.fd] = s;
-		listeners[s.fd].bind();
-		listeners[s.fd].listen(1);
-		// WARN: something sussy here with the socket pointer
-		// what happens if I have a listen in another server
-		// trying to point to an existing socket
-		socket = &listeners[s.fd];
+		Socket	serverSocket = Socket::spawn(address, listenTo);
+		serverSocket.bind();
+		serverSocket.listen(1);
+		listeners[serverSocket.fd] = serverSocket;
+		socket = &listeners[serverSocket.fd];
+	}
+	else
+	{
+		std::map<int,Socket>::iterator	it;
+		it = std::find_if(listeners.begin(),
+						  listeners.end(),
+						  IsMatchingPort(portNum));
+		socket = &it->second;
 	}
 	std::vector<String>	domainNames = directive.getParams< std::vector<String> >("server_name")
 									  .value_or(std::vector<String>());
@@ -113,8 +123,8 @@ void	Driver::configNewServer(const Directive& directive)
 int	Driver::epollWait()
 {
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, 1000);
-	std::cout << "epoll_wait() returned with " << numReadyEvents
-			  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
+	/*std::cout << "epoll_wait() returned with " << numReadyEvents*/
+	/*		  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");*/
 
 	if (numReadyEvents == -1)
 	{
@@ -123,11 +133,13 @@ int	Driver::epollWait()
 	else if (numReadyEvents > 0 && (readyEvents[0].events & EPOLLRDHUP))
 	{
 		//	Closes socket in cases where client-side closes the connection on their end.
-		logger.logConnection(Logger::CLOSE, readyEvents[0].data.fd,
+		int	fd = readyEvents[0].data.fd;
+		logger.logConnection(Logger::CLOSE, fd,
 			clients[readyEvents[0].data.fd]);
-		close(readyEvents[0].data.fd);
-		epoll_ctl(epollFD, EPOLL_CTL_DEL, readyEvents[0].data.fd, 0);
-		clients.erase(clients.find(readyEvents[0].data.fd));
+		close(fd);
+		epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, 0);
+		clients.erase(clients.find(fd));
+		establishedSockets.erase(establishedSockets.find(fd));
 		numReadyEvents = 0;
 	}
 	return numReadyEvents;
@@ -138,11 +150,30 @@ void	Driver::processReadyEvents()
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
 		const epoll_event&	ev = readyEvents[i];
+		int	readyFD = ev.data.fd;
 
-		if (listeners.find(ev.data.fd) != listeners.end())
+		if (listeners.find(readyFD) != listeners.end())
 		{
-			const Socket&	socket = listeners.find(ev.data.fd)->second;
-			acceptNewClient(socket);
+			const Socket&	socket = listeners.find(readyFD)->second;
+			Socket			clientSocket = socket.accept();
+			int				fd = clientSocket.fd;
+			fcntl(clientSocket.fd, F_SETFL, O_NONBLOCK);
+
+			linger	linger = {.l_onoff = 1, .l_linger = 5};
+			setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
+
+			epoll_event	event = epoll_event();
+			event.events = EPOLLIN | EPOLLRDHUP;
+			event.data.fd = fd;
+			epoll_ctl(epollFD, EPOLL_CTL_ADD, fd, &event);
+			establishedSockets[fd] = clientSocket;
+
+			Client	newClient;
+			newClient.receivedBy = &socket;
+			newClient.socket = &establishedSockets[fd];
+			clients.insert(std::make_pair(fd, newClient));
+			logger.logConnection(Logger::ESTABLISHED, fd, newClient);
+			/*acceptNewClient(socket);*/
 		}
 		else if (ev.events & EPOLLIN)
 		{
@@ -285,14 +316,15 @@ void	Driver::generateResponses()
 		Response&	response = readyResponses.front();
 		std::string	formattedResponse = response.toString();
 
-		send(client.socket.fd, formattedResponse.c_str(), formattedResponse.size(), 0);
+		send(client.socket->fd, formattedResponse.c_str(), formattedResponse.size(), 0);
 		logger.logResponse(response, client);
 
 		if (response.flags & Response::CONNECTION_CLOSE)
 		{
-			close(client.socket.fd);
-			epoll_ctl(epollFD, EPOLL_CTL_DEL, client.socket.fd, 0);
-			clients.erase(clients.find(client.socket.fd));
+			close(client.socket->fd);
+			epoll_ctl(epollFD, EPOLL_CTL_DEL, client.socket->fd, 0);
+			establishedSockets.erase(establishedSockets.find(client.socket->fd));
+			clients.erase(clients.find(client.socket->fd));
 		}
 		else
 		{
@@ -313,6 +345,7 @@ void	Driver::monitorConnections()
 			logger.logConnection(Logger::TIMEOUT, it->first, it->second);
 			close(it->first);
 			epoll_ctl(epollFD, EPOLL_CTL_DEL, it->first, 0);
+			establishedSockets.erase(establishedSockets.find(it->first));
 			clients.erase(it++);
 		}
 		else
@@ -320,36 +353,40 @@ void	Driver::monitorConnections()
 	}
 }
 
-void	Driver::acceptNewClient(const Socket& socket)
-{
-	Client	client;
-
-	client.addressLen = static_cast<socklen_t>(sizeof client.address);
-	Socket	clientSocket;
-	clientSocket.fd = accept(socket.fd, (sockaddr*)&client.address,
-							 &client.addressLen);
-	std::cout << ">> " << client.socket.fd << '\n';
-	fcntl(client.socket.fd, F_SETFL, O_NONBLOCK);
-	//++numClients;
-	
-	//	SO_LINGER prevents close() from returning when there's still data in
-	//	the socket buffer. This avoids the "TCP reset problem" and allows
-	//	graceful closure.
-	linger	linger = {.l_onoff = 1, .l_linger = 5};
-	setsockopt(client.socket.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
-
-	epoll_event	event = epoll_event();
-	event.events = EPOLLIN | EPOLLRDHUP;
-	event.data.fd = clientSocket.fd;
-	client.socket = clientSocket;
-	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socket.fd, &event);
-	clients.insert(std::make_pair(client.socket.fd, client));
-	logger.logConnection(Logger::ESTABLISHED, client.socket.fd, client);
-}
+/*void	Driver::acceptNewClient(const Socket& listenerSocket)*/
+/*{*/
+/*	Socket	clientSocket;*/
+/*	Client	client;*/
+/**/
+/*	client.receivedBy = &listenerSocket;*/
+/*	client.addressLen = static_cast<socklen_t>(sizeof client.address);*/
+/*	sockaddr_storage	addr;*/
+/*	socklen_t			addrlen;*/
+/*	int	newSocketFD = accept(listenerSocket.fd, (sockaddr*)&addr, &addrlen);*/
+/*	clientSocket.fd = accept(listenerSocket.fd, (sockaddr*)&client.address,*/
+/*							 &client.addressLen);*/
+/*	client.socket.fd = clientSocket.fd;*/
+/*	fcntl(client.socket.fd, F_SETFL, O_NONBLOCK);*/
+/*	establishedSockets[clientSocket.fd] = Socket(addr);*/
+/*	//++numClients;*/
+/**/
+/*	//	SO_LINGER prevents close() from returning when there's still data in*/
+/*	//	the socket buffer. This avoids the "TCP reset problem" and allows*/
+/*	//	graceful closure.*/
+/*	linger	linger = {.l_onoff = 1, .l_linger = 5};*/
+/*	setsockopt(client.socket.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);*/
+/**/
+/*	epoll_event	event = epoll_event();*/
+/*	event.events = EPOLLIN | EPOLLRDHUP;*/
+/*	event.data.fd = client.socket.fd;*/
+/*	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socket.fd, &event);*/
+/*	clients.insert(std::make_pair(client.socket.fd, client));*/
+/*	logger.logConnection(Logger::ESTABLISHED, client.socket.fd, client);*/
+/*}*/
 
 ssize_t	Driver::receiveBytes(Client& client)
 {
-	ssize_t	bytes = recv(client.socket.fd,
+	ssize_t	bytes = recv(client.socket->fd,
 						 &client.messageBuffer[0],
 						 client.messageBuffer.size(), 0);
 

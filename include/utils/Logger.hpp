@@ -15,6 +15,7 @@
 
 #include <netdb.h>
 #include "Client.hpp"
+#include "Socket.hpp"
 
 /* This class is responsible for logging interactions between the servers
  * and clients to file streams for visualization purposes */

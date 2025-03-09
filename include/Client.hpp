@@ -18,7 +18,8 @@
 #include "Time.hpp"
 #include "String.hpp"
 #include "Request.hpp"
-#include "Socket.hpp"
+
+struct	Socket;
 
 class	Client
 {
@@ -28,20 +29,16 @@ class	Client
 public:
 	Client();
 
-	String	getIPAddr() const;
-	String	getPortNum() const;
-
 	bool	endOfRequestLineFound() const;
 	bool	endOfHeaderFound() const;
 
 	bool	isTimeout() const;
 	void	updateLastActive();
 
-	Socket				socket;
-private:
-	sockaddr_storage	address;
-	socklen_t			addressLen;
+	Socket*				socket;
+	const Socket*		receivedBy;
 
+private:
 	std::vector<char>	messageBuffer;
 	String				message;
 	static const size_t	MAX_REQUEST_SIZE;

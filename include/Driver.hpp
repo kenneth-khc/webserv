@@ -40,6 +40,7 @@ struct	Driver
 	int						numReadyEvents;
 
 	std::map<int, Socket>	listeners;
+	std::map<int, Socket>	establishedSockets;
 	std::map<int, Client>	clients;
 	std::queue<Request>		readyRequests;
 	std::queue<Response>	readyResponses;

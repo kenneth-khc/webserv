@@ -41,7 +41,6 @@ int	main(int argc, char** argv)
 	Parser			parser(argv[1]);
 	Configuration	config = parser.parseConfig();
 	config.display();
-	std::cout << "--------------------------------\n";
 
 	Driver	driver;
 	driver.configureFrom(config);

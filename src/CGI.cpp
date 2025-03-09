@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/09 13:17:41 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/09 17:49:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,15 +60,15 @@ CGI::CGI(const Driver &driver, const Request &request) :
 	this->generateEnv();
 
 	this->argv = new char*[2]();
-	this->argv[1] = new char[request.absolutePath.length() + 1];
-	std::memcpy(this->argv[1], request.absolutePath.c_str(), request.absolutePath.length());
-	this->argv[1][request.absolutePath.length()] = '\0';
+	this->argv[0] = new char[request.absolutePath.length() + 1];
+	std::memcpy(this->argv[0], request.absolutePath.c_str(), request.absolutePath.length());
+	this->argv[0][request.absolutePath.length()] = '\0';
 }
 
 CGI::~CGI(void) {
 	for (std::vector<char *>::const_iterator it = this->envp.begin(); it != this->envp.end(); it++)
 		delete [] *it;
-	delete this->argv[0];
+	delete [] this->argv[0];
 	delete [] this->argv;
 }
 

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/08 16:46:28 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/09 17:58:44 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,12 @@
 #include <iomanip>
 #include <vector>
 #include "Optional.hpp"
-#include "Server.hpp"
 #include "ErrorCode.hpp"
 #include "Time.hpp"
 #include "debugUtils.hpp"
 #include "preconditions.hpp"
 #include "contentType.hpp"
 #include "etag.hpp"
-
 #include "Driver.hpp"
 
 #define FILE_NAME_LEN 45
@@ -57,13 +55,15 @@ void	Driver::get(Response& response, Request& request) const
 	std::map<String, String>::const_iterator	queryLang = request.queryPairs.find("lang");
 	if (queryLang != request.queryPairs.end() && lang != queryLang->second)
 	{
-		response.insert("Set-Cookie", "lang=" + queryLang->second);
+		Cookie	cookie("lang", queryLang->second);
+		cookie.path = Optional<String>("/");
+		response.insert("Set-Cookie", cookie.constructSetCookieHeader());
 		lang = queryLang->second;
 	}
 
 	Optional<String::size_type>	uploads = request.absolutePath.find("/" + uploadsDir);
 	String						file;
-	struct 	stat				statbuf;
+	struct stat					statbuf;
 
 	if (uploads.exists == true && uploads.value == 0)
 	{
@@ -163,7 +163,7 @@ static void	generateUploadsListing(
 		if (truncate.length() > FILE_NAME_LEN)
 		{
 			truncate.resize(FILE_NAME_LEN);
-			truncate.replace(FILE_NAME_LEN - 3, 3,"...");
+			truncate.replace(FILE_NAME_LEN - 3, 3, "...");
 		}
 		stream.str("");
 		stream << "<a href=\""

@@ -6,7 +6,7 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/03/09 09:48:34 by cteoh            ###   ########.fr        #
+#    Updated: 2025/03/09 14:41:40 by cteoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,7 @@
 NAME := webserv
 
 CXX := g++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes)
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes) -g3
 
 src_dir := src
 dirs := $(src_dir) \

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:14:43 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/05 23:59:59 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/09 14:26:46 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@
 #include "Server.hpp"
 #include "Driver.hpp"
 
-// TODO: use cookies for authorization? user can only delete what is theirs
 // TODO: consider other status codes. 200 OK? 202 Accepted? 403 Forbidden?
 void	Driver::delete_(Response& response, Request& request) const
 {

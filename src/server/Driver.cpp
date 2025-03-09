@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/09 10:07:49 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/09 15:47:29 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -232,17 +232,23 @@ void	Driver::processReadyRequests()
 void	Driver::processCookies(Request& request, Response& response)
 {
 	std::map<String, Cookie>&	cookies = request.cookies;
+	Cookie						cookie;
 
 	if (cookies.find("sid") == cookies.end())
 	{
 		String	sid = Base64::encode(Time::printHTTPDate());
-		cookies.insert(std::make_pair("sid", Cookie("sid", sid)));
-		response.insert("Set-Cookie", "sid=" + sid);
+
+		cookie = Cookie("sid", sid);
+		cookie.path = Optional<String>("/");
+		cookies.insert(std::make_pair("sid", cookie));
+		response.insert("Set-Cookie", cookie.constructSetCookieHeader());
 	}
 	if (cookies.find("lang") == cookies.end())
 	{
-		cookies.insert(std::make_pair("lang", Cookie("lang", "en")));
-		response.insert("Set-Cookie", "lang=en");
+		cookie = Cookie("lang", "en");
+		cookie.path = Optional<String>("/");
+		cookies.insert(std::make_pair("lang", cookie));
+		response.insert("Set-Cookie", cookie.constructSetCookieHeader());
 	}
 }
 

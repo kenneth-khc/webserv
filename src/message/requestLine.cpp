@@ -6,10 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:13:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/05 22:51:33 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/10 18:19:49 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <iomanip>
 #include <sstream>
 #include "terminalValues.hpp"
 #include "uri.hpp"
@@ -35,9 +36,23 @@ void	extractRequestLineComponents(const String &line, Request &request) {
 	Optional<String::size_type>	queryPos = str.find("?");
 	if (queryPos.exists == true) {
 		request.absolutePath = str.substr(0, queryPos.value);
-		request.query = Optional<String>(str.substr(queryPos.value + 1));
 
-		const std::vector<String>	queries = request.query.value.split("&");
+		request.query = Optional<String>(str.substr(queryPos.value + 1));
+		request.decodedQuery.exists = true;
+		for (String::size_type i = 0; i < request.query.value.length(); i++) {
+			if (request.query.value[i] == '%') {
+				std::stringstream	streamTwo(request.query.value.substr(i + 1, 2));
+				String::size_type	c;
+
+				streamTwo >> std::hex >> c;
+				request.decodedQuery.value += c;
+				i += 2;
+			}
+			else
+				request.decodedQuery.value += request.query.value[i];
+		}
+
+		const std::vector<String>	queries = request.decodedQuery.value.split("&");
 		for (std::vector<String>::const_iterator it = queries.begin(); it != queries.end(); it++) {
 			std::vector<String>	split = it->split("=");
 

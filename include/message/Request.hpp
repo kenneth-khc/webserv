@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/06 07:47:36 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/10 17:38:25 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ class Request : public Message {
 		String						requestTarget;
 		String						absolutePath;
 		Optional<String>			query;
+		Optional<String>			decodedQuery;
 		std::map<String, String>	queryPairs;
 		bool						requestLineFound;
 		bool						headersFound;

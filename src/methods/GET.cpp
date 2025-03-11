@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/09 17:58:44 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/11 14:09:59 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 #include "Driver.hpp"
 
 #define FILE_NAME_LEN 45
+
 static void		generateUploadsListing(const String& uploadsDir, Response& response, const Request& request);
 static String	getUploadsReference(const String& uploadsDir, const Request &request);
 
@@ -97,6 +98,10 @@ void	Driver::get(Response& response, Request& request) const
 			response.setStatusCode(Response::OK);
 			response.insert("Content-Length", response.messageBody.length());
 			response.insert("Content-Type", "text/html");
+		}
+		else if (autoindex == false && S_ISDIR(statbuf.st_mode))
+		{
+			throw Forbidden403();
 		}
 		else if (processPreconditions(request, statbuf) == false)
 		{

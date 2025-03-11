@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:25:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/22 20:44:11 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/11 12:59:12 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,12 @@ class BadRequest400 : public ErrorCode {
 	public:
 		BadRequest400(void);
 		BadRequest400(const char *title);
+};
+
+class Forbidden403 : public ErrorCode {
+	public:
+		Forbidden403(void);
+		Forbidden403(const char *title);
 };
 
 class NotFound404 : public ErrorCode {

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/27 00:31:28 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/11 12:58:56 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,15 @@ BadRequest400::BadRequest400(void) :
 
 BadRequest400::BadRequest400(const char *title) :
 	ErrorCode(1.1, 400, "Bad Request", title)
+{}
+
+//	403 Forbidden
+Forbidden403::Forbidden403(void) :
+	ErrorCode(1.1, 403, "Forbidden")
+{}
+
+Forbidden403::Forbidden403(const char *title) :
+	ErrorCode(1.1, 403, "Forbidden", title)
 {}
 
 //	404 Not Found

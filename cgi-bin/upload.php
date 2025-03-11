@@ -82,7 +82,6 @@
 		}
 		header("Location:http://localhost:8000/pages/form.html");
 		header("Status:303 See Other");
-		header("Content-Length:0");
 		echo "";
 	}
 

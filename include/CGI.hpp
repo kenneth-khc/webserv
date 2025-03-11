@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/09 10:10:52 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/11 17:01:24 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ class CGI {
 		int					output[2];
 		pid_t				pid;
 		String				response;
-		String				inputContentLength;
 
 		CGI(const Driver &driver, const Request &request);
 		~CGI(void);

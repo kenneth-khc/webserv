@@ -77,7 +77,6 @@ def postMethod(uploadsDir: str, sid: str) -> None:
 
 	print("Location:http://localhost:8000/pages/form.html")
 	print("Status:303 See Other")
-	print("Content-Length:0")
 	print("")
 
 def getMethod() -> None:

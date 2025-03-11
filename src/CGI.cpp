@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/10 00:24:25 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/11 17:05:59 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,10 +59,18 @@ CGI::CGI(const Driver &driver, const Request &request) :
 
 	this->generateEnv();
 
+	String						cgiName;
+	Optional<String::size_type>	cgiNamePos = this->execPath.find_last_of("/");
+
+	if (cgiNamePos.exists == true)
+		cgiName = this->execPath.substr(cgiNamePos.value + 1);
+	else
+		cgiName = this->execPath;
+
 	this->argv = new char*[2]();
-	this->argv[0] = new char[request.absolutePath.length() + 1];
-	std::memcpy(this->argv[0], request.absolutePath.c_str(), request.absolutePath.length());
-	this->argv[0][request.absolutePath.length()] = '\0';
+	this->argv[0] = new char[cgiName.length() + 1];
+	std::memcpy(this->argv[0], cgiName.c_str(), cgiName.length());
+	this->argv[0][cgiName.length()] = '\0';
 }
 
 CGI::~CGI(void) {
@@ -74,23 +82,19 @@ CGI::~CGI(void) {
 
 void	CGI::generateEnv(void) {
 	std::stringstream	stream;
-	String				portNumStr;
-	String				serverProtocolStr;
+	String				portNum;
+	String				serverProtocol;
 	const Client		&client = driver.clients.find(driver.readyEvents[0].data.fd)->second;
 
 	stream << client.socket.port;
-	portNumStr = stream.str();
+	portNum = stream.str();
 	stream.str("");
 
 	stream << std::setprecision(2) << request.httpVersion;
-	serverProtocolStr = stream.str();
-
-	this->inputContentLength = request["Content-Length"].value;
-	if (this->inputContentLength == "0")
-		this->inputContentLength = "";
+	serverProtocol = stream.str();
 
 	const String	metaVariables[NUM_OF_META_VARIABLES] = {
-		"CONTENT_LENGTH=" + this->inputContentLength,
+		"CONTENT_LENGTH=" + request["Content-Length"].value,
 		"CONTENT_TYPE=" + request["Content-Type"].value,
 		"GATEWAY_INTERFACE=CGI/1.1",
 		"PATH_INFO=" + pathInfo,
@@ -98,22 +102,16 @@ void	CGI::generateEnv(void) {
 		"REMOTE_ADDR=" + client.getIPAddr(),
 		"REMOTE_HOST=" + request["Host"].value,
 		"REQUEST_METHOD=" + request.method,
-		"SCRIPT_NAME=" + this->execPath,
+		"SCRIPT_NAME=/" + this->execPath,
 		"SERVER_NAME=" + driver.name,
-		"SERVER_PORT=" + portNumStr,
-		"SERVER_PROTOCOL=HTTP/" + serverProtocolStr,
+		"SERVER_PORT=" + portNum,
+		"SERVER_PROTOCOL=HTTP/" + serverProtocol,
 		"SERVER_SOFTWARE=" + driver.name,
 		"X_SID=" + request.cookies.find("sid")->second.value,
 		"X_UPLOADS_DIR=" + driver.uploadsDir
 	};
 
-	int	i = -1;
-	while (environ[++i] != 0) {
-		String	temp(environ[i]);
-		this->envp.push_back(new char[temp.length() + 1]);
-		std::memcpy(this->envp[i], environ[i], temp.length());
-		this->envp[i][temp.length()] = '\0';
-	}
+	int i = 0;
 	for (int j = 0; j < NUM_OF_META_VARIABLES; j++) {
 		this->envp.push_back(new char[metaVariables[j].length() + 1]);
 		std::memcpy(this->envp[i], metaVariables[j].c_str(), metaVariables[j].length());
@@ -153,12 +151,13 @@ void	CGI::execute(void) {
 
 	close(this->input[0]);
 	close(this->output[1]);
-	if (this->inputContentLength != "")
+	if (request["Content-Length"].exists == true)
 		(void)!write(this->input[1], request.messageBody.c_str(), request.find< Optional< String::size_type> >("Content-Length").value);
 	close(this->input[1]);
 
 	ssize_t	bytes = 0;
 	char	buffer[1024];
+	int		stat_loc = 0;
 
 	std::time_t	startTime = Time::getTimeSinceEpoch();
 	std::time_t	currTime;
@@ -172,8 +171,12 @@ void	CGI::execute(void) {
 			buffer[bytes] = '\0';
 			this->response += buffer;
 		}
-		if (waitpid(this->pid, 0, WNOHANG) == this->pid)
-			break ;
+		if (waitpid(this->pid, &stat_loc, WNOHANG)) {
+			if (stat_loc == 0)
+				break ;
+			else
+				throw InternalServerError500();
+		}
 		else if (currTime - startTime > CGI_TIMEOUT_VALUE) {
 			kill(this->pid, SIGKILL);
 			throw InternalServerError500();

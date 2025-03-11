@@ -1,7 +1,6 @@
 webserv
 *.o
 *.json
-*tester
 nginx.conf
 .cache/
 .vscode/
@@ -11,4 +10,3 @@ uploads/
 a.out
 *.a
 .clangd
-YoupiBanane

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/09 15:47:29 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/11 15:54:16 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,45 +164,45 @@ void	Driver::processMessages()
 		if (!request.requestLineFound && client.endOfRequestLineFound())
 		{
 			request.parseRequestLine(client.message);
-			request.requestLineFound = true;
 		}
 		if (request.requestLineFound &&
 			!request.headersFound &&
 			client.endOfHeaderFound())
 		{
 			request.parseHeaders(client.message);
-			request.headersFound = true;
 
 			Optional<String>	contentLength = request["Content-Length"];
 			Optional<String>	transferEncoding = request["Transfer-Encoding"];
 
-			if (contentLength.exists && transferEncoding.exists)
+			if (transferEncoding.exists)
 			{
-				request.headers.erase(Request::stringToLower("Content-Length"));
-			}
-			else if (!contentLength.exists && !transferEncoding.exists)
-			{
-				request.insert(Request::stringToLower("Content-Length"), 0);
-			}
-			else if (contentLength.exists && !transferEncoding.exists)
-			{
-				if (isContentLengthHeader(contentLength.value) == false)
-					throw BadRequest400();
-			}
-			else if (!contentLength.exists && transferEncoding.exists)
-			{
+				if (contentLength.exists)
+				{
+					request.headers.erase(Request::stringToLower("Content-Length"));
+				}
 				transferEncoding.value = Request::stringToLower(transferEncoding.value);
 				if (transferEncoding.value.find("chunked").exists == false)
+				{
 					throw BadRequest400();
+				}
 			}
+			else if (contentLength.exists)
+			{
+				if (isContentLengthHeader(contentLength.value) == false)
+				{
+					throw BadRequest400();
+				}
+			}
+			else
+				request.ready = true;
 		}
 		if (request.requestLineFound &&
 			request.headersFound &&
-			!request.messageBodyFound)
+			!request.ready)
 		{
 			request.parseMessageBody(client.message);
 		}
-		if (request.messageBodyFound)
+		if (request.ready)
 		{
 			readyRequests.push(request);
 			logger.logRequest(request, client);

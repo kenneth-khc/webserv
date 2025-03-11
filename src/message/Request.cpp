@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/06 07:57:36 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/11 15:43:22 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ Request::Request(void) :
 	Message(),
 	requestLineFound(false),
 	headersFound(false),
-	messageBodyFound(false)
+	ready(false)
 {}
 
 Request::~Request(void) {}
@@ -44,7 +44,7 @@ Request::Request(const Request &obj) :
 	queryPairs(obj.queryPairs),
 	requestLineFound(obj.requestLineFound),
 	headersFound(obj.headersFound),
-	messageBodyFound(obj.messageBodyFound),
+	ready(obj.ready),
 	cookies(obj.cookies)
 {}
 
@@ -59,7 +59,7 @@ Request	&Request::operator=(const Request &obj) {
 	this->queryPairs = obj.queryPairs;
 	this->requestLineFound = obj.requestLineFound;
 	this->headersFound = obj.headersFound;
-	this->messageBodyFound = obj.messageBodyFound;
+	this->ready = obj.ready;
 	this->cookies = obj.cookies;
 	return *this;
 }
@@ -90,6 +90,7 @@ void	Request::parseRequestLine(String &line) {
 		throw BadRequest400();
 	str = line.substr(0, terminatorPos.value);
 	extractRequestLineComponents(str, *this);
+	this->requestLineFound = true;
 	line = line.substr(terminatorPos.value + 2);
 }
 
@@ -112,6 +113,7 @@ void	Request::parseHeaders(String &line) {
 		if (headerLineStart.value >= headerSectionTerminator.value)
 			break ;
 	}
+	this->headersFound = true;
 	if (line[headerLineStart.value + 2] == '\0') {
 		line = "";
 		return ;
@@ -140,7 +142,7 @@ void	Request::parseMessageBody(String &line) {
 		}
 		line.erase(line.begin(), it);
 		if (this->messageBody.length() == contentLength.value)
-			this->messageBodyFound = true;
+			this->ready = true;
 		return ;
 	}
 
@@ -194,7 +196,7 @@ void	Request::parseMessageBody(String &line) {
 
 	this->insert(Request::stringToLower("Content-Length"), length);
 	this->headers.erase(Request::stringToLower("Transfer-Encoding"));
-	this->messageBodyFound = true;
+	this->ready = true;
 	if (line[chunkLineStart.value + 4] == '\0')
 		line = "";
 	else

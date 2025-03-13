@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/09 09:47:44 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/12 18:10:39 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,6 +68,25 @@ String	Client::getPortNum() const
 	std::stringstream	stream;
 	stream << portNum;
 	return (stream.str());
+}
+
+ssize_t	Client::receiveBytes()
+{
+	ssize_t	bytes = recv(socket.fd, &messageBuffer[0], messageBuffer.size(), 0);
+
+	if (bytes > 0)
+	{
+		for (ssize_t i = 0; i < bytes; ++i)
+		{
+			message += messageBuffer[i];
+		}
+		if (firstDataRecv == false)
+		{
+			firstDataRecv = true;
+		}
+		updateLastActive();
+	}
+	return bytes;
 }
 
 bool	Client::endOfRequestLineFound() const {

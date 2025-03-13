@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/11 17:01:24 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/13 23:00:42 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 # include "Request.hpp"
 # include "Driver.hpp"
 
-# define NUM_OF_META_VARIABLES 15
+# define NUM_OF_META_VARIABLES 4
 # define PHP_META_VARIABLES 2
 # define CGI_TIMEOUT_VALUE 3
 
@@ -29,7 +29,7 @@ class CGI {
 		CGI	&operator=(const CGI &obj);
 	public:
 		const Driver		&driver;
-		const Request		&request;
+		Request				&request;
 		String				execPath;
 		String				extension;
 		String				pathInfo;
@@ -40,7 +40,7 @@ class CGI {
 		pid_t				pid;
 		String				response;
 
-		CGI(const Driver &driver, const Request &request);
+		CGI(const Driver &driver, Request &request);
 		~CGI(void);
 		void	generateEnv(void);
 		void	execute(void);

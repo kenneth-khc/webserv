@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/07 16:29:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/13 09:22:42 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,9 +32,11 @@ struct	Predicate;
 class	String
 {
 public:
-	typedef string::size_type		size_type;
-	typedef string::iterator		iterator;
-	typedef string::const_iterator	const_iterator;
+	typedef string::size_type				size_type;
+	typedef string::iterator				iterator;
+	typedef string::const_iterator			const_iterator;
+	typedef string::reverse_iterator		reverse_iterator;
+	typedef string::const_reverse_iterator	const_reverse_iterator;
 
 	const static size_type	npos = std::string::npos;
 
@@ -71,25 +73,31 @@ public:
 
 	/* Wrapper to call std::string functions */
 
-	char&				at(size_type);
-	const char&			at(size_type) const;
-	size_type			size() const;
-	size_type			length() const;
-	bool				empty() const;
-	Optional<size_type>	find(char, size_type searchFrom = 0) const;
-	Optional<size_type>	find(const String&, size_type searchFrom = 0) const;
-	String				substr(size_type pos = 0, size_type len = npos) const;
-	void				clear();
-	const char*			c_str() const;
-	Optional<size_type>	find_last_of(char, size_type searchFrom = npos) const;
-	Optional<size_type>	find_last_of(const String&, size_type searchFrom = npos) const;
-	void				resize(size_type);
-	String&				replace(size_type, size_type, const String&);
-	iterator			begin();
-	const_iterator		begin() const;
-	iterator			end();
-	const_iterator		end() const;
-	iterator			erase(iterator, iterator);
+	char&					at(size_type);
+	const char&				at(size_type) const;
+	size_type				size() const;
+	size_type				length() const;
+	bool					empty() const;
+	Optional<size_type>		find(char, size_type searchFrom = 0) const;
+	Optional<size_type>		find(const String&, size_type searchFrom = 0) const;
+	String					substr(size_type pos = 0, size_type len = npos) const;
+	void					clear();
+	const char*				c_str() const;
+	Optional<size_type>		find_last_of(char, size_type searchFrom = npos) const;
+	Optional<size_type>		find_last_of(const String&, size_type searchFrom = npos) const;
+	void					resize(size_type);
+	String&					replace(size_type, size_type, const String&);
+	String&					replace(iterator, iterator, const String&);
+	iterator				begin();
+	const_iterator			begin() const;
+	iterator				end();
+	const_iterator			end() const;
+	reverse_iterator		rbegin();
+	const_reverse_iterator	rbegin() const;
+	reverse_iterator		rend();
+	const_reverse_iterator	rend() const;
+	String&					erase(size_type index = 0, size_type count = npos);
+	iterator				erase(iterator, iterator);
 
 	/* Custom additions to a String */
 
@@ -133,6 +141,9 @@ public:
 
 	int					toInt() const;
 
+	// Checks if the string ends with the given suffix
+	bool				ends_with(const String&) const;
+
 	template <typename Type>
 	static String	from(const Type& t)
 	{
@@ -140,6 +151,7 @@ public:
 		ss << t;
 		return String(ss.str());
 	}
+
 	// std::getline() "overload" for String class
 	template<typename CharT, typename Traits>
 	static basic_istream<CharT, Traits>&	getline(basic_istream<CharT, Traits>& input, String& str, CharT delim);

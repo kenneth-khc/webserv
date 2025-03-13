@@ -75,11 +75,11 @@ struct	Driver
 	void		monitorConnections();
 
 	/* Handling HTTP methods */
-	void		get(Response&, Request&) const;
+	void		get(Response&, Request&);
 	void		post(Response&, Request&) const;
 	void		delete_(Response&, Request&) const;
 
-	void		cgi(Response&, const Request&) const;
+	void		cgi(Response&, Request&) const;
 	void		generateDirectoryListing(Response&, const std::string&) const;
 
 	// Resources Directories

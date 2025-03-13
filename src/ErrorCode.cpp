@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/11 12:58:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/12 15:42:34 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,15 @@ NotFound404::NotFound404(const char *title) :
 	ErrorCode(1.1, 404, "Not Found", title)
 {}
 
+//	405 Method Not Allowed
+MethodNotAllowed405::MethodNotAllowed405(void) :
+	ErrorCode(1.1, 405, "Method Not Allowed")
+{}
+
+MethodNotAllowed405::MethodNotAllowed405(const char *title) :
+	ErrorCode(1.1, 405, "Method Not Allowed", title)
+{}
+
 //	412 Precondition Failed
 PreconditionFailed412::PreconditionFailed412(void) :
 	ErrorCode(1.1, 412, "Precondition Failed")
@@ -90,6 +99,15 @@ PreconditionFailed412::PreconditionFailed412(void) :
 
 PreconditionFailed412::PreconditionFailed412(const char *title) :
 	ErrorCode(1.1, 412, "Precondition Failed", title)
+{}
+
+//	413 Content Too Large
+ContentTooLarge413::ContentTooLarge413(void) :
+	ErrorCode(1.1, 413, "Content Too Large")
+{}
+
+ContentTooLarge413::ContentTooLarge413(const char *title) :
+	ErrorCode(1.1, 413, "Content Too Large", title)
 {}
 
 //	415 Unsupported Media Type

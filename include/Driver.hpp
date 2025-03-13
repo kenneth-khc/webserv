@@ -98,6 +98,12 @@ struct	Driver
 
 	friend class CGI;
 
+private:
+	void				addToEpoll(int, EPOLL_EVENTS);
+	Optional<Server*>	matchServerName(const String&);
+	Optional<Server*>	matchPort(int);
+
+
 };
 
 #endif

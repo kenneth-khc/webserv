@@ -29,6 +29,7 @@ class Request : public Message {
 		static const String	methods[NUM_OF_METHODS];
 		static const float	supportedVersions[NUM_OF_VERSIONS];
 
+		Client*						client;
 		String						method;
 		String						requestTarget;
 		String						absolutePath;

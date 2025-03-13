@@ -63,6 +63,12 @@ _addressLen(sizeof _address)
 	{
 		// TODO: error handling;
 	}
+	linger	linger = {.l_onoff = 1, .l_linger = 5};
+	retval = setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
+	if (retval == 1)
+	{
+		// TODO: error handling;
+	}
 	retval = fcntl(fd, F_SETFL, O_NONBLOCK);
 	if (retval == 1)
 	{
@@ -86,11 +92,21 @@ _addressLen(sizeof _address)
 	{
 		// TODO: error handling;
 	}
+	linger	linger = {.l_onoff = 1, .l_linger = 5};
+	retval = setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
+	if (retval == 1)
+	{
+		// TODO: error handling;
+	}
+	retval = fcntl(fd, F_SETFL, O_NONBLOCK);
+	if (retval == 1)
+	{
+		// TODO: error handling;
+	}
 }
 
 Socket::~Socket()
 {
-	/*close(fd);*/
 }
 
 int	Socket::bind() const

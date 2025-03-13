@@ -20,6 +20,7 @@
 #include "Request.hpp"
 
 struct	Socket;
+struct	Server;
 
 class	Client
 {
@@ -28,6 +29,7 @@ class	Client
 
 public:
 	Client();
+	Client(Socket*, const Socket*);
 
 	bool	endOfRequestLineFound() const;
 	bool	endOfHeaderFound() const;
@@ -37,6 +39,7 @@ public:
 
 	Socket*				socket;
 	const Socket*		receivedBy;
+	Server*				server;
 
 private:
 	std::vector<char>	messageBuffer;

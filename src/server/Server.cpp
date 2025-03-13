@@ -25,19 +25,16 @@ const unsigned int	Server::timeoutValue = 5;
 
 Server::Server():
 domainNames(),
-portNum(0),
-socketFD(-1),
+socket(),
 numClients(0),
 routes()
 {
 
 }
 
-Server::Server(std::vector<String> domainNames, int portNum, Socket* socket):
+Server::Server(std::vector<String> domainNames, Socket* socket):
 domainNames(domainNames),
-portNum(portNum),
 socket(socket),
-socketFD(socket->fd),
 numClients(0),
 root(),
 routes()

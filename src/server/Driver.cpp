@@ -30,6 +30,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <iostream>
+#include <algorithm>
 
 const unsigned int	Driver::timeoutValue = 5;
 
@@ -115,7 +116,7 @@ void	Driver::configNewServer(const Directive& directive)
 	}
 	std::vector<String>	domainNames = directive.getParams< std::vector<String> >("server_name")
 									  .value_or(std::vector<String>());
-	Server	newServer(domainNames, portNum, socket);
+	Server	newServer(domainNames, socket);
 	newServer.root = directive.getParams<String>("root").value_or("html");
 	servers.push_back(newServer);
 }
@@ -145,6 +146,15 @@ int	Driver::epollWait()
 	return numReadyEvents;
 }
 
+void	Driver::addToEpoll(int fd, EPOLL_EVENTS events)
+{
+	epoll_event	ep = epoll_event();
+	ep.events = events;
+	ep.data.fd = fd;
+	epoll_ctl(epollFD, EPOLL_CTL_ADD, fd, &ep);
+	// TODO: error handling
+}
+
 void	Driver::processReadyEvents()
 {
 	for (int i = 0; i < numReadyEvents; ++i)
@@ -152,28 +162,26 @@ void	Driver::processReadyEvents()
 		const epoll_event&	ev = readyEvents[i];
 		int	readyFD = ev.data.fd;
 
-		if (listeners.find(readyFD) != listeners.end())
+		std::map<int,Socket>::iterator	it = listeners.find(readyFD);
+		if (it != listeners.end())
 		{
-			const Socket&	socket = listeners.find(readyFD)->second;
-			Socket			clientSocket = socket.accept();
+			const Socket&	listener = it->second;
+			Socket			clientSocket = listener.accept();
 			int				fd = clientSocket.fd;
-			fcntl(clientSocket.fd, F_SETFL, O_NONBLOCK);
 
-			linger	linger = {.l_onoff = 1, .l_linger = 5};
-			setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
-
-			epoll_event	event = epoll_event();
-			event.events = EPOLLIN | EPOLLRDHUP;
-			event.data.fd = fd;
-			epoll_ctl(epollFD, EPOLL_CTL_ADD, fd, &event);
 			establishedSockets[fd] = clientSocket;
+			addToEpoll(fd, EPOLL_EVENTS(EPOLLIN | EPOLLRDHUP));
 
-			Client	newClient;
-			newClient.receivedBy = &socket;
-			newClient.socket = &establishedSockets[fd];
-			clients.insert(std::make_pair(fd, newClient));
+			Client	newClient(&establishedSockets[fd], &listener);
+			std::vector<Server>::iterator	it =
+			std::find_if(servers.begin(),
+						 servers.end(),
+						 isDefaultListener(&listener));
+			newClient.server = &(*it);
+
+			clients[fd] = newClient;
+
 			logger.logConnection(Logger::ESTABLISHED, fd, newClient);
-			/*acceptNewClient(socket);*/
 		}
 		else if (ev.events & EPOLLIN)
 		{
@@ -189,6 +197,7 @@ void	Driver::processMessages()
 	// TODO: get all ready clients instead of just the first one
 	Client&		client = clients[readyEvents[0].data.fd];
 	Request&	request = client.request;
+	request.client = &client;
 
 	try
 	{
@@ -248,11 +257,38 @@ void	Driver::processMessages()
 	}
 }
 
+Optional<Server*>	Driver::matchServerName(const String& hostname)
+{
+	for (std::vector<Server>::iterator it = servers.begin();
+		 it != servers.end();
+		 ++it)
+	{
+		const std::vector<String>&	serverNames = it->domainNames;
+		if (std::find(serverNames.begin(), serverNames.end(), hostname) != serverNames.end())
+		{
+			Server*	server = &(*it);
+			return makeOptional(server);
+		}
+	}
+	return makeNone<Server*>();
+}
+
 void	Driver::processReadyRequests()
 {
 	while (!readyRequests.empty())
 	{
 		Request&	request = readyRequests.front();
+		String		host = request.find< Optional<String> >("Host").value_or("");
+		if (host.find(':'))
+		{
+			host = host.consumeUntil(":").value;
+		}
+		// this picks the configuration block to use depending on server_name
+		// or defaulting back to first server with the matching port
+		Server*	server = matchServerName(host)
+						.value_or(request.client->server);
+		(void)server;
+
 		Response	response = handleRequest(request);
 
 		readyResponses.push(response);
@@ -315,16 +351,17 @@ void	Driver::generateResponses()
 		Client&		client = clients[readyEvents[0].data.fd];
 		Response&	response = readyResponses.front();
 		std::string	formattedResponse = response.toString();
+		int			fd = client.socket->fd;
 
-		send(client.socket->fd, formattedResponse.c_str(), formattedResponse.size(), 0);
+		send(fd, formattedResponse.c_str(), formattedResponse.size(), 0);
 		logger.logResponse(response, client);
 
 		if (response.flags & Response::CONNECTION_CLOSE)
 		{
-			close(client.socket->fd);
-			epoll_ctl(epollFD, EPOLL_CTL_DEL, client.socket->fd, 0);
-			establishedSockets.erase(establishedSockets.find(client.socket->fd));
-			clients.erase(clients.find(client.socket->fd));
+			close(fd);
+			epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, 0);
+			establishedSockets.erase(establishedSockets.find(fd));
+			clients.erase(clients.find(fd));
 		}
 		else
 		{
@@ -352,37 +389,6 @@ void	Driver::monitorConnections()
 			it++;
 	}
 }
-
-/*void	Driver::acceptNewClient(const Socket& listenerSocket)*/
-/*{*/
-/*	Socket	clientSocket;*/
-/*	Client	client;*/
-/**/
-/*	client.receivedBy = &listenerSocket;*/
-/*	client.addressLen = static_cast<socklen_t>(sizeof client.address);*/
-/*	sockaddr_storage	addr;*/
-/*	socklen_t			addrlen;*/
-/*	int	newSocketFD = accept(listenerSocket.fd, (sockaddr*)&addr, &addrlen);*/
-/*	clientSocket.fd = accept(listenerSocket.fd, (sockaddr*)&client.address,*/
-/*							 &client.addressLen);*/
-/*	client.socket.fd = clientSocket.fd;*/
-/*	fcntl(client.socket.fd, F_SETFL, O_NONBLOCK);*/
-/*	establishedSockets[clientSocket.fd] = Socket(addr);*/
-/*	//++numClients;*/
-/**/
-/*	//	SO_LINGER prevents close() from returning when there's still data in*/
-/*	//	the socket buffer. This avoids the "TCP reset problem" and allows*/
-/*	//	graceful closure.*/
-/*	linger	linger = {.l_onoff = 1, .l_linger = 5};*/
-/*	setsockopt(client.socket.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);*/
-/**/
-/*	epoll_event	event = epoll_event();*/
-/*	event.events = EPOLLIN | EPOLLRDHUP;*/
-/*	event.data.fd = client.socket.fd;*/
-/*	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socket.fd, &event);*/
-/*	clients.insert(std::make_pair(client.socket.fd, client));*/
-/*	logger.logConnection(Logger::ESTABLISHED, client.socket.fd, client);*/
-/*}*/
 
 ssize_t	Driver::receiveBytes(Client& client)
 {

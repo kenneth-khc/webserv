@@ -25,6 +25,18 @@ lastActive(Time::getTimeSinceEpoch())
 	messageBuffer.resize(1024);
 }
 
+Client::Client(Socket* socket, const Socket* receivedBy):
+socket(socket),
+receivedBy(receivedBy),
+messageBuffer(),
+message(),
+request(),
+firstDataRecv(false),
+lastActive(Time::getTimeSinceEpoch())
+{
+	messageBuffer.resize(1024);
+}
+
 bool	Client::endOfRequestLineFound() const {
 	return message.find("\r\n").exists;
 }

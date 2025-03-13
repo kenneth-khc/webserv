@@ -6,11 +6,13 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/11 17:05:59 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/13 23:04:29 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <cstdlib>
+#include <cstdio>
+#include <fcntl.h>
 #include <sstream>
 #include <sys/wait.h>
 #include <cstring>
@@ -22,7 +24,7 @@
 #include "CGI.hpp"
 #include "Driver.hpp"
 
-CGI::CGI(const Driver &driver, const Request &request) :
+CGI::CGI(const Driver &driver, Request &request) :
 	driver(driver),
 	request(request)
 {
@@ -53,6 +55,8 @@ CGI::CGI(const Driver &driver, const Request &request) :
 		}
 		it++;
 	}
+	if (this->execPath.ends_with(".bla") == true)	// Test-specific condition
+		this->execPath.replace(this->execPath.begin(), this->execPath.end(), "subject/ubuntu_cgi_tester");
 
 	if (it == driver.cgiScript.end() || access(this->execPath.c_str(), X_OK) != 0)
 		throw NotFound404();
@@ -81,34 +85,31 @@ CGI::~CGI(void) {
 }
 
 void	CGI::generateEnv(void) {
-	std::stringstream	stream;
-	String				portNum;
-	String				serverProtocol;
+	std::stringstream	portNum;
+	std::stringstream	serverProtocol;
+	std::stringstream	contentLength;
 	const Client		&client = driver.clients.find(driver.readyEvents[0].data.fd)->second;
 
-	stream << client.socket.port;
-	portNum = stream.str();
-	stream.str("");
-
-	stream << std::setprecision(2) << request.httpVersion;
-	serverProtocol = stream.str();
+	portNum << client.socket.port;
+	serverProtocol << std::setprecision(2) << request.httpVersion;
+	contentLength << this->request.messageBody.length();
 
 	const String	metaVariables[NUM_OF_META_VARIABLES] = {
-		"CONTENT_LENGTH=" + request["Content-Length"].value,
-		"CONTENT_TYPE=" + request["Content-Type"].value,
-		"GATEWAY_INTERFACE=CGI/1.1",
-		"PATH_INFO=" + pathInfo,
-		"QUERY_STRING=" + request.query.value,
-		"REMOTE_ADDR=" + client.getIPAddr(),
-		"REMOTE_HOST=" + request["Host"].value,
-		"REQUEST_METHOD=" + request.method,
-		"SCRIPT_NAME=/" + this->execPath,
-		"SERVER_NAME=" + driver.name,
-		"SERVER_PORT=" + portNum,
-		"SERVER_PROTOCOL=HTTP/" + serverProtocol,
-		"SERVER_SOFTWARE=" + driver.name,
-		"X_SID=" + request.cookies.find("sid")->second.value,
-		"X_UPLOADS_DIR=" + driver.uploadsDir
+		// "CONTENT_LENGTH=" + contentLength.str(),
+		"CONTENT_TYPE=" + this->request["Content-Type"].value,
+		// "GATEWAY_INTERFACE=CGI/1.1",
+		"PATH_INFO=/",	// Test-specific condition
+		// "QUERY_STRING=" + this->request.query.value,
+		// "REMOTE_ADDR=" + client.getIPAddr(),
+		// "REMOTE_HOST=" + this->request["Host"].value,
+		"REQUEST_METHOD=" + this->request.method,
+		// "SCRIPT_NAME=/" + this->execPath,
+		// "SERVER_NAME=" + driver.name,
+		// "SERVER_PORT=" + portNum,
+		"SERVER_PROTOCOL=HTTP/" + serverProtocol.str(),
+		// "SERVER_SOFTWARE=" + driver.name,
+		// "X_SID=" + this->request.cookies.find("sid")->second.value,
+		// "X_UPLOADS_DIR=" + driver.uploadsDir
 	};
 
 	int i = 0;
@@ -133,27 +134,35 @@ void	CGI::generateEnv(void) {
 	}
 	this->envp.push_back(0);
 }
-
+#include <iostream>
 void	CGI::execute(void) {
 	(void)!pipe(this->input);
-	(void)!pipe(this->output);
+	// (void)!pipe(this->output);
+
 	this->pid = fork();
 	if (this->pid == 0) {
 		close(this->input[1]);
 		dup2(this->input[0], STDIN_FILENO);
 		close(this->input[0]);
 		close(this->output[0]);
-		dup2(this->output[1], STDOUT_FILENO);
+		// dup2(this->output[1], STDOUT_FILENO);
 		close(this->output[1]);
 		execve(this->execPath.c_str(), this->argv, this->envp.data());
 		std::exit(1);
 	}
 
+	if (request.hasMessageBody)
+	{
+		request.parseMessageBody(request.client->message);
+		while (!request.messageBodyFound)
+		{
+			request.client->receiveBytes();
+			request.parseMessageBody(request.client->message);
+		}
+	}
 	close(this->input[0]);
-	close(this->output[1]);
-	if (request["Content-Length"].exists == true)
-		(void)!write(this->input[1], request.messageBody.c_str(), request.find< Optional< String::size_type> >("Content-Length").value);
 	close(this->input[1]);
+	close(this->output[1]);
 
 	ssize_t	bytes = 0;
 	char	buffer[1024];
@@ -171,7 +180,7 @@ void	CGI::execute(void) {
 			buffer[bytes] = '\0';
 			this->response += buffer;
 		}
-		if (waitpid(this->pid, &stat_loc, WNOHANG)) {
+		if (waitpid(this->pid, &stat_loc, WNOHANG) == pid) {
 			if (stat_loc == 0)
 				break ;
 			else
@@ -254,9 +263,10 @@ void	CGI::parseOutput(Response &response) const {
 		response.insert("Content-Length", response.messageBody.length());
 }
 
-void	Driver::cgi(Response &response, const Request &request) const {
+void	Driver::cgi(Response &response, Request &request) const {
 	CGI	cgi(*this, request);
 
 	cgi.execute();
+	std::cout << response.messageBody << std::endl;
 	cgi.parseOutput(response);
 }

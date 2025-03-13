@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/07 16:29:34 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/13 09:22:29 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -274,6 +274,12 @@ String&	String::replace(size_type pos, size_type count, const String& toReplace)
 	return *this;
 }
 
+String&	String::replace(String::iterator first, String::iterator last, const String& toReplace)
+{
+	str.replace(first, last, toReplace);
+	return *this;
+}
+
 String::iterator	String::begin()
 {
 	return str.begin();
@@ -292,6 +298,32 @@ String::iterator	String::end()
 String::const_iterator	String::end() const
 {
 	return str.end();
+}
+
+String::reverse_iterator	String::rbegin()
+{
+	return str.rbegin();
+}
+
+String::const_reverse_iterator	String::rbegin() const
+{
+	return str.rbegin();
+}
+
+String::reverse_iterator	String::rend()
+{
+	return str.rend();
+}
+
+String::const_reverse_iterator	String::rend() const
+{
+	return str.rend();
+}
+
+String&	String::erase(String::size_type index, String::size_type count)
+{
+	str.erase(index, count);
+	return *this;
 }
 
 String::iterator	String::erase(String::iterator first, String::iterator last)
@@ -525,6 +557,27 @@ int	String::toInt() const
 	int	num;
 	std::istringstream(str) >> num;
 	return num;
+}
+
+bool	String::ends_with(const String& suffix) const
+{
+	if (suffix.str.length() > str.length())
+	{
+		return (false);
+	}
+
+	String::const_reverse_iterator	it = str.rbegin();
+	String::const_reverse_iterator	suffixIt = suffix.str.rbegin();
+	while (suffixIt != suffix.str.rend())
+	{
+		if (*it != *suffixIt)
+		{
+			return false;
+		}
+		it++;
+		suffixIt++;
+	}
+	return true;
 }
 
 template <typename Type>

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/11 15:43:22 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/13 12:14:39 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,39 +28,57 @@ const float	Request::supportedVersions[NUM_OF_VERSIONS] = { 1.1 };
 
 Request::Request(void) :
 	Message(),
+	client(NULL),
 	requestLineFound(false),
 	headersFound(false),
-	ready(false)
+	hasMessageBody(true),
+	messageBodyFound(false),
+	chunkSize(0),
+	length(0),
+	chunkSizeFound(false),
+	lastChunk(false)
 {}
 
 Request::~Request(void) {}
 
 Request::Request(const Request &obj) :
 	Message(obj),
+	client(obj.client),
+	requestLineFound(obj.requestLineFound),
 	method(obj.method),
 	requestTarget(obj.requestTarget),
 	absolutePath(obj.absolutePath),
 	query(obj.query),
 	queryPairs(obj.queryPairs),
-	requestLineFound(obj.requestLineFound),
 	headersFound(obj.headersFound),
-	ready(obj.ready),
-	cookies(obj.cookies)
+	cookies(obj.cookies),
+	hasMessageBody(obj.hasMessageBody),
+	messageBodyFound(obj.messageBodyFound),
+	chunkSize(0),
+	length(0),
+	chunkSizeFound(false),
+	lastChunk(false)
 {}
 
 Request	&Request::operator=(const Request &obj) {
 	if (this == &obj)
 		return (*this);
 	Message::operator=(obj);
+	this->client = obj.client;
+	this->requestLineFound = obj.requestLineFound;
 	this->method = obj.method;
 	this->requestTarget = obj.requestTarget;
 	this->absolutePath = obj.absolutePath;
 	this->query = obj.query;
 	this->queryPairs = obj.queryPairs;
-	this->requestLineFound = obj.requestLineFound;
 	this->headersFound = obj.headersFound;
-	this->ready = obj.ready;
 	this->cookies = obj.cookies;
+	this->hasMessageBody = obj.hasMessageBody;
+	this->messageBodyFound = obj.messageBodyFound;
+	this->chunkSize = obj.chunkSize;
+	this->length = obj.length;
+	this->chunkSizeFound = obj.chunkSizeFound;
+	this->lastChunk = obj.lastChunk;
 	return *this;
 }
 
@@ -134,6 +152,9 @@ void	Request::parseMessageBody(String &line) {
 	Optional<String::size_type>	contentLength = this->find< Optional<String::size_type> >("Content-Length");
 
 	if (contentLength.exists == true) {
+		// if (contentLength.value > 100)	// Test-specific condition
+		// 	throw ContentTooLarge413();
+
 		String::iterator	it = line.begin();
 
 		while (this->messageBody.length() < contentLength.value && it != line.end()) {
@@ -142,63 +163,74 @@ void	Request::parseMessageBody(String &line) {
 		}
 		line.erase(line.begin(), it);
 		if (this->messageBody.length() == contentLength.value)
-			this->ready = true;
+			this->messageBodyFound = true;
 		return ;
 	}
 
-	Optional<String::size_type>	chunkedBodyTerminator = line.find("\r\n\r\n");
-
-	if (chunkedBodyTerminator.exists == false)
-		return ;
-
-	String::size_type			length = 0;
 	std::stringstream			stream;
-	Optional<String::size_type>	chunkExt;
-	Optional<String::size_type>	chunkLineStart(0);
-	Optional<String::size_type>	chunkLineTerminator;
 	String						str;
-	String::size_type			chunkSize;
+	Optional<String::size_type>	chunkSizeTerminator;
+	Optional<String::size_type>	chunkExt;
+	Optional<String::size_type>	chunkDataTerminator;
 
 	while (true) {
-		chunkLineTerminator = line.find("\r\n", chunkLineStart.value);
-		str = line.substr(chunkLineStart.value, chunkLineTerminator.value - chunkLineStart.value);
+		if (this->chunkSizeFound == false) {
+			chunkSizeTerminator = line.find("\r\n");
+			if (chunkSizeTerminator.exists == false)
+				return ;
 
-		chunkExt = str.find(";", chunkLineStart.value);	// No support for chunk extensions
-		if (chunkExt.exists == true)
-			str = str.substr(0, chunkExt.value);
+			str = line.substr(0, chunkSizeTerminator.value);
 
-		for (String::size_type i = 0; i < str.length(); i++) {
-			if (std::isxdigit(str[i]) == 0)
-				throw BadRequest400();
+			chunkExt = str.find(";");	// No support for chunk extensions
+			if (chunkExt.exists == true)
+				str = str.substr(0, chunkExt.value);
+
+			for (String::size_type i = 0; i < str.length(); i++) {
+				if (std::isxdigit(str[i]) == 0)
+					throw BadRequest400();
+			}
+			stream << str;
+			stream >> std::hex >> this->chunkSize;
+			stream.str("");
+			stream.clear();
+
+			if (this->chunkSize == 0)
+				this->lastChunk = true;
+
+			line.erase(0, chunkSizeTerminator.value + 2);
+			this->chunkSizeFound = true;
 		}
-		stream << str;
-		stream >> std::hex >> chunkSize;
-		stream.str("");
-		stream.clear();
+		if (this->chunkSizeFound == true) {
+			String::iterator	it = line.begin();
 
-		if (chunkSize == 0)
-			break ;
+			while (this->chunkSize > 0) {
+				if (it == line.end()) {
+					line.erase(line.begin(), it);
+					return ;
+				}
+				this->messageBody += *it;
+				this->length++;
+				// if (this->length > 100)	// Test-specific condition
+				// 	throw ContentTooLarge413();
+				it++;
+				this->chunkSize--;
+			}
+			line.erase(line.begin(), it);
 
-		chunkLineStart.value = chunkLineTerminator.value + 2;
-		if (chunkLineStart.value > chunkedBodyTerminator.value && chunkSize != 0)
-			throw BadRequest400();
+			chunkDataTerminator = line.find("\r\n");
+			if (chunkDataTerminator.exists == false)
+				return ;
+			line.erase(0, chunkDataTerminator.value + 2);
 
-		chunkLineTerminator.value = chunkLineStart.value + chunkSize;
-		str = line.substr(chunkLineStart.value, chunkLineTerminator.value - chunkLineStart.value);
-		this->messageBody += str;
-		length += chunkSize;
-
-		chunkLineStart.value = chunkLineTerminator.value + 2;
-		if (chunkLineStart.value > chunkedBodyTerminator.value && chunkSize != 0)
-			throw BadRequest400();
+			this->chunkSizeFound = false;
+			if (this->lastChunk == true)
+				break ;
+		}
 	}
 	// No support for chunked trailer section
 
-	this->insert(Request::stringToLower("Content-Length"), length);
+	this->lastChunk = false;
+	this->insert(Request::stringToLower("Content-Length"), this->length);
 	this->headers.erase(Request::stringToLower("Transfer-Encoding"));
-	this->ready = true;
-	if (line[chunkLineStart.value + 4] == '\0')
-		line = "";
-	else
-		line = line.substr(chunkLineStart.value + 4);
+	this->messageBodyFound = true;
 }

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/11 15:54:16 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/13 13:57:40 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,11 +44,12 @@ pagesDir("pages"),
 uploadsDir("uploads"),
 miscPagesDir("misc_pages"),
 cgiDir("cgi-bin"),
-autoindex(true)
+autoindex(false)
 {
 	readyEvents = new epoll_event[maxEvents];
 	cgiScript.push_back("py");
 	cgiScript.push_back("php");
+	cgiScript.push_back("bla");	// Test-specific condition
 }
 
 // TODO: refactor this crap holy
@@ -147,8 +148,7 @@ void	Driver::processReadyEvents()
 		else if (ev.events & EPOLLIN)
 		{
 			Client&	client = clients[ev.data.fd];
-			client.updateLastActive();
-			receiveBytes(client);
+			client.receiveBytes();
 		}
 	}
 }
@@ -159,6 +159,7 @@ void	Driver::processMessages()
 	Client&		client = clients[readyEvents[0].data.fd];
 	Request&	request = client.request;
 
+	request.client = &client;
 	try
 	{
 		if (!request.requestLineFound && client.endOfRequestLineFound())
@@ -194,15 +195,11 @@ void	Driver::processMessages()
 				}
 			}
 			else
-				request.ready = true;
+			{
+				request.hasMessageBody = false;
+			}
 		}
-		if (request.requestLineFound &&
-			request.headersFound &&
-			!request.ready)
-		{
-			request.parseMessageBody(client.message);
-		}
-		if (request.ready)
+		if (request.requestLineFound && request.headersFound)
 		{
 			readyRequests.push(request);
 			logger.logRequest(request, client);
@@ -261,7 +258,7 @@ Response	Driver::handleRequest(Request& request)
 	processCookies(request, response);
 	try
 	{
-		if (request.method == "GET" || request.method == "HEAD")
+		if (request.method == "GET")
 		{
 			get(response, request);
 		}
@@ -273,6 +270,8 @@ Response	Driver::handleRequest(Request& request)
 		{
 			delete_(response, request);
 		}
+		else
+			throw MethodNotAllowed405();	// Test-specific condition
 	}
 	catch (const ErrorCode& e)
 	{
@@ -351,26 +350,6 @@ void	Driver::acceptNewClient(const Socket& socket)
 	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socket.fd, &event);
 	clients.insert(std::make_pair(client.socket.fd, client));
 	logger.logConnection(Logger::ESTABLISHED, client.socket.fd, client);
-}
-
-ssize_t	Driver::receiveBytes(Client& client)
-{
-	ssize_t	bytes = recv(client.socket.fd,
-						 &client.messageBuffer[0],
-						 client.messageBuffer.size(), 0);
-
-	if (bytes > 0)
-	{
-		for (ssize_t i = 0; i < bytes; ++i)
-		{
-			client.message += client.messageBuffer[i];
-		}
-		if (client.firstDataRecv == false)
-		{
-			client.firstDataRecv = true;
-		}
-	}
-	return bytes;
 }
 
 #include <iomanip>

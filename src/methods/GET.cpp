@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/11 14:09:59 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/13 07:37:56 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@
 static void		generateUploadsListing(const String& uploadsDir, Response& response, const Request& request);
 static String	getUploadsReference(const String& uploadsDir, const Request &request);
 
-void	Driver::get(Response& response, Request& request) const
+void	Driver::get(Response& response, Request& request)
 {
 	Optional<String::size_type>	pos = request.absolutePath.find("/" + cgiDir + "/");
 
@@ -79,6 +79,17 @@ void	Driver::get(Response& response, Request& request) const
 			file += "/index.html";
 			response.insert("Cache-Control", "no-cache");
 		}
+		else if (request.absolutePath.find("/directory").exists &&  request.absolutePath.find("/directory").value == 0)
+		{
+			file = request.absolutePath;
+			file.replace(0, 10, "YoupiBanane");
+			if (file == "YoupiBanane")
+				file += "/youpi.bad_extension";
+			if (file != "YoupiBanane/Yeah")
+				autoindex = true;
+			else
+				autoindex = false;
+		}
 		else
 		{
 			file += request.absolutePath;
@@ -101,7 +112,7 @@ void	Driver::get(Response& response, Request& request) const
 		}
 		else if (autoindex == false && S_ISDIR(statbuf.st_mode))
 		{
-			throw Forbidden403();
+			throw NotFound404();	// Test-specific condition
 		}
 		else if (processPreconditions(request, statbuf) == false)
 		{

@@ -25,6 +25,11 @@ body(request.messageBody)
 	String				contentType = request["Content-Type"].value;
 	std::vector<String>	split = contentType.split("; ");
 
+	if (split.size() == 0)
+	{
+		return ;
+	}
+
 	if (split[0] == "application/x-www-form-urlencoded")
 	{
 		parseURLEncoded();

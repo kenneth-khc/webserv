@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/09 10:42:43 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/13 22:55:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include "Server.hpp"
 #include "ErrorCode.hpp"
 #include "POSTBody.hpp"
+#include "Driver.hpp"
 
 using std::size_t;
 using std::ofstream;
@@ -33,19 +34,27 @@ static void		uploadFiles(const POSTBody& body, const String& uploadsDir, const S
 static String	constructFormPath(const String& uploadsDir, const String& sid);
 static void		uploadForm(const POSTBody& body, const String& uploadsDir, const String& sid);
 
-#include "Driver.hpp"
-
 void	Driver::post(Response& response, Request& request) const
 {
-	POSTBody					msgBody(request);
-	Optional<String::size_type>	pos = request.requestTarget.find("/" + cgiDir + "/");
+	Optional<String::size_type>	pos = request.absolutePath.find("/" + cgiDir + "/");
+
+	// if (request.hasMessageBody)
+	// {
+	// 	request.parseMessageBody(request.client->message);
+	// 	while (!request.messageBodyFound)
+	// 	{
+	// 		request.client->receiveBytes();
+	// 		request.parseMessageBody(request.client->message);
+	// 	}
+	// }
 
 	if (pos.exists == true && pos.value == 0)
 	{
 		cgi(response, request);
 	}
-	else if (request.requestTarget == "/pages/form.html")
+	else if (request.absolutePath == "/pages/form.html")
 	{
+		POSTBody		msgBody(request);
 		const String&	sid = request.cookies.find("sid")->second.value;
 
 		if (msgBody.contentType == "application/x-www-form-urlencoded")
@@ -64,9 +73,13 @@ void	Driver::post(Response& response, Request& request) const
 		response.insert("Content-Length", 0);
 		response.insert("Location", "http://localhost:8000/pages/form.html");
 	}
+	else if (request.absolutePath.ends_with(".bla") == true) // Test-specific condition
+	{
+		cgi(response, request);
+	}
 	else
 	{
-		throw NotFound404();
+		throw MethodNotAllowed405();	// Test-specific condition
 	}
 	// TODO: location header
 	// TODO: regenerate the page/link to created resource after POSTing

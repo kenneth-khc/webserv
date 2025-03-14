@@ -35,13 +35,14 @@ Configuration	Parser::parseConfig()
 
 	contexts.push(GLOBAL);
 	// TODO: testing stack of multimaps
-	mapStack.push(std::multimap<String,Directive>());
+	mapStack.push(std::multimap<String,Directive*>());
+	parents.push(NULL);
 	try
 	{
 		token = lexer.advance();
 		while (token != Token::END_OF_FILE)
 		{
-			Directive	directive = parseDirective();
+			Directive*	directive = parseDirective();
 			configurator.add(directive, config);
 		}
 		config.assertHasDirective("prefix");
@@ -56,7 +57,7 @@ Configuration	Parser::parseConfig()
 	return config;
 }
 
-Directive	Parser::parseDirective()
+Directive*	Parser::parseDirective()
 {
 	const String	name = token.lexeme;
 	expect(Token::NAME);
@@ -65,7 +66,7 @@ Directive	Parser::parseDirective()
 	//		 treating it as a vector of Strings?
 	std::vector<String>	parameters = parseParameters();
 
-	Directive	directive;
+	Directive*	directive;
 	if (token == Token::LCURLY)
 	{
 		directive = parseBlock(name, parameters);
@@ -73,13 +74,16 @@ Directive	Parser::parseDirective()
 	else if (token == Token::SEMICOLON)
 	{
 		directive = parseSimple(name, parameters);
+		directive->enclosing = mapStack.top();
+		directive->parent = parents.top();
 	}
 	else
 	{
 		throw UnexpectedToken(token);
 	}
+	// validate the directive in the context of its surrounding
 	configurator.validate(directive, mapStack.top());
-	std::pair<String,Directive>	mapping = std::make_pair(directive.name, directive);
+	std::pair<String,Directive*>	mapping = std::make_pair(directive->name, directive);
 	mapStack.top().insert(mapping);
 	return directive;
 }
@@ -98,28 +102,32 @@ std::vector<String>	Parser::parseParameters()
 	return parameters;
 }
 
-Directive	Parser::parseSimple(const String& name,
+Directive*	Parser::parseSimple(const String& name,
 								const std::vector<String>& params)
 {
 	expect(Token::SEMICOLON);
-	return Directive(name, params, contexts.top());
+	return new Directive(name, params, contexts.top());
 }
 
-Directive	Parser::parseBlock(const String& name,
+Directive*	Parser::parseBlock(const String& name,
 							   const std::vector<String>& params)
 {
 	expect(Token::LCURLY);
-	Directive	block = Directive(name, params, contexts.top());
+	Directive*	block = new Directive(name, params, contexts.top());
 	contexts.push(contextify(name));
-	mapStack.push(std::multimap<String,Directive>());
+	block->parent = parents.top();
+	parents.push(block);
+	mapStack.push(std::multimap<String,Directive*>());
 	while (token != Token::RCURLY)
 	{
-		Directive directive = parseDirective();
-		block.addDirective(directive);
+		Directive* directive = parseDirective();
+		block->addDirective(directive);
 	}
 	expect(Token::RCURLY);
 	contexts.pop();
 	mapStack.pop();
+	parents.pop();
+	block->enclosing = mapStack.top();
 	return block;
 }
 

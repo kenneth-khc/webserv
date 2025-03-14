@@ -19,13 +19,15 @@
 struct	Configuration
 {
 	Configuration();
+	~Configuration();
 
-	Mappings	directives;
+	std::multimap<String, Directive*>	directives;
 
 	void				add(const Directive&);
+	void				add(Directive*);
 	Optional<Directive>	find(const String&) const;
 	void				display() const;
-	const Directive&	get(const String&) const;
+	const Directive*	get(const String&) const;
 	void				assertHasDirective(const String&) const;
 };
 

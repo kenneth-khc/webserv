@@ -39,11 +39,18 @@ void	Configurator::support(const String& name, const Validator& validator)
 	supportedDirectives.insert(directiveValidator);
 }
 
-void	Configurator::validate(const Directive& directive,
-							   const std::multimap<String,Directive>& mappings)
+/*void	Configurator::validate(const Directive& directive,*/
+/*							   const std::multimap<String,Directive>& mappings)*/
+/*{*/
+/*	const Validator&	validator = operator[](directive.name);*/
+/*	validator(directive, mappings);*/
+/*}*/
+
+void	Configurator::validate(const Directive* directive,
+							   const std::multimap<String,Directive*>& mappings)
 {
-	const Validator&	validator = operator[](directive.name);
-	validator(directive, mappings);
+	const Validator&	validator = operator[](directive->name);
+	validator(*directive, mappings);
 }
 
 const Validator&	Configurator::operator[](const String& key) const
@@ -58,13 +65,7 @@ const Validator&	Configurator::operator[](const String& key) const
 	}
 }
 
-void	Configurator::add(const Directive& directive)
-{
-	(void)directive;
-	/*config.add(directive);*/
-}
-
-void	Configurator::add(const Directive& directive, Configuration& config) const
+void	Configurator::add(Directive* directive, Configuration& config) const
 {
 	config.add(directive);
 }

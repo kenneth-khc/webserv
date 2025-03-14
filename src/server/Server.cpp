@@ -26,7 +26,6 @@ const unsigned int	Server::timeoutValue = 5;
 Server::Server():
 domainNames(),
 socket(),
-numClients(0),
 routes()
 {
 
@@ -35,7 +34,6 @@ routes()
 Server::Server(std::vector<String> domainNames, Socket* socket):
 domainNames(domainNames),
 socket(socket),
-numClients(0),
 root(),
 routes()
 {

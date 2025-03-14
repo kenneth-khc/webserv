@@ -24,29 +24,36 @@ Directive::Directive(const String& dname,
 					 Context context):
 name(dname),
 parameters(parameters),
+enclosing(),
+parent(),
 enclosingContext(context)
 {
 
 }
 
-void	Directive::addDirective(const Directive& dir)
+/*void	Directive::addDirective(const Directive& dir)*/
+/*{*/
+/*	directives.insert(std::make_pair(dir.name, dir));*/
+/*}*/
+/**/
+void	Directive::addDirective(Directive* dir)
 {
-	directives.insert(std::make_pair(dir.name, dir));
+	directives.insert(std::make_pair(dir->name, dir));
 }
 
-const Directive&	Directive::getDirective(const String& key)
+const Directive*	Directive::getDirective(const String& key)
 {
 	return directives.find(key)->second;
 }
 
-std::vector<Directive>	Directive::getDirectives(const String& key) const
+std::vector<Directive*>	Directive::getDirectives(const String& key) const
 {
-	std::vector<Directive>	matchingDirectives;
+	std::vector<Directive*>	matchingDirectives;
 	DirectiveRange	range = directives.equal_range(key);
 	while (range.first != range.second)
 	{
-		const std::pair<String,Directive>&	entry = *range.first;
-		const Directive&					directive = entry.second;
+		const std::pair<String,Directive*>&	entry = *range.first;
+		Directive*					directive = entry.second;
 		matchingDirectives.push_back(directive);
 		++range.first;
 	}
@@ -68,12 +75,12 @@ void	Directive::printParameters() const
 	}
 }
 
-Optional<Directive>	Directive::find(const String& key) const
+Optional<Directive*>	Directive::find(const String& key) const
 {
-	std::multimap<String,Directive>::const_iterator it = directives.find(key);
+	std::multimap<String,Directive*>::const_iterator it = directives.find(key);
 	if (it == directives.end())
 	{
-		return makeNone<Directive>();
+		return makeNone<Directive*>();
 	}
 	else
 	{
@@ -138,3 +145,14 @@ String	stringifyContext(Context ctx)
 	
 }
 
+void	Directive::cleanUp()
+{
+	for (Mappings::iterator it = this->directives.begin();
+		 it != this->directives.end();
+		 ++it)
+	{
+		Directive*	child = it->second;
+		child->cleanUp();
+		delete child;
+	}
+}

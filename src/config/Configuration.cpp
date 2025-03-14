@@ -17,9 +17,21 @@
 
 Configuration::Configuration() { }
 
-void	Configuration::add(const Directive& dir)
+Configuration::~Configuration()
 {
-	directives.insert(std::make_pair(dir.name, dir));
+	for (Mappings::iterator it = directives.begin();
+		 it != directives.end();
+		 ++it)
+	{
+		Directive*	directive = it->second;
+		directive->cleanUp();
+		delete directive;
+	}
+}
+
+void	Configuration::add(Directive* dir)
+{
+	directives.insert(std::make_pair(dir->name, dir));
 }
 
 // TODO: refactor this
@@ -54,32 +66,32 @@ void	print(const Directive& dir, int indent = 0, int charStart = 0, bool lastRow
 		}
 	}
 		std::cout << '\n';
-	const std::multimap<String,Directive>&	children = dir.directives;
-	for (std::multimap<String,Directive>::const_iterator it = children.begin();
+	const std::multimap<String,Directive*>&	children = dir.directives;
+	for (std::multimap<String,Directive*>::const_iterator it = children.begin();
 		 it != children.end(); ++it)
 	{
 		// WARN: I don't know where this charStart number came from
 		if (it != --children.end())
-			print(it->second, indent + 1, charStart + indent + 2, false);
+			print(*it->second, indent + 1, charStart + indent + 2, false);
 		else
-			print(it->second, indent + 1, charStart + indent + 2, true);
+			print(*it->second, indent + 1, charStart + indent + 2, true);
 	}
 }
 
 Optional<Directive>	Configuration::find(const String& key) const
 {
-	std::multimap<String,Directive>::const_iterator	it = directives.find(key);
+	std::multimap<String,Directive*>::const_iterator	it = directives.find(key);
 	if (it == directives.end())
 	{
 		return makeNone<Directive>();
 	}
 	else
 	{
-		return makeOptional(it->second);
+		return makeOptional(*it->second);
 	}
 }
 
-const Directive&	Configuration::get(const String& key) const
+const Directive*	Configuration::get(const String& key) const
 {
 	return directives.find(key)->second;
 }
@@ -94,10 +106,10 @@ void	Configuration::assertHasDirective(const String& key) const
 
 void	Configuration::display() const
 {
-	for (std::multimap<String,Directive>::const_iterator it = directives.begin();
+	for (std::multimap<String,Directive*>::const_iterator it = directives.begin();
 		 it != directives.end(); ++it)
 	{
-		print(it->second, 0, 0, false);
+		print(*it->second, 0, 0, false);
 	}
 	std::cout << "--------------------------------\n";
 }

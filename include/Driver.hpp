@@ -100,6 +100,7 @@ struct	Driver
 
 private:
 	void				addToEpoll(int, EPOLL_EVENTS);
+	Socket*				spawnSocket(const String&, const String&);
 	Optional<Server*>	matchServerName(const String&);
 	Optional<Server*>	matchPort(int);
 

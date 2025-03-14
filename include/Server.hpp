@@ -26,7 +26,7 @@ struct	Server
 
 	std::vector<String>	domainNames;
 	Socket*				socket;
-	int					numClients;
+	/*int					numClients;*/
 
 	static const unsigned int	timeoutValue;
 

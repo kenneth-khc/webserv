@@ -47,7 +47,7 @@ private:
 	Socket(int, sockaddr_storage);
 
 	addrinfo*	getAddrInfo(const String&, const String&);
-	void		fillAddress(sockaddr_storage);
+	void		convertAddressToIpAndPort(sockaddr_storage);
 };
 
 /* A functor to pass into std::find_if to match port numbers because

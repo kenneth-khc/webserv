@@ -20,12 +20,12 @@
 #include <limits>
 
 Validator::Validator(void (*function)(const Directive&,
-									  const std::multimap<String,Directive>&)):
+									  const Mappings&)):
 function(function)
 { }
 
 void	Validator::operator()(const Directive& directive,
-							  const std::multimap<String,Directive>& mappings) const
+							  const Mappings& mappings) const
 {
 	return function(directive, mappings);
 }

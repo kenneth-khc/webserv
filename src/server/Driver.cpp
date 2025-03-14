@@ -61,14 +61,14 @@ void	Driver::configureFrom(const Configuration& config)
 		// TODO: error handling 
 	}
 
-	const Directive&		http = config.get("http");
-	std::vector<Directive>	serverDirectives = http.getDirectives("server");
+	const Directive*		http = config.get("http");
+	std::vector<Directive*>	serverDirectives = http->getDirectives("server");
 	for (size_t i = 0; i < serverDirectives.size(); ++i)
 	{
-		const Directive&	serverDirective = serverDirectives[i];
+		const Directive*	serverDirective = serverDirectives[i];
 		try
 		{
-			configNewServer(serverDirective);
+			configNewServer(*serverDirective);
 		}
 		catch (const ConfigError& e)
 		{
@@ -89,22 +89,19 @@ void	Driver::configureFrom(const Configuration& config)
 	}
 }
 
-#include <algorithm>
-
-void	Driver::configNewServer(const Directive& directive)
+Socket*	Driver::spawnSocket(const String& ip, const String& port)
 {
-	//TODO: dynamic address
-	String	address = "127.0.0.1";
-	String	listenTo = directive.getParams<String>("listen").value_or("8000");
-	int		portNum = to<int>(listenTo);
 	Socket*	socket = NULL;
+	int		portNum = to<int>(port);
+
 	if (listeners.find(portNum) == listeners.end())
 	{
-		Socket	serverSocket = Socket::spawn(address, listenTo);
-		serverSocket.bind();
-		serverSocket.listen(1);
-		listeners[serverSocket.fd] = serverSocket;
-		socket = &listeners[serverSocket.fd];
+		Socket	listener = Socket::spawn(ip, port);
+		listener.bind();
+		// TODO: should listen to more than 1?
+		listener.listen(1);
+		listeners[listener.fd] = listener;
+		socket = &listeners[listener.fd];
 	}
 	else
 	{
@@ -114,10 +111,38 @@ void	Driver::configNewServer(const Directive& directive)
 						  IsMatchingPort(portNum));
 		socket = &it->second;
 	}
-	std::vector<String>	domainNames = directive.getParams< std::vector<String> >("server_name")
-									  .value_or(std::vector<String>());
+	return socket;
+}
+
+String	getEnclosingRoot(const Directive& directive)
+{
+	const Directive*	parent = directive.parent;
+	if (parent == NULL)
+	{
+		return "";
+	}
+	String	root = parent->getParams<String>("root")
+				  .value_or(getEnclosingRoot(*parent));
+	return root;
+}
+
+void	Driver::configNewServer(const Directive& directive)
+{
+	//TODO: dynamic address
+	String	address = "127.0.0.1";
+	String	port = directive.getParams<String>("listen").value_or("8000");
+	Socket*	socket = spawnSocket(address, port);
+
+	std::vector<String>	domainNames = directive
+									 .getParams< std::vector<String> >("server_name")
+									 .value_or(std::vector<String>());
+
+	String	root = directive.getParams<String>("root")
+							.value_or(getEnclosingRoot(directive));
+
 	Server	newServer(domainNames, socket);
 	newServer.root = directive.getParams<String>("root").value_or("html");
+
 	servers.push_back(newServer);
 }
 
@@ -257,6 +282,7 @@ void	Driver::processMessages()
 	}
 }
 
+// TODO: this should probably also check that the port matches
 Optional<Server*>	Driver::matchServerName(const String& hostname)
 {
 	for (std::vector<Server>::iterator it = servers.begin();

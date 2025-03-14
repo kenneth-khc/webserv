@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <fcntl.h>
+#include <cstring>
 
 Socket::Socket() { };
 
@@ -54,8 +55,9 @@ _addressLen(sizeof _address)
 	{
 		// TODO: error handling;
 	}
-	_address = *(sockaddr_storage*)(info->ai_addr);
-	fillAddress(_address);
+	std::memcpy(&_address, info->ai_addr, info->ai_addrlen);
+	convertAddressToIpAndPort(_address);
+	freeaddrinfo(info);
 
 	int	yes = 1;
 	int	retval = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
@@ -84,7 +86,7 @@ portNum(),
 _address(acceptedAddress),
 _addressLen(sizeof _address)
 {
-	fillAddress(acceptedAddress);
+	convertAddressToIpAndPort(acceptedAddress);
 
 	int	yes = 1;
 	int	retval = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
@@ -140,7 +142,7 @@ Socket	Socket::accept() const
 	return Socket::wrap(newFD, addr);
 }
 
-void	Socket::fillAddress(sockaddr_storage add)
+void	Socket::convertAddressToIpAndPort(sockaddr_storage add)
 {
 	sockaddr*	address = (sockaddr*)&add;
 

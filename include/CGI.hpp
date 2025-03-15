@@ -18,6 +18,7 @@
 # include "String.hpp"
 # include "Request.hpp"
 # include "Driver.hpp"
+# include "Client.hpp"
 
 # define NUM_OF_META_VARIABLES 15
 # define PHP_META_VARIABLES 2
@@ -28,7 +29,7 @@ class CGI {
 		CGI(const CGI &obj);
 		CGI	&operator=(const CGI &obj);
 	public:
-		const Driver		&driver;
+		const Server		&server;
 		const Request		&request;
 		String				execPath;
 		String				extension;
@@ -40,9 +41,9 @@ class CGI {
 		pid_t				pid;
 		String				output;
 
-		CGI(const Driver &driver, const Request &request);
+		CGI(const Server &server, const Request &request);
 		~CGI(void);
-		void	generateEnv(void);
+		void	generateEnv(const Client*);
 		void	execute(void);
 		void	parseOutput(Response &response) const;
 };

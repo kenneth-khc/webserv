@@ -22,47 +22,47 @@
 #include "CGI.hpp"
 #include "Driver.hpp"
 
-CGI::CGI(const Driver &driver, const Request &request) :
-	driver(driver),
+CGI::CGI(const Server &server, const Request &request) :
+	server(server),
 	request(request)
 {
-	Optional<String::size_type>	extPos = request.absolutePath.find(".");
+	Optional<String::size_type>	extPos = request.filePath.find(".");
 
 	if (extPos.exists == false)
 		throw NotFound404();
 
-	Optional<String::size_type>	pathInfoPos = request.absolutePath.find("/", extPos.value);
+	Optional<String::size_type>	pathInfoPos = request.filePath.find("/", extPos.value);
 
 	if (pathInfoPos.exists == true)
-		this->extension = request.absolutePath.substr(extPos.value, pathInfoPos.value - extPos.value);
+		this->extension = request.filePath.substr(extPos.value, pathInfoPos.value - extPos.value);
 	else
-		this->extension = request.absolutePath.substr(extPos.value);
+		this->extension = request.filePath.substr(extPos.value);
 
 	String								pathInfo;
-	std::vector<String>::const_iterator	it = driver.cgiScript.begin();
+	std::vector<String>::const_iterator	it = server.cgiScript.begin();
 
-	while (it != driver.cgiScript.end()) {
+	while (it != server.cgiScript.end()) {
 		if (this->extension == ("." + *it)) {
 			if (pathInfoPos.exists == true) {
-				this->execPath = request.absolutePath.substr(1, pathInfoPos.value - 1);
-				pathInfo = request.absolutePath.substr(pathInfoPos.value);
+				this->execPath = request.filePath.substr(1, pathInfoPos.value - 1);
+				pathInfo = request.filePath.substr(pathInfoPos.value);
 			}
 			else
-				this->execPath = request.absolutePath.substr(1);
+				this->execPath = request.filePath.substr(1);
 			break ;
 		}
 		it++;
 	}
 
-	if (it == driver.cgiScript.end() || access(this->execPath.c_str(), X_OK) != 0)
+	if (it == server.cgiScript.end() || access(this->execPath.c_str(), X_OK) != 0)
 		throw NotFound404();
 
-	this->generateEnv();
+	this->generateEnv(request.client);
 
 	this->argv = new char*[2]();
-	this->argv[1] = new char[request.absolutePath.length() + 1];
-	std::memcpy(this->argv[1], request.absolutePath.c_str(), request.absolutePath.length());
-	this->argv[1][request.absolutePath.length()] = '\0';
+	this->argv[1] = new char[request.filePath.length() + 1];
+	std::memcpy(this->argv[1], request.filePath.c_str(), request.filePath.length());
+	this->argv[1][request.filePath.length()] = '\0';
 }
 
 CGI::~CGI(void) {
@@ -72,15 +72,15 @@ CGI::~CGI(void) {
 	delete [] this->argv;
 }
 
-void	CGI::generateEnv(void)
+void	CGI::generateEnv(const Client* client)
 {
 	std::stringstream	stream;
 	String				portNumStr;
 	String				serverProtocolStr;
-	const Client&		client = driver.clients.find(driver.readyEvents[0].data.fd)->second;
+	/*const Client&		client = driver.clients.find(driver.readyEvents[0].data.fd)->second;*/
 	String				contentLength = request["Content-Length"].value;
 
-	stream << client.socket->port;
+	stream << client->socket->port;
 	portNumStr = stream.str();
 	stream.str("");
 
@@ -96,16 +96,16 @@ void	CGI::generateEnv(void)
 		"GATEWAY_INTERFACE=CGI/1.1",
 		"PATH_INFO=" + pathInfo,
 		"QUERY_STRING=" + request.query.value,
-		"REMOTE_ADDR=" + client.socket->ip,
+		"REMOTE_ADDR=" + client->socket->ip,
 		"REMOTE_HOST=" + request["Host"].value,
 		"REQUEST_METHOD=" + request.method,
 		"SCRIPT_NAME=" + this->execPath,
-		"SERVER_NAME=" + driver.name,
+		"SERVER_NAME=" + String("42webserv"),
 		"SERVER_PORT=" + portNumStr,
 		"SERVER_PROTOCOL=HTTP/" + serverProtocolStr,
-		"SERVER_SOFTWARE=" + driver.name,
+		"SERVER_SOFTWARE=" + String("42webserv"),
 		"X_SID=" + request.cookies.find("sid")->second.value,
-		"X_UPLOADS_DIR=" + driver.uploadsDir
+		"X_UPLOADS_DIR=" + String("uploads")
 	};
 
 	int	i = -1;
@@ -253,9 +253,9 @@ void	CGI::parseOutput(Response &response) const {
 		response.insert(it->first, it->second);
 }
 
-void	Driver::cgi(Response &response, const Request &request) const {
-	CGI	cgi(*this, request);
-
-	cgi.execute();
-	cgi.parseOutput(response);
-}
+/*void	Driver::cgi(Response &response, const Request &request) const {*/
+/*	CGI	cgi(*this, request);*/
+/**/
+/*	cgi.execute();*/
+/*	cgi.parseOutput(response);*/
+/*}*/

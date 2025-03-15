@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/08 19:52:33 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/16 01:24:08 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,7 @@
 #include "contentLength.hpp"
 #include "Directive.hpp"
 #include "Utils.hpp"
-#include "connection.hpp"
 #include "ErrorCode.hpp"
-#include "Time.hpp"
-#include "Base64.hpp"
 #include <cstddef>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -49,8 +46,8 @@ cgiDir("cgi-bin"),
 autoindex(true)
 {
 	readyEvents = new epoll_event[maxEvents];
-	cgiScript.push_back("py");
-	cgiScript.push_back("php");
+	/*cgiScript.push_back("py");*/
+	/*cgiScript.push_back("php");*/
 }
 
 // TODO: refactor this crap holy
@@ -114,18 +111,6 @@ Socket*	Driver::spawnSocket(const String& ip, const String& port)
 	return socket;
 }
 
-String	getEnclosingRoot(const Directive& directive)
-{
-	const Directive*	parent = directive.parent;
-	if (parent == NULL)
-	{
-		return "";
-	}
-	String	root = parent->getParams<String>("root")
-				  .value_or(getEnclosingRoot(*parent));
-	return root;
-}
-
 void	Driver::configNewServer(const Directive& directive)
 {
 	//TODO: dynamic address
@@ -137,11 +122,11 @@ void	Driver::configNewServer(const Directive& directive)
 									 .getParams< std::vector<String> >("server_name")
 									 .value_or(std::vector<String>());
 
-	String	root = directive.getParams<String>("root")
-							.value_or(getEnclosingRoot(directive));
-
 	Server	newServer(domainNames, socket);
-	newServer.root = directive.getParams<String>("root").value_or("html");
+	newServer.root = directive.recursivelyLookup("root")
+							  .value_or("html");
+
+	newServer.configureLocations(directive);
 
 	servers.push_back(newServer);
 }
@@ -313,62 +298,62 @@ void	Driver::processReadyRequests()
 		// or defaulting back to first server with the matching port
 		Server*	server = matchServerName(host)
 						.value_or(request.client->server);
-		(void)server;
 
-		Response	response = handleRequest(request);
+		/*Response	response = handleRequest(request);*/
+		Response	response = server->handleRequest(request);
 
 		readyResponses.push(response);
 		readyRequests.pop();
 	}
 }
 
-void	Driver::processCookies(Request& request, Response& response)
-{
-	std::map<String, Cookie>&	cookies = request.cookies;
+/*void	Driver::processCookies(Request& request, Response& response)*/
+/*{*/
+/*	std::map<String, Cookie>&	cookies = request.cookies;*/
+/**/
+/*	if (cookies.find("sid") == cookies.end())*/
+/*	{*/
+/*		String	sid = Base64::encode(Time::printHTTPDate());*/
+/*		cookies.insert(std::make_pair("sid", Cookie("sid", sid)));*/
+/*		response.insert("Set-Cookie", "sid=" + sid);*/
+/*	}*/
+/*	if (cookies.find("lang") == cookies.end())*/
+/*	{*/
+/*		cookies.insert(std::make_pair("lang", Cookie("lang", "en")));*/
+/*		response.insert("Set-Cookie", "lang=en");*/
+/*	}*/
+/*}*/
 
-	if (cookies.find("sid") == cookies.end())
-	{
-		String	sid = Base64::encode(Time::printHTTPDate());
-		cookies.insert(std::make_pair("sid", Cookie("sid", sid)));
-		response.insert("Set-Cookie", "sid=" + sid);
-	}
-	if (cookies.find("lang") == cookies.end())
-	{
-		cookies.insert(std::make_pair("lang", Cookie("lang", "en")));
-		response.insert("Set-Cookie", "lang=en");
-	}
-}
-
-Response	Driver::handleRequest(Request& request)
-{
-	Response	response;
-
-	response.insert("Server", name);
-	request.parseCookieHeader();
-	processCookies(request, response);
-	try
-	{
-		if (request.method == "GET" || request.method == "HEAD")
-		{
-			get(response, request);
-		}
-		else if (request.method == "POST")
-		{
-			post(response, request);
-		}
-		else if (request.method == "DELETE")
-		{
-			delete_(response, request);
-		}
-	}
-	catch (const ErrorCode& e)
-	{
-		response = e;
-	}
-	constructConnectionHeader(request, response);
-	response.insert("Date", Time::printHTTPDate());
-	return response;
-}
+/*Response	Driver::handleRequest(Request& request)*/
+/*{*/
+/*	Response	response;*/
+/**/
+/*	response.insert("Server", name);*/
+/*	request.parseCookieHeader();*/
+/*	processCookies(request, response);*/
+/*	try*/
+/*	{*/
+/*		if (request.method == "GET" || request.method == "HEAD")*/
+/*		{*/
+/*			get(response, request);*/
+/*		}*/
+/*		else if (request.method == "POST")*/
+/*		{*/
+/*			post(response, request);*/
+/*		}*/
+/*		else if (request.method == "DELETE")*/
+/*		{*/
+/*			delete_(response, request);*/
+/*		}*/
+/*	}*/
+/*	catch (const ErrorCode& e)*/
+/*	{*/
+/*		response = e;*/
+/*	}*/
+/*	constructConnectionHeader(request, response);*/
+/*	response.insert("Date", Time::printHTTPDate());*/
+/*	return response;*/
+/*}*/
 
 void	Driver::generateResponses()
 {
@@ -436,134 +421,3 @@ ssize_t	Driver::receiveBytes(Client& client)
 	return bytes;
 }
 
-#include <iomanip>
-#include <algorithm>
-#include <sys/stat.h>
-
-#define FILE_NAME_LEN 45
-#define FILE_SIZE_LEN 20
-
-void	Driver::generateDirectoryListing(Response& response, const std::string& dirName) const
-{
-	DIR*	dir = opendir(dirName.c_str());
-
-	if (!dir)
-		throw NotFound404();
-
-	struct stat			statbuf;
-	std::string			path = dirName;
-	std::string			trimmedRootPath;
-	std::stringstream	stream;
-
-	if (path[path.length() - 1] != '/')
-		path += "/";
-
-	trimmedRootPath = path.substr(path.find_first_of('/'));
-	stream << "<html>\n"
-		   << 	"<head>\n"
-		   << 		"<title>Index of " + trimmedRootPath + "</title>\n"
-		   << 		"<style>\n\t"
-		   << 			"html { font-family: 'Comic Sans MS' }\n\t"
-		   << 			"body { background-color: #f4dde7 }\n\t"
-		   << 			"p { display: inline }\n"
-		   << 		"</style>\n"
-		   << 	"</head>\n"
-		   << 	"<body>\n"
-		   << 		"<h1>Index of " + trimmedRootPath + "</h1>\n"
-		   << 		"<hr><pre>\n";
-
-	response.messageBody += stream.str();
-
-	std::string					parentDir;
-	std::vector<std::string>	directories;
-	std::vector<std::string>	regularFiles;
-
-	for (dirent* entry = readdir(dir); entry != 0; entry = readdir(dir))
-	{
-		std::string	d_name(entry->d_name);
-		std::string	str;
-		std::string	truncate;
-
-		if (d_name == ".")
-		{
-			continue ;
-		}
-
-		stream.str("");
-		// File/Directory Name
-		truncate = (entry->d_type == DT_DIR) ? d_name + "/" : d_name;
-		if (truncate.length() > FILE_NAME_LEN)
-		{
-			truncate.resize(FILE_NAME_LEN);
-			if (entry->d_type == DT_DIR)
-			{
-				truncate.replace(FILE_NAME_LEN - 4, 4, ".../");
-			}
-			else
-			{
-				truncate.replace(FILE_NAME_LEN - 3, 3, "...");
-			}
-		}
-
-		stream << "<a href=\""
-			   << ((entry->d_type == DT_DIR) ? trimmedRootPath + d_name + "/" : trimmedRootPath + d_name)
-			   << "\">"
-			   << std::left
-			   << std::setw(FILE_NAME_LEN + 5)
-			   << truncate + "</a> ";
-
-		str += stream.str();
-		if (d_name == "..")
-		{
-			parentDir = str + "\n";
-			continue ;
-		}
-
-		// Last Modified Date and File Size in Bytes
-		std::stringstream	streamTwo;
-
-		stream.str("");
-		stat(path.c_str(), &statbuf);
-		stream << "<p>";
-		if (entry->d_type == DT_DIR)
-		{
-			streamTwo << "-";
-		}
-		else
-		{
-			streamTwo << statbuf.st_size;
-		}
-		stream << Time::printAutoindexDate(statbuf.st_mtim)
-			   << " "
-			   << std::right
-			   << std::setw(FILE_SIZE_LEN)
-			   << streamTwo.str()
-			   << "</p>\n";
-
-		str += stream.str();
-		if (entry->d_type == DT_DIR)
-			directories.push_back(str);
-		else
-			regularFiles.push_back(str);
-	}
-
-	std::sort(directories.begin(), directories.end());
-	std::sort(regularFiles.begin(), regularFiles.end());
-
-	response.messageBody += parentDir;
-	for (std::vector<std::string>::const_iterator it = directories.begin(); it != directories.end(); it++)
-	{
-		response.messageBody += *it;
-	}
-	for (std::vector<std::string>::const_iterator it = regularFiles.begin(); it != regularFiles.end(); it++)
-	{
-		response.messageBody += *it;
-	}
-
-	stream.str("");
-	stream << 		"</pre><hr>\n"
-		   << 	"</body>\n"
-		   << "</html>";
-	response.messageBody += stream.str();
-	closedir(dir);
-}

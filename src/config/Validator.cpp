@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/01 18:38:30 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/15 22:52:12 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ void	validateDuplicateDirective(const Directive& dir,
 }
 
 /*
-Syntax : prefix absolutePath;
+Syntax : prefix absolute_path;
 Default: —
 Context: global
 Count  : 1 */
@@ -193,3 +193,39 @@ void	validateTypes(const Directive&, const Mappings&)
 {
 
 }
+
+/*
+Syntax : autoindex boolean;
+Default: off
+Context: http, server, location */
+void	validateAutoindex(const Directive& dir, const Mappings& mappings)
+{
+	validateParameterSize(dir, 1);
+	validateEnclosingContext(dir, (HTTP, SERVER, LOCATION));
+	validateDuplicateDirective(dir, mappings);
+}
+
+/*
+Syntax : ExecCGI boolean;
+Default: off
+Context: location */
+
+/*
+Syntax : CGI-script
+Default: —
+Context: location */
+
+/*
+Syntax : allow methods ...;
+Default: —
+Context: location */
+
+/*
+Syntax : upload_directory file_path;
+Default: —
+Context: location */
+
+/*
+Syntax : error_page uri ...;
+Default: —
+Context: server */

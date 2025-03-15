@@ -34,7 +34,7 @@ void	extractRequestLineComponents(const String &line, Request &request) {
 
 	Optional<String::size_type>	queryPos = str.find("?");
 	if (queryPos.exists == true) {
-		request.absolutePath = str.substr(0, queryPos.value);
+		request.filePath = str.substr(0, queryPos.value);
 		request.query = Optional<String>(str.substr(queryPos.value + 1));
 
 		const std::vector<String>	queries = request.query.value.split("&");
@@ -45,7 +45,7 @@ void	extractRequestLineComponents(const String &line, Request &request) {
 		}
 	}
 	else
-		request.absolutePath = str;
+		request.filePath = str;
 
 	String::getline(stream, str, '/');
 	if (str != "HTTP")

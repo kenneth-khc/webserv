@@ -14,14 +14,12 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <fstream>
 #include <iomanip>
 #include <vector>
+#include "String.hpp"
 #include "Optional.hpp"
-#include "Server.hpp"
 #include "ErrorCode.hpp"
 #include "Time.hpp"
-#include "debugUtils.hpp"
 #include "preconditions.hpp"
 #include "contentType.hpp"
 #include "etag.hpp"
@@ -31,21 +29,25 @@
 #define FILE_NAME_LEN 45
 static void		generateUploadsListing(const String& uploadsDir, Response& response, const Request& request);
 static String	getUploadsReference(const String& uploadsDir, const Request &request);
+static void		getFromFileSystem(Response& response, const Request& request, const Location&);
+static void		generateDirectoryListing(Response& response, const std::string& dirName);
 
-void	Driver::get(Response& response, Request& request) const
+void	Server::get(Response& response, Request& request, const Location& location) const
 {
-	Optional<String::size_type>	pos = request.absolutePath.find("/" + cgiDir + "/");
+	// TODO: cgi dir
+	Optional<String::size_type>	pos = request.filePath.find(String("/") + "cgi-bin" + "/");
 
 	if (pos.exists == true && pos.value == 0)
 	{
 		cgi(response, request);
 		return ;
 	}
-	else if (request.absolutePath == ("/" + uploadsDir))
+	// TODO: uploads dir
+	else if (request.filePath == (String("/") + "uploads"))
 	{
 		if (request.method == "GET")
 		{
-			generateUploadsListing(uploadsDir, response, request);
+			generateUploadsListing("uploads", response, request);
 		}
 		response.setStatusCode(Response::OK);
 		response.insert("Content-Length", response.messageBody.length());
@@ -61,38 +63,40 @@ void	Driver::get(Response& response, Request& request) const
 		lang = queryLang->second;
 	}
 
-	Optional<String::size_type>	uploads = request.absolutePath.find("/" + uploadsDir);
-	String						file;
-	struct 	stat				statbuf;
+	getFromFileSystem(response, request, location);
+}
 
+static void		getFromFileSystem(Response& response, const Request& request,
+								  const Location& location)
+{
+	Optional<String::size_type>	uploads = request.filePath.find(String("/") + "uploads");
+	String						filePath = request.filePath;
+	struct 	stat				statbuf;
 	if (uploads.exists == true && uploads.value == 0)
 	{
-		file = getUploadsReference(uploadsDir, request);
+		filePath = getUploadsReference("uploads", request);
 	}
 	else
 	{
-		file = rootDir + "/" + pagesDir + "/" + lang;
-		if (request.absolutePath == "/")
+		if (request.filePath == "/")
 		{
 			//TODO: try all index pages
-			file += "/index.html";
+			filePath += "/index.html";
 			response.insert("Cache-Control", "no-cache");
 		}
 		else
 		{
-			file += request.absolutePath;
+			filePath = request.filePath;
 		}
 	}
 
-	if (access(file.c_str(), R_OK) != 0)
-		file = rootDir + request.absolutePath;
-	if (stat(file.c_str(), &statbuf) == 0 && access(file.c_str(), R_OK) == 0)
+	if (stat(filePath.c_str(), &statbuf) == 0 && access(filePath.c_str(), R_OK) == 0)
 	{
-		if (autoindex == true && S_ISDIR(statbuf.st_mode))
+		if (location.autoindex == true && S_ISDIR(statbuf.st_mode))
 		{
 			if (request.method == "GET")
 			{
-				generateDirectoryListing(response, file);
+				generateDirectoryListing(response, filePath);
 			}
 			response.setStatusCode(Response::OK);
 			response.insert("Content-Length", response.messageBody.length());
@@ -107,10 +111,10 @@ void	Driver::get(Response& response, Request& request) const
 			response.setStatusCode(Response::OK);
 			if (request.method == "GET")
 			{
-				response.getFileContents(file);
+				response.getFileContents(filePath);
 			}
 			response.insert("Content-Length", statbuf.st_size);
-			constructContentTypeHeader(file, MIMEMappings, response);
+			constructContentTypeHeader(filePath, location.MIMEMappings, response);
 		}
 		response.insert("ETag", constructETagHeader(statbuf.st_mtim, statbuf.st_size));
 		response.insert("Last-Modified", Time::printHTTPDate(statbuf.st_mtim));
@@ -119,6 +123,7 @@ void	Driver::get(Response& response, Request& request) const
 	{
 		throw NotFound404();
 	}
+
 }
 
 static void	generateUploadsListing(
@@ -206,8 +211,8 @@ static String	getUploadsReference(
 		throw NotFound404();
 	}
 
-	Optional<String::size_type>	pos = request.absolutePath.find("/", 1);
-	String						fileName = request.absolutePath.substr(pos.value + 1);
+	Optional<String::size_type>	pos = request.filePath.find("/", 1);
+	String						fileName = request.filePath.substr(pos.value + 1);
 	String						sid = request.cookies.find("sid")->second.value;
 
 	for (dirent* entry = readdir(dir); entry != 0; entry = readdir(dir))
@@ -220,4 +225,137 @@ static String	getUploadsReference(
 		}
 	}
 	throw NotFound404();
+}
+
+#include <iomanip>
+#include <algorithm>
+#include <sys/stat.h>
+#include <dirent.h>
+
+#define FILE_NAME_LEN 45
+#define FILE_SIZE_LEN 20
+
+void	generateDirectoryListing(Response& response, const std::string& dirName)
+{
+	DIR*	dir = opendir(dirName.c_str());
+
+	if (!dir)
+		throw NotFound404();
+
+	struct stat			statbuf;
+	std::string			path = dirName;
+	std::string			trimmedRootPath;
+	std::stringstream	stream;
+
+	if (path[path.length() - 1] != '/')
+		path += "/";
+
+	trimmedRootPath = path.substr(path.find_first_of('/'));
+	stream << "<html>\n"
+		   << 	"<head>\n"
+		   << 		"<title>Index of " + trimmedRootPath + "</title>\n"
+		   << 		"<style>\n\t"
+		   << 			"html { font-family: 'Comic Sans MS' }\n\t"
+		   << 			"body { background-color: #f4dde7 }\n\t"
+		   << 			"p { display: inline }\n"
+		   << 		"</style>\n"
+		   << 	"</head>\n"
+		   << 	"<body>\n"
+		   << 		"<h1>Index of " + trimmedRootPath + "</h1>\n"
+		   << 		"<hr><pre>\n";
+
+	response.messageBody += stream.str();
+
+	std::string					parentDir;
+	std::vector<std::string>	directories;
+	std::vector<std::string>	regularFiles;
+
+	for (dirent* entry = readdir(dir); entry != 0; entry = readdir(dir))
+	{
+		std::string	d_name(entry->d_name);
+		std::string	str;
+		std::string	truncate;
+
+		if (d_name == ".")
+		{
+			continue ;
+		}
+
+		stream.str("");
+		// File/Directory Name
+		truncate = (entry->d_type == DT_DIR) ? d_name + "/" : d_name;
+		if (truncate.length() > FILE_NAME_LEN)
+		{
+			truncate.resize(FILE_NAME_LEN);
+			if (entry->d_type == DT_DIR)
+			{
+				truncate.replace(FILE_NAME_LEN - 4, 4, ".../");
+			}
+			else
+			{
+				truncate.replace(FILE_NAME_LEN - 3, 3, "...");
+			}
+		}
+
+		stream << "<a href=\""
+			   << ((entry->d_type == DT_DIR) ? trimmedRootPath + d_name + "/" : trimmedRootPath + d_name)
+			   << "\">"
+			   << std::left
+			   << std::setw(FILE_NAME_LEN + 5)
+			   << truncate + "</a> ";
+
+		str += stream.str();
+		if (d_name == "..")
+		{
+			parentDir = str + "\n";
+			continue ;
+		}
+
+		// Last Modified Date and File Size in Bytes
+		std::stringstream	streamTwo;
+
+		stream.str("");
+		stat(path.c_str(), &statbuf);
+		stream << "<p>";
+		if (entry->d_type == DT_DIR)
+		{
+			streamTwo << "-";
+		}
+		else
+		{
+			streamTwo << statbuf.st_size;
+		}
+		stream << Time::printAutoindexDate(statbuf.st_mtim)
+			   << " "
+			   << std::right
+			   << std::setw(FILE_SIZE_LEN)
+			   << streamTwo.str()
+			   << "</p>\n";
+
+		str += stream.str();
+		if (entry->d_type == DT_DIR)
+			directories.push_back(str);
+		else
+			regularFiles.push_back(str);
+	}
+
+	std::sort(directories.begin(), directories.end());
+	std::sort(regularFiles.begin(), regularFiles.end());
+
+	response.messageBody += parentDir;
+	for (std::vector<std::string>::const_iterator it = directories.begin(); it != directories.end(); it++)
+	{
+		response.messageBody += *it;
+	}
+	for (std::vector<std::string>::const_iterator it = regularFiles.begin(); it != regularFiles.end(); it++)
+	{
+		response.messageBody += *it;
+	}
+
+	stream.str("");
+	stream << 		"</pre><hr>\n"
+		   << 	"</body>\n"
+		   << "</html>";
+	response.messageBody += stream.str();
+	closedir(dir);
 }

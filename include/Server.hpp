@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/13 23:18:18 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/16 01:28:23 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,23 +15,47 @@
 
 #include "String.hpp"
 #include "Socket.hpp"
+#include "Location.hpp"
+#include "Directive.hpp"
+#include "Request.hpp"
+#include "Response.hpp"
+#include "MediaType.hpp"
 #include <sys/epoll.h>
 #include <sys/socket.h>
-#include <map>
 
 struct	Server
 {
 	Server();
 	Server(std::vector<String>, Socket*);
 
-	std::vector<String>	domainNames;
-	Socket*				socket;
-	/*int					numClients;*/
+	Socket*					socket;
+	std::vector<String>		domainNames;
+
+	String					root;
+
+	Location				defaultLocationConfig;
+	std::vector<Location>	locations;
+	bool					autoindex;
+	MediaType				MIMEMappings;
 
 	static const unsigned int	timeoutValue;
 
-	String					root;
-	std::map<String,String>	routes;
+	void		configureLocations(const Directive&);
+
+	Response	handleRequest(Request&);
+	void		processCookies(Request&, Response&);
+	Optional<Location*>	matchURILocation(const Request&);
+
+	/* Handling HTTP methods */
+	void		get(Response&, Request&, const Location&) const;
+	void		post(Response&, Request&) const;
+	void		delete_(Response&, Request&) const;
+	
+	void		cgi(Response&, const Request&) const;
+
+	// TODO: dumped this here just to compile, fix it
+	std::vector<String>	cgiScript;
+	void		generateDirectoryListing(Response&, const std::string&) const;
 };
 
 // functor this functor that I hate C++98 go func yourself

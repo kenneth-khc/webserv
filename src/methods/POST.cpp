@@ -35,10 +35,10 @@ static void		uploadForm(const POSTBody& body, const String& uploadsDir, const St
 
 #include "Driver.hpp"
 
-void	Driver::post(Response& response, Request& request) const
+void	Server::post(Response& response, Request& request) const
 {
 	POSTBody					msgBody(request);
-	Optional<String::size_type>	pos = request.requestTarget.find("/" + cgiDir + "/");
+	Optional<String::size_type>	pos = request.requestTarget.find(String("/") + "cgi-bin" + "/");
 
 	if (pos.exists == true && pos.value == 0)
 	{
@@ -48,13 +48,14 @@ void	Driver::post(Response& response, Request& request) const
 	{
 		const String&	sid = request.cookies.find("sid")->second.value;
 
+		//TODO: dynamic uploads dir
 		if (msgBody.contentType == "application/x-www-form-urlencoded")
 		{
-			uploadForm(msgBody, uploadsDir, sid);
+			uploadForm(msgBody, "uploads", sid);
 		}
 		else if (msgBody.contentType == "multipart/form-data")
 		{
-			uploadFiles(msgBody, uploadsDir, sid);
+			uploadFiles(msgBody, "uploads", sid);
 		}
 		else
 		{

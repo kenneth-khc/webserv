@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/07 23:13:17 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/16 01:48:17 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,22 +19,145 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <ctime>
+#include "ErrorCode.hpp"
 #include "Server.hpp"
+#include "connection.hpp"
+#include "Base64.hpp"
+#include "CGI.hpp"
 
 const unsigned int	Server::timeoutValue = 5;
 
 Server::Server():
-domainNames(),
-socket(),
-routes()
+	socket(),
+	domainNames(),
+	root(),
+	defaultLocationConfig(),
+	locations(),
+	autoindex(true),
+	MIMEMappings("mime.types")
 {
-
+	cgiScript.push_back("py");
+	cgiScript.push_back("php");
 }
 
 Server::Server(std::vector<String> domainNames, Socket* socket):
-domainNames(domainNames),
-socket(socket),
-root(),
-routes()
+	socket(socket),
+	domainNames(domainNames),
+	root(),
+	defaultLocationConfig(),
+	locations(),
+	autoindex(true),
+	MIMEMappings("mime.types")
 {
+	cgiScript.push_back("py");
+	cgiScript.push_back("php");
 }
+
+void	Server::configureLocations(const Directive& directive)
+{
+	std::vector<Directive*>	locationBlocks = directive.getDirectives("location");
+
+	for (size_t i = 0; i < locationBlocks.size(); ++i)
+	{
+		const Directive*	locationBlock = locationBlocks[i];
+		Location			location;
+
+		// TODO: process the URI here for more complex ones
+		location.uri = locationBlock->parameters[0];
+
+		location.root = locationBlock->recursivelyLookup("root")
+									  .value_or("html");
+
+		this->locations.push_back(location);
+	}
+}
+#include <iostream>
+
+Response	Server::handleRequest(Request& request)
+{
+	Response	response;
+
+	response.insert("Server", "42webserv");
+	request.parseCookieHeader();
+	processCookies(request, response);
+	// match location
+	const Location*	location = matchURILocation(request)
+							  .value_or(&defaultLocationConfig);
+	request.requestTarget = location->root + request.requestTarget;
+	request.filePath = location->root + request.filePath;
+	std::cout << ">> " << request.requestTarget << '\n';
+	std::cout << ">> " << request.filePath << '\n';
+	try
+	{
+		if (request.method == "GET" || request.method == "HEAD")
+		{
+			get(response, request, *location);
+		}
+		else if (request.method == "POST")
+		{
+			post(response, request);
+		}
+		else if (request.method == "DELETE")
+		{
+			delete_(response, request);
+		}
+	}
+	catch (const ErrorCode& e)
+	{
+		response = e;
+	}
+	constructConnectionHeader(request, response);
+	response.insert("Date", Time::printHTTPDate());
+	return response;
+}
+
+Optional<Location*>	Server::matchURILocation(const Request& request)
+{
+	std::vector<Location>::iterator	longestMatch = locations.end();
+	size_t							longestMatchSoFar = 0;
+	for (std::vector<Location>::iterator it = locations.begin();
+		 it != locations.end();
+		 ++it)
+	{
+		const String&	location = it->uri;
+		const String&	target = request.filePath;
+		if (target.starts_with(location) && location.length() > longestMatchSoFar)
+		{
+			longestMatchSoFar = location.length();
+			longestMatch = it;
+		}
+	}
+	if (longestMatch == locations.end())
+	{
+		return makeNone<Location*>();
+	}
+	else
+	{
+		return makeOptional(&*longestMatch);
+	}
+}
+
+void	Server::processCookies(Request& request, Response& response)
+{
+	std::map<String, Cookie>&	cookies = request.cookies;
+
+	if (cookies.find("sid") == cookies.end())
+	{
+		String	sid = Base64::encode(Time::printHTTPDate());
+		cookies.insert(std::make_pair("sid", Cookie("sid", sid)));
+		response.insert("Set-Cookie", "sid=" + sid);
+	}
+	if (cookies.find("lang") == cookies.end())
+	{
+		cookies.insert(std::make_pair("lang", Cookie("lang", "en")));
+		response.insert("Set-Cookie", "lang=en");
+	}
+}
+
+void	Server::cgi(Response &response, const Request &request) const {
+	CGI	cgi(*this, request);
+
+	cgi.execute();
+	cgi.parseOutput(response);
+}
+

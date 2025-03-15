@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:32:50 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 22:33:22 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/16 01:30:21 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ struct	Directive
 	std::vector<String>	parameters;
 
 	// The enclosing block
-	Mappings		enclosing;
+	Mappings			enclosing;
 
 	//
 	const Directive*	parent;
@@ -49,6 +49,7 @@ struct	Directive
 	void					addDirective(Directive* dir);
 	const Directive*		getDirective(const String&);
 	std::vector<Directive*>	getDirectives(const String& key) const;
+	Optional<String>		recursivelyLookup(const String&) const;
 	Optional<Directive*>	find(const String& key) const;
 
 	bool					hasParameters() const;
@@ -56,7 +57,34 @@ struct	Directive
 	Optional<ReturnType>	getParams(const String& key) const;
 	void					printParameters() const;
 
-	void	cleanUp();
+	void					cleanUp();
+
+private:
+	// Functor to pass into optional.or_else() to recursively lookup a value
+	// if not found in current scope
+	struct	LookupEnclosing
+	{
+		const Directive*	directive;
+		const String&		key;
+
+		LookupEnclosing(const Directive* directive, const String& key):
+			directive(directive),
+			key(key) {}
+
+		Optional<String>	operator()() const
+		{
+			const Directive*	enclosing = directive->parent;
+			if (enclosing == NULL)
+			{
+				return makeNone<String>();
+			}
+			else
+			{
+				return enclosing->recursivelyLookup(key);
+			}
+		}
+	};
+	/*Optional<String>	lookupEnclosing(const String&) const;*/
 };
 
 typedef std::pair<std::multimap<String,Directive*>::const_iterator,

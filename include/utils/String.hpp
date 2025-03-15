@@ -131,6 +131,8 @@ public:
 	String				trim(const String& set);
 	String				trim(const String& set) const;
 
+	bool				starts_with(const String& prefix) const;
+
 	int					toInt() const;
 
 	template <typename Type>

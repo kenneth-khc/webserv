@@ -65,23 +65,13 @@ struct	Driver
 	void		acceptNewClient(const Socket&);
 	ssize_t		receiveBytes(Client&);
 	Request		receiveRequest(int fd) const;
-	Response	handleRequest(Request&);
 
 	void		processReadyEvents();
 	void		processMessages();
 	void		processReadyRequests();
 	void		generateResponses();
 
-	void		processCookies(Request&, Response&);
 	void		monitorConnections();
-
-	/* Handling HTTP methods */
-	void		get(Response&, Request&) const;
-	void		post(Response&, Request&) const;
-	void		delete_(Response&, Request&) const;
-
-	void		cgi(Response&, const Request&) const;
-	void		generateDirectoryListing(Response&, const std::string&) const;
 
 	// Resources Directories
 	const String 	rootDir;
@@ -91,8 +81,6 @@ struct	Driver
 	const String	cgiDir;
 
 	bool				autoindex;
-
-	std::vector<String>	cgiScript;
 
 	std::map<std::string,std::string>	directoryMappings;
 

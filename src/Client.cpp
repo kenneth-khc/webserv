@@ -18,6 +18,7 @@
 const size_t	Client::MAX_REQUEST_SIZE = 1 * 1024 * 1024;
 
 Client::Client():
+server(NULL),
 messageBuffer(),
 firstDataRecv(false),
 lastActive(Time::getTimeSinceEpoch())
@@ -28,6 +29,7 @@ lastActive(Time::getTimeSinceEpoch())
 Client::Client(Socket* socket, const Socket* receivedBy):
 socket(socket),
 receivedBy(receivedBy),
+server(NULL),
 messageBuffer(),
 message(),
 request(),

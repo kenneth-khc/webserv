@@ -13,6 +13,7 @@
 #include <sstream>
 #include <fstream>
 #include <stdexcept>
+#include <cstring>
 #include "String.hpp"
 #include "Optional.hpp"
 
@@ -518,6 +519,11 @@ String	String::trim(const String& set) const
 	}
 	size_type	len = (end + 1) - start;
 	return str.substr(start, len);
+}
+
+bool	String::starts_with(const String& prefix) const
+{
+	return std::strncmp(c_str(), prefix.c_str(), prefix.size()) == 0;
 }
 
 int	String::toInt() const

@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:57:05 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/01 19:24:30 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/16 01:48:08 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,11 @@ std::vector<Directive*>	Directive::getDirectives(const String& key) const
 		++range.first;
 	}
 	return matchingDirectives;
+}
+
+Optional<String>	Directive::recursivelyLookup(const String& key) const
+{
+	return getParams<String>(key).or_else(LookupEnclosing(this, key));
 }
 
 bool	Directive::hasParameters() const

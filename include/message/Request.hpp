@@ -32,7 +32,8 @@ class Request : public Message {
 		Client*						client;
 		String						method;
 		String						requestTarget;
-		String						absolutePath;
+		String						filePath;
+		String						resolvedPath;
 		Optional<String>			query;
 		std::map<String, String>	queryPairs;
 		bool						requestLineFound;

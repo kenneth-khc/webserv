@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 06:04:17 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/06 00:00:43 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/16 01:48:14 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,12 @@ public:
 	operator	T()	const;
 
 	void		reset();
+
 	template <typename U>
 	T	value_or(const U& defaultValue) const;
+
+	template <typename F>
+	Optional<T>	or_else(const F&) const;
 
 };
 
@@ -136,6 +140,20 @@ T	Optional<T>::value_or(const U& defaultValue) const
 	else
 	{
 		return static_cast<T>(defaultValue);
+	}
+}
+
+template <typename T>
+template <typename F>
+Optional<T>	Optional<T>::or_else(const F& func) const
+{
+	if (exists)
+	{
+		return *this;
+	}
+	else
+	{
+		return func();
 	}
 }
 

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/13 23:18:18 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/16 01:28:23 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,10 @@
 
 #include "String.hpp"
 #include "Socket.hpp"
+#include "Location.hpp"
+#include "Directive.hpp"
 #include <sys/epoll.h>
 #include <sys/socket.h>
-#include <map>
 
 struct	Server
 {
@@ -31,7 +32,10 @@ struct	Server
 	static const unsigned int	timeoutValue;
 
 	String					root;
-	std::map<String,String>	routes;
+
+	std::vector<Location>	locations;
+
+	void	configureLocations(const Directive&);
 };
 
 // functor this functor that I hate C++98 go func yourself

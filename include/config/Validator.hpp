@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 03:00:41 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 22:40:20 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/15 22:52:11 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ private:
 	void	(*function)(const Directive&, const Mappings&);
 };
 
-void	no_op(const Directive&);
+void	no_op(const Directive&, const Mappings&);
 void	validatePrefix(const Directive&, const Mappings&);
 void	validateListen(const Directive&, const Mappings&);
 void	validateHTTP(const Directive&, const Mappings&);

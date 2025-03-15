@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:57:05 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/01 19:24:30 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/16 01:48:08 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,28 @@ std::vector<Directive*>	Directive::getDirectives(const String& key) const
 		++range.first;
 	}
 	return matchingDirectives;
+}
+
+Optional<String>	Directive::getValueFromEnclosing(const String& key) const
+{
+	const Directive*	enclosing = this->parent;
+	if (enclosing == NULL)
+	{
+		return makeNone<String>();
+	}
+	else
+	{
+		return enclosing->recursivelyGetValue(key);
+	}
+}
+
+Optional<String>	Directive::recursivelyGetValue(const String& key) const
+{
+	/*Optional<String>	value = getParams<String>(key)*/
+	/*							.or_else(getValueFromEnclosing(key));*/
+	/**/
+	/*return getParams<String>(key).or_else(getValueFromEnclosing(key)*/
+	return getParams<String>(key).or_else(getValueFromEnclosing(key));
 }
 
 bool	Directive::hasParameters() const

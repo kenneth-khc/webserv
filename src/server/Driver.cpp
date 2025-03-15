@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/08 19:52:33 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/16 01:24:08 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,11 +137,13 @@ void	Driver::configNewServer(const Directive& directive)
 									 .getParams< std::vector<String> >("server_name")
 									 .value_or(std::vector<String>());
 
-	String	root = directive.getParams<String>("root")
-							.value_or(getEnclosingRoot(directive));
-
 	Server	newServer(domainNames, socket);
-	newServer.root = directive.getParams<String>("root").value_or("html");
+	/*newServer.root = directive.getParams<String>("root").value_or("html");*/
+	/*newServer.root = directive.getParams<String>("root")*/
+	/*						  .value_or(directive.recursivelyGetDirective("root"));*/
+	newServer.root = directive.recursivelyGetValue("root");
+
+	newServer.configureLocations(directive);
 
 	servers.push_back(newServer);
 }

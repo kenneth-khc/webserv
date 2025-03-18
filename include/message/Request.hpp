@@ -32,7 +32,7 @@ class Request : public Message {
 		Client*						client;
 		String						method;
 		String						requestTarget;
-		String						filePath;
+		String						path;
 		String						resolvedPath;
 		Optional<String>			query;
 		std::map<String, String>	queryPairs;

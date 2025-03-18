@@ -35,7 +35,7 @@ static void		generateDirectoryListing(Response& response, const std::string& dir
 void	Server::get(Response& response, Request& request, const Location& location) const
 {
 	// TODO: cgi dir
-	Optional<String::size_type>	pos = request.filePath.find(String("/") + "cgi-bin" + "/");
+	Optional<String::size_type>	pos = request.path.find(String("/") + "cgi-bin" + "/");
 
 	if (pos.exists == true && pos.value == 0)
 	{
@@ -43,7 +43,7 @@ void	Server::get(Response& response, Request& request, const Location& location)
 		return ;
 	}
 	// TODO: uploads dir
-	else if (request.filePath == (String("/") + "uploads"))
+	else if (request.path == (String("/") + "uploads"))
 	{
 		if (request.method == "GET")
 		{
@@ -69,8 +69,8 @@ void	Server::get(Response& response, Request& request, const Location& location)
 static void		getFromFileSystem(Response& response, const Request& request,
 								  const Location& location)
 {
-	Optional<String::size_type>	uploads = request.filePath.find(String("/") + "uploads");
-	String						filePath = request.filePath;
+	Optional<String::size_type>	uploads = request.path.find(String("/") + "uploads");
+	String						filePath = request.resolvedPath;
 	struct 	stat				statbuf;
 	if (uploads.exists == true && uploads.value == 0)
 	{
@@ -78,7 +78,7 @@ static void		getFromFileSystem(Response& response, const Request& request,
 	}
 	else
 	{
-		if (request.filePath == "/")
+		if (request.path == "/")
 		{
 			//TODO: try all index pages
 			filePath += "/index.html";
@@ -86,7 +86,7 @@ static void		getFromFileSystem(Response& response, const Request& request,
 		}
 		else
 		{
-			filePath = request.filePath;
+			filePath = request.resolvedPath;
 		}
 	}
 
@@ -211,8 +211,8 @@ static String	getUploadsReference(
 		throw NotFound404();
 	}
 
-	Optional<String::size_type>	pos = request.filePath.find("/", 1);
-	String						fileName = request.filePath.substr(pos.value + 1);
+	Optional<String::size_type>	pos = request.path.find("/", 1);
+	String						fileName = request.path.substr(pos.value + 1);
 	String						sid = request.cookies.find("sid")->second.value;
 
 	for (dirent* entry = readdir(dir); entry != 0; entry = readdir(dir))

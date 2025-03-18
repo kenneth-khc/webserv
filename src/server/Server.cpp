@@ -71,7 +71,6 @@ void	Server::configureLocations(const Directive& directive)
 		this->locations.push_back(location);
 	}
 }
-#include <iostream>
 
 Response	Server::handleRequest(Request& request)
 {
@@ -83,10 +82,7 @@ Response	Server::handleRequest(Request& request)
 	// match location
 	const Location*	location = matchURILocation(request)
 							  .value_or(&defaultLocationConfig);
-	request.requestTarget = location->root + request.requestTarget;
-	request.filePath = location->root + request.filePath;
-	std::cout << ">> " << request.requestTarget << '\n';
-	std::cout << ">> " << request.filePath << '\n';
+	request.resolvedPath = location->root + request.path;
 	try
 	{
 		if (request.method == "GET" || request.method == "HEAD")
@@ -120,7 +116,7 @@ Optional<Location*>	Server::matchURILocation(const Request& request)
 		 ++it)
 	{
 		const String&	location = it->uri;
-		const String&	target = request.filePath;
+		const String&	target = request.path;
 		if (target.starts_with(location) && location.length() > longestMatchSoFar)
 		{
 			longestMatchSoFar = location.length();

@@ -26,17 +26,17 @@ CGI::CGI(const Server &server, const Request &request) :
 	server(server),
 	request(request)
 {
-	Optional<String::size_type>	extPos = request.filePath.find(".");
+	Optional<String::size_type>	extPos = request.path.find(".");
 
 	if (extPos.exists == false)
 		throw NotFound404();
 
-	Optional<String::size_type>	pathInfoPos = request.filePath.find("/", extPos.value);
+	Optional<String::size_type>	pathInfoPos = request.path.find("/", extPos.value);
 
 	if (pathInfoPos.exists == true)
-		this->extension = request.filePath.substr(extPos.value, pathInfoPos.value - extPos.value);
+		this->extension = request.path.substr(extPos.value, pathInfoPos.value - extPos.value);
 	else
-		this->extension = request.filePath.substr(extPos.value);
+		this->extension = request.path.substr(extPos.value);
 
 	String								pathInfo;
 	std::vector<String>::const_iterator	it = server.cgiScript.begin();
@@ -44,11 +44,11 @@ CGI::CGI(const Server &server, const Request &request) :
 	while (it != server.cgiScript.end()) {
 		if (this->extension == ("." + *it)) {
 			if (pathInfoPos.exists == true) {
-				this->execPath = request.filePath.substr(1, pathInfoPos.value - 1);
-				pathInfo = request.filePath.substr(pathInfoPos.value);
+				this->execPath = request.path.substr(1, pathInfoPos.value - 1);
+				pathInfo = request.path.substr(pathInfoPos.value);
 			}
 			else
-				this->execPath = request.filePath.substr(1);
+				this->execPath = request.path.substr(1);
 			break ;
 		}
 		it++;
@@ -60,9 +60,9 @@ CGI::CGI(const Server &server, const Request &request) :
 	this->generateEnv(request.client);
 
 	this->argv = new char*[2]();
-	this->argv[1] = new char[request.filePath.length() + 1];
-	std::memcpy(this->argv[1], request.filePath.c_str(), request.filePath.length());
-	this->argv[1][request.filePath.length()] = '\0';
+	this->argv[1] = new char[request.path.length() + 1];
+	std::memcpy(this->argv[1], request.path.c_str(), request.path.length());
+	this->argv[1][request.path.length()] = '\0';
 }
 
 CGI::~CGI(void) {

@@ -29,10 +29,12 @@
 
 #include "String.hpp"
 #include "MediaType.hpp"
+#include "Directive.hpp"
 
 struct	Location
 {
 	Location();
+	Location(const Directive&);
 
 	enum { EXACT, PREFIX }	matchType;
 
@@ -46,7 +48,7 @@ struct	Location
 
 	MediaType	MIMEMappings;
 
-	
+	std::vector<String>	indexFiles;
 };
 
 #endif

@@ -40,7 +40,8 @@ Request::Request(const Request &obj) :
 	client(obj.client),
 	method(obj.method),
 	requestTarget(obj.requestTarget),
-	filePath(obj.filePath),
+	path(obj.path),
+	resolvedPath(obj.resolvedPath),
 	query(obj.query),
 	queryPairs(obj.queryPairs),
 	requestLineFound(obj.requestLineFound),
@@ -55,7 +56,8 @@ Request	&Request::operator=(const Request &obj) {
 	Message::operator=(obj);
 	this->method = obj.method;
 	this->requestTarget = obj.requestTarget;
-	this->filePath = obj.filePath;
+	this->path = obj.path;
+	this->resolvedPath = obj.resolvedPath;
 	this->query = obj.query;
 	this->queryPairs = obj.queryPairs;
 	this->requestLineFound = obj.requestLineFound;

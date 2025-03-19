@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:32:50 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/16 01:30:21 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/20 06:30:48 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ struct	Directive
 	const Directive*		getDirective(const String&);
 	std::vector<Directive*>	getDirectives(const String& key) const;
 	Optional<String>		recursivelyLookup(const String&) const;
+
 	Optional<Directive*>	find(const String& key) const;
 
 	bool					hasParameters() const;

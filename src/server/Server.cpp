@@ -61,12 +61,14 @@ void	Server::configureLocations(const Directive& directive)
 	{
 		const Directive*	locationBlock = locationBlocks[i];
 		Location			location;
+		Location			loc(*locationBlock);
 
 		// TODO: process the URI here for more complex ones
 		location.uri = locationBlock->parameters[0];
 
 		location.root = locationBlock->recursivelyLookup("root")
 									  .value_or("html");
+
 
 		this->locations.push_back(location);
 	}

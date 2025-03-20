@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 14:00:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/05 22:33:14 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/14 17:45:06 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,8 @@ void	Logger::logRequest(Request& request, Client& client) const
 	std::cout << YELLOW;
 	std::cout << client.getIPAddr() << ":" << client.getPortNum();
 	std::cout << " => ";
-	std::cout 
-			  //<< server.hostName 
+	std::cout
+			  //<< server.hostName
 			  << ":"
 			  << client.socket.port  << CRESET
 			  << " | ";
@@ -68,7 +68,7 @@ void	Logger::logResponse(Response& response, Client& client) const
 	std::cout << YELLOW;
 	std::cout << client.getIPAddr() << ":" << client.getPortNum();
 	std::cout << " <= ";
-	std::cout 
+	std::cout
 			  //<< server.hostName << ":"
 			  << client.socket.port  << CRESET
 			  << " | ";
@@ -89,17 +89,21 @@ void	Logger::logConnection(int status, int fd, Client& client) const
 			  << " | ";
 	std::cout << RED
 			  << "FD " << fd << " ";
-	if (status == Logger::ESTABLISHED)
-	{
-		std::cout << "Established" << CRESET;
-	}
-	else if (status == Logger::TIMEOUT)
-	{
-		std::cout << "Timeout" << CRESET;
-	}
-	else if (status == Logger::CLOSE)
-	{
-		std::cout << "Closed by client" << CRESET;
+	switch (status) {
+		case Logger::ESTABLISHED:
+			std::cout << "Established" << CRESET;
+			break ;
+
+		case Logger::TIMEOUT:
+			std::cout << "Timeout" 	<< CRESET;
+			break ;
+
+		case Logger::PEER_CLOSE:
+			std::cout << "Closed by client" << CRESET;
+			break ;
+
+		case Logger::CLOSE:
+			std::cout << "Ended" << CRESET;
 	}
 	std::cout << "\n";
 }

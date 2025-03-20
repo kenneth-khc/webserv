@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:13:16 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 22:37:23 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/14 22:10:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 # include "String.hpp"
 # include "Request.hpp"
 
-void	extractRequestLineComponents(const String &line, Request &request);
+void	extractRequestLineComponents(Request &request, const String &line);
 
 /******************/
 /* Request Target */

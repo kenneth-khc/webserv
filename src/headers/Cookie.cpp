@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:41:12 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/09 15:47:18 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/14 22:06:25 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ String	Cookie::constructSetCookieHeader(void) const {
 	return (setCookieHeader);
 }
 
-bool	isCookieString(const String &line, std::map<String, Cookie> &cookies) {
+bool	isCookieString(std::map<String, Cookie> &cookies, const String &line) {
 	std::vector<String>			values = line.split("; ");
 	std::map<String, Cookie>	validCookies;
 

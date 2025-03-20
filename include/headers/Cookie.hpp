@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:41:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/09 14:43:16 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/14 22:06:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ class Cookie {
 		String	constructSetCookieHeader(void) const;
 };
 
-bool	isCookieString(const String &line, std::map<String, Cookie> &cookies);
+bool	isCookieString(std::map<String, Cookie> &cookies, const String &line);
 bool	isCookiePair(const String &line);
 bool	isCookieValue(const String &line);
 bool	isCookieOctet(const unsigned &character);

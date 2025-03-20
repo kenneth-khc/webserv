@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/26 02:00:53 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/03 05:27:43 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/18 10:24:19 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ bool	isFieldValue(const String &line) {
 	return (true);
 }
 
-void	extractFieldLineComponents(const String &line, Request &request) {
+void	extractFieldLineComponents(Request &request, const String &line) {
 	const String	optionalWhiteSpaces = " \t";
 
 	if (line.find(':').exists == false)
@@ -73,7 +73,7 @@ void	extractFieldLineComponents(const String &line, Request &request) {
 
 	if (isFieldValue(str) == false)
 		throw BadRequest400();
-	fieldName = Request::stringToLower(fieldName);
+	fieldName = fieldName.lower();
 	if (checkMandatoryHeaders(fieldName, str) == false)
 		throw BadRequest400();
 	request.insert(fieldName, str);

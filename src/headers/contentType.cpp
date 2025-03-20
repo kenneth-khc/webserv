@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 01:09:40 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/03 06:46:07 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/14 22:05:45 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,9 +44,9 @@ bool	isMediaType(const String &line) {
 }
 
 void	constructContentTypeHeader(
+	Response &response,
 	const String &file,
-	const MediaType &MIMEMappings,
-	Response &response)
+	const MediaType &MIMEMappings)
 {
 	Optional<String::size_type>	pos = file.find('.');
 	String						extension = file.substr(pos.value + 1);

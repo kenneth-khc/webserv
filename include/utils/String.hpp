@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/13 09:22:42 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 01:55:36 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,8 @@ public:
 	const_reverse_iterator	rend() const;
 	String&					erase(size_type index = 0, size_type count = npos);
 	iterator				erase(iterator, iterator);
+	template<typename CharT>
+	String&					append(const CharT*, size_type);
 
 	/* Custom additions to a String */
 
@@ -141,8 +143,20 @@ public:
 
 	int					toInt() const;
 
+	// Checks if the string starts with the given prefix
+	bool				starts_with(const String&) const;
+
 	// Checks if the string ends with the given suffix
 	bool				ends_with(const String&) const;
+
+	// Returns a new String with alphabetical characters in lowercase
+	String				lower() const;
+
+	// Returns a new String with alphabetical characters in uppercase
+	String				upper() const;
+
+	// Makes the first letter in each word uppercase
+	String				title() const;
 
 	template <typename Type>
 	static String	from(const Type& t)
@@ -178,6 +192,13 @@ public:
 private:
 	String	match;
 };
+
+template<typename CharT>
+String&	String::append(const CharT* s, size_type count)
+{
+	str.append(s, count);
+	return *this;
+}
 
 // getline() overload template definitions
 template<typename CharT, typename Traits>

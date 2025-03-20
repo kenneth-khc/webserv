@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/13 09:22:29 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/18 16:31:50 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -559,11 +559,32 @@ int	String::toInt() const
 	return num;
 }
 
+bool	String::starts_with(const String& prefix) const
+{
+	if (prefix.str.length() > str.length())
+	{
+		return false;
+	}
+
+	String::const_iterator	it = str.begin();
+	String::const_iterator	prefixIt = prefix.str.begin();
+	while (prefixIt != prefix.str.end())
+	{
+		if (*it != *prefixIt)
+		{
+			return false;
+		}
+		it++;
+		prefixIt++;
+	}
+	return true;
+}
+
 bool	String::ends_with(const String& suffix) const
 {
 	if (suffix.str.length() > str.length())
 	{
-		return (false);
+		return false;
 	}
 
 	String::const_reverse_iterator	it = str.rbegin();
@@ -578,6 +599,52 @@ bool	String::ends_with(const String& suffix) const
 		suffixIt++;
 	}
 	return true;
+}
+
+String	String::lower() const
+{
+	String	lowercase;
+
+	for (String::size_type i = 0; i < str.length(); i++)
+	{
+		lowercase += std::tolower(str[i]);
+	}
+	return lowercase;
+}
+
+String	String::upper() const
+{
+	String	uppercase;
+
+	for (String::size_type i = 0; i < str.length(); i++)
+	{
+		uppercase += std::toupper(str[i]);
+	}
+	return uppercase;
+}
+
+String	String::title() const
+{
+	String	titlecase;
+	bool	toUpper = true;
+
+	for (String::size_type i = 0; i < str.length(); i++)
+	{
+		if (toUpper && std::isalpha(str[i]) != 0)
+		{
+			titlecase += std::toupper(str[i]);
+			toUpper = false;
+		}
+		else
+		{
+			titlecase += std::tolower(str[i]);
+		}
+		if (std::isalpha(str[i]) == 0)
+		{
+			toUpper = true;
+		}
+	}
+	return titlecase;
 }
 
 template <typename Type>

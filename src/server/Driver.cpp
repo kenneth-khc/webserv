@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/20 13:46:59 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/21 17:30:53 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,6 +180,33 @@ void	Driver::processReadyEvents()
 	}
 }
 
+void	Driver::acceptNewClient(const Socket& socket)
+{
+	Client	client;
+
+	client.addressLen = static_cast<socklen_t>(sizeof client.address);
+	Socket	clientSocket;
+	clientSocket.fd = accept(socket.fd, (sockaddr*)&client.address,
+							 &client.addressLen);
+	std::cout << ">> " << client.socket.fd << '\n';
+	fcntl(client.socket.fd, F_SETFL, O_NONBLOCK);
+	//++numClients;
+
+	//	SO_LINGER prevents close() from returning when there's still data in
+	//	the socket buffer. This avoids the "TCP reset problem" and allows
+	//	graceful closure.
+	linger	linger = {.l_onoff = 1, .l_linger = 5};
+	setsockopt(client.socket.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
+
+	epoll_event	event = epoll_event();
+	event.events = EPOLLIN | EPOLLOUT;
+	event.data.fd = clientSocket.fd;
+	client.socket = clientSocket;
+	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socket.fd, &event);
+	clients.insert(std::make_pair(client.socket.fd, client));
+	logger.logConnection(Logger::ESTABLISHED, client.socket.fd, client);
+}
+
 void	Driver::receiveMessage(std::map<int, Client>::iterator& clientIt)
 {
 	Client&	client = clientIt->second;
@@ -213,21 +240,21 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt)
 		Response	response;
 		response.insert("Server", name);
 		response = e;
-		client.requestQueue.push_back(Request());
+		request.processStage |= Request::DONE;
 		client.responseQueue.push_back(response);
 		return ;
 	}
 
 	try {
-		if (request.processStage & Request::MESSAGE_BODY)
-		{
-			request.parseMessageBody(client.message);
-		}
 		if (request.processStage & Request::READY)
 		{
 			client.responseQueue.push_back(Response());
 			preprocessReadyRequest(request, client.responseQueue.back());
 			request.processStage &= ~Request::READY;
+		}
+		if (request.processStage & Request::MESSAGE_BODY)
+		{
+			request.parseMessageBody(client.message);
 		}
 		if (request.processStage & Request::DONE)
 		{
@@ -235,16 +262,12 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt)
 
 			processReadyRequest(request, response);
 			postprocessReadyRequest(request, response);
-			if (response.processStage == Response::DONE)
-			{
-				client.requestQueue.push_back(Request());
-			}
 		}
 	}
 	catch (const ErrorCode &e)
 	{
+		request.processStage |= Request::DONE;
 		client.responseQueue.back() = e;
-		client.requestQueue.push_back(Request());
 		return ;
 	}
 }
@@ -257,6 +280,29 @@ void	Driver::preprocessReadyRequest(Request& request, Response& response)
 		request.parseCookieHeader();
 		processCookies(request, response);
 		response.processStage &= ~Response::PRE_PROCESSING;
+	}
+}
+
+void	Driver::processCookies(Request& request, Response& response)
+{
+	std::map<String, Cookie>&	cookies = request.cookies;
+	Cookie						cookie;
+
+	if (cookies.find("sid") == cookies.end())
+	{
+		String	sid = Base64::encode(Time::printHTTPDate());
+
+		cookie = Cookie("sid", sid);
+		cookie.path = Optional<String>("/");
+		cookies.insert(std::make_pair("sid", cookie));
+		response.insert("Set-Cookie", cookie.constructSetCookieHeader());
+	}
+	if (cookies.find("lang") == cookies.end())
+	{
+		cookie = Cookie("lang", "en");
+		cookie.path = Optional<String>("/");
+		cookies.insert(std::make_pair("lang", cookie));
+		response.insert("Set-Cookie", cookie.constructSetCookieHeader());
 	}
 }
 
@@ -314,10 +360,6 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt)
 		catch (const ErrorCode &e) {
 			cgi.response = e;
 		}
-		if (cgi.response.processStage == Response::DONE)
-		{
-			cgi.client.requestQueue.push_back(Request());
-		}
 		delete &cgi;
 		cgis.erase(cgiIt);
 	}
@@ -352,6 +394,11 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt)
 		{
 			client.requestQueue.pop_front();
 			client.responseQueue.pop_front();
+			if (client.firstSend == false)
+			{
+				client.firstSend = true;
+			}
+			client.lastActive = Time::getTimeSinceEpoch();
 		}
 	}
 }
@@ -373,8 +420,9 @@ void	Driver::monitorConnections()
 	while (it != clients.end())
 	{
 		Client	&client = it->second;
-		if (client.firstDataRecv == true &&
-			(Time::getTimeSinceEpoch() - client.lastActive >= Server::clientTimeoutValue))
+
+		if (client.firstSend == true && client.requestQueue.empty() &&
+			(Time::getTimeSinceEpoch() - client.lastActive >= Server::keepAliveTimeout))
 		{
 			closeConnection(it++, Logger::TIMEOUT);
 		}
@@ -382,56 +430,6 @@ void	Driver::monitorConnections()
 		{
 			it++;
 		}
-	}
-}
-
-void	Driver::acceptNewClient(const Socket& socket)
-{
-	Client	client;
-
-	client.addressLen = static_cast<socklen_t>(sizeof client.address);
-	Socket	clientSocket;
-	clientSocket.fd = accept(socket.fd, (sockaddr*)&client.address,
-							 &client.addressLen);
-	std::cout << ">> " << client.socket.fd << '\n';
-	fcntl(client.socket.fd, F_SETFL, O_NONBLOCK);
-	//++numClients;
-
-	//	SO_LINGER prevents close() from returning when there's still data in
-	//	the socket buffer. This avoids the "TCP reset problem" and allows
-	//	graceful closure.
-	linger	linger = {.l_onoff = 1, .l_linger = 5};
-	setsockopt(client.socket.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
-
-	epoll_event	event = epoll_event();
-	event.events = EPOLLIN | EPOLLOUT;
-	event.data.fd = clientSocket.fd;
-	client.socket = clientSocket;
-	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socket.fd, &event);
-	clients.insert(std::make_pair(client.socket.fd, client));
-	logger.logConnection(Logger::ESTABLISHED, client.socket.fd, client);
-}
-
-void	Driver::processCookies(Request& request, Response& response)
-{
-	std::map<String, Cookie>&	cookies = request.cookies;
-	Cookie						cookie;
-
-	if (cookies.find("sid") == cookies.end())
-	{
-		String	sid = Base64::encode(Time::printHTTPDate());
-
-		cookie = Cookie("sid", sid);
-		cookie.path = Optional<String>("/");
-		cookies.insert(std::make_pair("sid", cookie));
-		response.insert("Set-Cookie", cookie.constructSetCookieHeader());
-	}
-	if (cookies.find("lang") == cookies.end())
-	{
-		cookie = Cookie("lang", "en");
-		cookie.path = Optional<String>("/");
-		cookies.insert(std::make_pair("lang", cookie));
-		response.insert("Set-Cookie", cookie.constructSetCookieHeader());
 	}
 }
 

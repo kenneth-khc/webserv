@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/20 19:40:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/21 00:34:42 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -271,7 +271,7 @@ void	CGI::fetchOutput(int epollFD) {
 				throw InternalServerError500();
 		}
 		else if (this->firstDataSend == true &&
-			Time::getTimeSinceEpoch() - this->lastActive > Server::cgiTimeoutValue) {
+			Time::getTimeSinceEpoch() - this->lastActive > Server::cgiTimeout) {
 			this->processStage |= CGI::OUTPUT_DONE;
 			kill(this->pid, SIGKILL);
 			throw InternalServerError500();

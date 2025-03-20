@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/20 19:18:01 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/21 17:11:20 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 
 Response::Response(void) :
 	Message(),
-	closeConnection(0)
+	closeConnection(true)
 {
 	this->processStage = Response::PRE_PROCESSING;
 	this->httpVersion = 1.1;

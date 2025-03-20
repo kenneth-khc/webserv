@@ -6,6 +6,7 @@
 			gdb
 			php
 			python314
+			inetutils
 		];
 	hardeningDisable = [ "all" ];
 }

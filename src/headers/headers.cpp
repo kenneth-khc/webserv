@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 17:47:44 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/03 05:27:26 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/21 17:20:16 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@ bool	checkMandatoryHeaders(String fieldName, const String &fieldValue) {
 
 	for (int i = 0; i < NUM_OF_MANDATORY_HEADERS; i++) {
 		if (fieldName == headers[i]) {
+			if (fieldValue.length() == 0)
+				return (false);
 			if (funcs[i](fieldValue) == false)
 				return (false);
 		}

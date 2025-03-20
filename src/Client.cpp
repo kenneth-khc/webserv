@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/20 18:50:44 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/21 16:38:31 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,11 +22,10 @@ Client::Client():
 address(),
 addressLen(),
 messageBuffer(),
-firstDataRecv(false),
+firstSend(false),
 lastActive(Time::getTimeSinceEpoch())
 {
 	messageBuffer.resize(1024);
-	requestQueue.push_back(Request());
 }
 
 String	Client::getIPAddr() const
@@ -78,11 +77,10 @@ ssize_t	Client::receiveBytes()
 	if (bytes > 0)
 	{
 		message.append(&messageBuffer[0], bytes);
-		if (firstDataRecv == false)
+		if (requestQueue.empty() || requestQueue.back().processStage & Request::DONE)
 		{
-			firstDataRecv = true;
+			requestQueue.push_back(Request());
 		}
-		lastActive = Time::getTimeSinceEpoch();
 	}
 	return bytes;
 }

@@ -23,9 +23,10 @@
 #include "Configuration.hpp"
 #include "Logger.hpp"
 #include <map>
-#include <queue>
 
 extern "C" char	**environ;
+
+class CGI;
 
 struct	Driver
 {
@@ -38,21 +39,16 @@ struct	Driver
 	int						maxEvents;
 	epoll_event*			readyEvents;
 	int						numReadyEvents;
+	epoll_event				*currEvent;
 
 	std::map<int, Socket>	listeners;
 	std::map<int, Client>	clients;
-	std::queue<Request>		readyRequests;
-	std::queue<Response>	readyResponses;
-
+	std::map<int, CGI *>	cgis;
 
 	//	TODO: Change access specifier?
 	//	Only include a server-wide mapping for now..,
 	//	Nginx allows defining in different http, server, and location blocks
 	MediaType				MIMEMappings;
-
-	//	TODO: Change access specifier?
-	/* Server-wide connection timeout value in seconds */
-	static const unsigned int	timeoutValue;
 
 	friend class Logger;
 	Logger	logger;
@@ -62,25 +58,28 @@ struct	Driver
 
 	int			epollWait();
 	void		acceptNewClient(const Socket&);
-	ssize_t		receiveBytes(Client&);
-	Request		receiveRequest(int fd) const;
-	Response	handleRequest(Request&);
 
 	void		processReadyEvents();
-	void		processMessages();
-	void		processReadyRequests();
-	void		generateResponses();
+	void		receiveMessage(std::map<int, Client>::iterator&);
+	void		processRequest(std::map<int, Client>::iterator&);
+	void		processCGI(std::map<int, CGI*>::iterator&);
+	void		preprocessReadyRequest(Request&, Response&);
+	void		processReadyRequest(Request&, Response&);
+	void		postprocessReadyRequest(Request&, Response&);
+	void		generateResponse(std::map<int, Client>::iterator&);
 
 	void		processCookies(Request&, Response&);
+	void		closeConnection(std::map<int, Client>::iterator, int);
 	void		monitorConnections();
 
 	/* Handling HTTP methods */
-	void		get(Response&, Request&);
-	void		post(Response&, Request&) const;
-	void		delete_(Response&, Request&) const;
+	void		get(Request&, Response&);
+	void		post(Request&, Response&);
+	void		delete_(Request&, Response&) const;
 
-	void		cgi(Response&, Request&) const;
-	void		generateDirectoryListing(Response&, const std::string&) const;
+	void		cgi(Request&, Response&);
+	void		generateDirectoryListing(Response&, const String&) const;
+	void		generateUploadsListing(const Request&, Response&, const String&) const;
 
 	// Resources Directories
 	const String 	rootDir;
@@ -90,6 +89,7 @@ struct	Driver
 	const String	cgiDir;
 
 	bool				autoindex;
+	bool				uploads;
 
 	std::vector<String>	cgiScript;
 

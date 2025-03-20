@@ -1,7 +1,8 @@
-#!/usr/bin/env python3
+#!/nix/store/iw0cgsh2pcrd73y5hr89ica4hszpdhrm-python3-3.14.0a2/bin/python3
 
 import os, sys, json, email
 from urllib import parse
+from http import cookies
 
 def printError(errorCode: int, reasonPhrase: str) -> None:
 	print("Content-Type:text/html")
@@ -46,18 +47,21 @@ def constructFilePath(uploadsDir: str, sid: str, fileName: str) -> str:
 		filePath = f"{tempFilePath}{extension}"
 	return filePath
 
-def postMethod(uploadsDir: str, sid: str) -> None:
-	messageBody = bytes(sys.stdin.buffer.read())
+def postMethod(uploadsDir: str, c: cookies.SimpleCookie) -> None:
+	try:
+		bytesToRead = int(os.environ.get('CONTENT_LENGTH'))
+	except:
+		bytesToRead = 0
+	messageBody = bytes(sys.stdin.buffer.read(bytesToRead))
 	contentType = os.environ.get('CONTENT_TYPE')
 	contentType = bytes(f"Content-Type: {contentType}\n", encoding='utf-8')
 	messageObject = email.message_from_bytes(contentType + messageBody)
 
 	if messageObject.get_content_type() == "application/x-www-form-urlencoded":
-		uploadDest = constructFormPath(uploadsDir, sid)
+		uploadDest = constructFormPath(uploadsDir, c['sid'].value)
 		form = parse.parse_qs(messageObject.get_payload())
 		for key, value in form.items():
 			form[key] = value[0]
-
 		try:
 			with open(uploadDest, mode='w') as file:
 				json.dump(form, file, indent=4)
@@ -66,7 +70,7 @@ def postMethod(uploadsDir: str, sid: str) -> None:
 	elif messageObject.get_content_type() == "multipart/form-data":
 		try:
 			for part in messageObject.get_payload():
-				uploadDest = constructFilePath(uploadsDir, sid, part.get_filename())
+				uploadDest = constructFilePath(uploadsDir, c['sid'].value, part.get_filename())
 
 				with open(uploadDest, mode='wb') as file:
 					file.write(part.get_payload(decode=True))
@@ -100,12 +104,12 @@ def getMethod() -> None:
 
 if __name__ == "__main__":
 	method = os.environ.get('REQUEST_METHOD')
+	c = cookies.SimpleCookie(os.environ.get('HTTP_COOKIE'))
 	uploadsDir = os.environ.get('X_UPLOADS_DIR')
-	sid = os.environ.get('X_SID')
 
 	if (method == "GET"):
 		getMethod()
 	elif (method == "POST"):
-		postMethod(uploadsDir, sid)
+		postMethod(uploadsDir, c)
 	else:
 		printError(501, "Not Implemented")

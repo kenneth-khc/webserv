@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/13 22:55:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 02:03:00 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,25 +34,21 @@ static void		uploadFiles(const POSTBody& body, const String& uploadsDir, const S
 static String	constructFormPath(const String& uploadsDir, const String& sid);
 static void		uploadForm(const POSTBody& body, const String& uploadsDir, const String& sid);
 
-void	Driver::post(Response& response, Request& request) const
+void	Driver::post(Request& request, Response& response)
 {
-	Optional<String::size_type>	pos = request.absolutePath.find("/" + cgiDir + "/");
-
-	// if (request.hasMessageBody)
-	// {
-	// 	request.parseMessageBody(request.client->message);
-	// 	while (!request.messageBodyFound)
-	// 	{
-	// 		request.client->receiveBytes();
-	// 		request.parseMessageBody(request.client->message);
-	// 	}
-	// }
-
-	if (pos.exists == true && pos.value == 0)
+	if (request.path == "/")	// Test-specific condition
 	{
-		cgi(response, request);
+		throw MethodNotAllowed405();
 	}
-	else if (request.absolutePath == "/pages/form.html")
+	else if (request.path == "/post_body")	// Test-specific condition
+	{
+		if (request.find< Optional<String::size_type> >("Content-Length").value > 100)
+			throw ContentTooLarge413();
+		response.setStatusCode(Response::OK);
+		response.insert("Content-Length", 0);
+		response.processStage = Response::POST_PROCESSING;
+	}
+	else if (request.path == "/pages/form.html")
 	{
 		POSTBody		msgBody(request);
 		const String&	sid = request.cookies.find("sid")->second.value;
@@ -72,17 +68,12 @@ void	Driver::post(Response& response, Request& request) const
 		response.setStatusCode(Response::SEE_OTHER);
 		response.insert("Content-Length", 0);
 		response.insert("Location", "http://localhost:8000/pages/form.html");
-	}
-	else if (request.absolutePath.ends_with(".bla") == true) // Test-specific condition
-	{
-		cgi(response, request);
+		response.processStage = Response::POST_PROCESSING;
 	}
 	else
 	{
-		throw MethodNotAllowed405();	// Test-specific condition
+		throw NotFound404();
 	}
-	// TODO: location header
-	// TODO: regenerate the page/link to created resource after POSTing
 }
 
 static String	constructFilePath(const String& uploadsDir, const String& sid, const String& fileName)

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/13 13:57:40 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 13:46:59 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 #include "ErrorCode.hpp"
 #include "Time.hpp"
 #include "Base64.hpp"
+#include "CGI.hpp"
+#include <deque>
 #include <cstddef>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -30,14 +32,13 @@
 #include <dirent.h>
 #include <iostream>
 
-const unsigned int	Driver::timeoutValue = 5;
-
 Driver::Driver():
 name("42webserv"),
 epollFD(-1),
-maxEvents(1),
+maxEvents(1021),
 readyEvents(NULL),
 numReadyEvents(0),
+currEvent(0),
 MIMEMappings("mime.types"),
 rootDir("root"),
 pagesDir("pages"),
@@ -98,7 +99,7 @@ void	Driver::configNewServer(const Directive& directive)
 		Socket	s = Socket(portNum);
 		listeners[s.fd] = s;
 		listeners[s.fd].bind();
-		listeners[s.fd].listen(1);
+		listeners[s.fd].listen(1020);
 		// WARN: something sussy here with the socket pointer
 		// what happens if I have a listen in another server
 		// trying to point to an existing socket
@@ -121,16 +122,6 @@ int	Driver::epollWait()
 	{
 		//TODO: error handling
 	}
-	else if (numReadyEvents > 0 && (readyEvents[0].events & EPOLLRDHUP))
-	{
-		//	Closes socket in cases where client-side closes the connection on their end.
-		logger.logConnection(Logger::CLOSE, readyEvents[0].data.fd,
-			clients[readyEvents[0].data.fd]);
-		close(readyEvents[0].data.fd);
-		epoll_ctl(epollFD, EPOLL_CTL_DEL, readyEvents[0].data.fd, 0);
-		clients.erase(clients.find(readyEvents[0].data.fd));
-		numReadyEvents = 0;
-	}
 	return numReadyEvents;
 }
 
@@ -138,70 +129,82 @@ void	Driver::processReadyEvents()
 {
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
-		const epoll_event&	ev = readyEvents[i];
+		currEvent = &readyEvents[i];
 
-		if (listeners.find(ev.data.fd) != listeners.end())
+		if (listeners.find(currEvent->data.fd) != listeners.end())
 		{
-			const Socket&	socket = listeners.find(ev.data.fd)->second;
+			const Socket&	socket = listeners.find(currEvent->data.fd)->second;
 			acceptNewClient(socket);
+			return ;
 		}
-		else if (ev.events & EPOLLIN)
+
+		std::map<int, Client>::iterator	clientIt = clients.find(currEvent->data.fd);
+		std::map<int, CGI *>::iterator	cgiIt = cgis.find(currEvent->data.fd);
+
+		if (clientIt == clients.end() && cgiIt == cgis.end())
+			continue ;
+
+		if (clientIt != clients.end())
 		{
-			Client&	client = clients[ev.data.fd];
-			client.receiveBytes();
+			if (currEvent->events & EPOLLHUP)
+			{
+				closeConnection(clientIt, Logger::PEER_CLOSE);
+				continue ;
+			}
+			if (currEvent->events & EPOLLIN)
+			{
+				receiveMessage(clientIt);
+				processRequest(clientIt);
+			}
+			if (currEvent->events & EPOLLOUT && !clientIt->second.responseQueue.empty())
+			{
+				generateResponse(clientIt);
+			}
+		}
+		else if (cgiIt != cgis.end())
+		{
+			if (currEvent->events & EPOLLIN)
+			{
+				cgiIt->second->fetchOutput(epollFD);
+			}
+			if (currEvent->events & EPOLLOUT)
+			{
+				cgiIt->second->feedInput(epollFD);
+			}
+			if (currEvent->events & EPOLLHUP)
+			{
+				cgiIt->second->fetchOutput(epollFD);
+			}
+			processCGI(cgiIt);
 		}
 	}
 }
 
-void	Driver::processMessages()
+void	Driver::receiveMessage(std::map<int, Client>::iterator& clientIt)
 {
-	// TODO: get all ready clients instead of just the first one
-	Client&		client = clients[readyEvents[0].data.fd];
-	Request&	request = client.request;
+	Client&	client = clientIt->second;
 
-	request.client = &client;
+	client.receiveBytes();
+}
+
+void	Driver::processRequest(std::map<int, Client>::iterator& clientIt)
+{
+	Client&		client = clientIt->second;
+	Request&	request = client.requestQueue.back();
+
 	try
 	{
-		if (!request.requestLineFound && client.endOfRequestLineFound())
+		if (request.processStage & Request::REQUEST_LINE)
 		{
 			request.parseRequestLine(client.message);
 		}
-		if (request.requestLineFound &&
-			!request.headersFound &&
-			client.endOfHeaderFound())
+		if (request.processStage & Request::HEADERS)
 		{
 			request.parseHeaders(client.message);
-
-			Optional<String>	contentLength = request["Content-Length"];
-			Optional<String>	transferEncoding = request["Transfer-Encoding"];
-
-			if (transferEncoding.exists)
-			{
-				if (contentLength.exists)
-				{
-					request.headers.erase(Request::stringToLower("Content-Length"));
-				}
-				transferEncoding.value = Request::stringToLower(transferEncoding.value);
-				if (transferEncoding.value.find("chunked").exists == false)
-				{
-					throw BadRequest400();
-				}
-			}
-			else if (contentLength.exists)
-			{
-				if (isContentLengthHeader(contentLength.value) == false)
-				{
-					throw BadRequest400();
-				}
-			}
-			else
-			{
-				request.hasMessageBody = false;
-			}
 		}
-		if (request.requestLineFound && request.headersFound)
+		if (request.processStage & Request::HEAD_DONE)
 		{
-			readyRequests.push(request);
+			request.checkIfBodyExists();
 			logger.logRequest(request, client);
 		}
 	}
@@ -210,20 +213,203 @@ void	Driver::processMessages()
 		Response	response;
 		response.insert("Server", name);
 		response = e;
-		readyResponses.push(response);
+		client.requestQueue.push_back(Request());
+		client.responseQueue.push_back(response);
+		return ;
+	}
+
+	try {
+		if (request.processStage & Request::MESSAGE_BODY)
+		{
+			request.parseMessageBody(client.message);
+		}
+		if (request.processStage & Request::READY)
+		{
+			client.responseQueue.push_back(Response());
+			preprocessReadyRequest(request, client.responseQueue.back());
+			request.processStage &= ~Request::READY;
+		}
+		if (request.processStage & Request::DONE)
+		{
+			Response	&response = client.responseQueue.back();
+
+			processReadyRequest(request, response);
+			postprocessReadyRequest(request, response);
+			if (response.processStage == Response::DONE)
+			{
+				client.requestQueue.push_back(Request());
+			}
+		}
+	}
+	catch (const ErrorCode &e)
+	{
+		client.responseQueue.back() = e;
+		client.requestQueue.push_back(Request());
+		return ;
 	}
 }
 
-void	Driver::processReadyRequests()
+void	Driver::preprocessReadyRequest(Request& request, Response& response)
 {
-	while (!readyRequests.empty())
+	if (response.processStage & Response::PRE_PROCESSING)
 	{
-		Request&	request = readyRequests.front();
-		Response	response = handleRequest(request);
-
-		readyResponses.push(response);
-		readyRequests.pop();
+		response.insert("Server", name);
+		request.parseCookieHeader();
+		processCookies(request, response);
+		response.processStage &= ~Response::PRE_PROCESSING;
 	}
+}
+
+void	Driver::processReadyRequest(Request& request, Response& response)
+{
+	if (request.path.starts_with("/" + cgiDir + "/") ||
+		request.path.ends_with(".bla"))	// Test-specific condition
+	{
+		cgi(request, response);
+	}
+	else if (request.method == "GET")
+	{
+		get(request, response);
+	}
+	else if (request.method == "POST")
+	{
+		post(request, response);
+	}
+	else if (request.method == "DELETE")
+	{
+		delete_(request, response);
+	}
+	else	// Test-specific condition
+	{
+		if (request.path == "/")
+			throw MethodNotAllowed405();
+		throw NotImplemented501();
+	}
+}
+
+void	Driver::postprocessReadyRequest(Request& request, Response& response)
+{
+	if (response.processStage & Response::POST_PROCESSING)
+	{
+		constructConnectionHeader(request, response);
+		response.insert("Date", Time::printHTTPDate());
+		response.processStage = Response::DONE;
+	}
+}
+
+void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt)
+{
+	CGI	&cgi = *(cgiIt->second);
+
+	if (cgi.processStage & CGI::INPUT_DONE)
+	{
+		cgi.processStage &= ~CGI::INPUT_DONE;
+		cgis.erase(cgiIt);
+	}
+	if (cgi.processStage & CGI::OUTPUT_DONE)
+	{
+		try {
+			postprocessReadyRequest(cgi.request, cgi.response);
+		}
+		catch (const ErrorCode &e) {
+			cgi.response = e;
+		}
+		if (cgi.response.processStage == Response::DONE)
+		{
+			cgi.client.requestQueue.push_back(Request());
+		}
+		delete &cgi;
+		cgis.erase(cgiIt);
+	}
+}
+
+void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt)
+{
+	Client&		client = clientIt->second;
+	Request&	request = client.requestQueue.front();
+	Response&	response = client.responseQueue.front();
+
+	if (!(response.processStage & Response::DONE))
+		return ;
+
+	if (response.formatted == "")
+	{
+		if (request.method == "HEAD")
+			response.messageBody = "";
+		response.format();
+	}
+
+	client.sendBytes(response);
+	if (response.formatted == "")
+	{
+		logger.logResponse(response, client);
+
+		if (response.closeConnection == true)
+		{
+			closeConnection(clientIt, Logger::CLOSE);
+		}
+		else
+		{
+			client.requestQueue.pop_front();
+			client.responseQueue.pop_front();
+		}
+	}
+}
+
+void	Driver::closeConnection(std::map<int, Client>::iterator clientIt, int logFlag)
+{
+	Client&	client = clientIt->second;
+
+	logger.logConnection(logFlag, currEvent->data.fd, client);
+	epoll_ctl(epollFD, EPOLL_CTL_DEL, currEvent->data.fd, 0);
+	close(currEvent->data.fd);
+	clients.erase(clientIt);
+}
+
+void	Driver::monitorConnections()
+{
+	std::map<int, Client>::iterator	it = clients.begin();
+
+	while (it != clients.end())
+	{
+		Client	&client = it->second;
+		if (client.firstDataRecv == true &&
+			(Time::getTimeSinceEpoch() - client.lastActive >= Server::clientTimeoutValue))
+		{
+			closeConnection(it++, Logger::TIMEOUT);
+		}
+		else
+		{
+			it++;
+		}
+	}
+}
+
+void	Driver::acceptNewClient(const Socket& socket)
+{
+	Client	client;
+
+	client.addressLen = static_cast<socklen_t>(sizeof client.address);
+	Socket	clientSocket;
+	clientSocket.fd = accept(socket.fd, (sockaddr*)&client.address,
+							 &client.addressLen);
+	std::cout << ">> " << client.socket.fd << '\n';
+	fcntl(client.socket.fd, F_SETFL, O_NONBLOCK);
+	//++numClients;
+
+	//	SO_LINGER prevents close() from returning when there's still data in
+	//	the socket buffer. This avoids the "TCP reset problem" and allows
+	//	graceful closure.
+	linger	linger = {.l_onoff = 1, .l_linger = 5};
+	setsockopt(client.socket.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
+
+	epoll_event	event = epoll_event();
+	event.events = EPOLLIN | EPOLLOUT;
+	event.data.fd = clientSocket.fd;
+	client.socket = clientSocket;
+	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socket.fd, &event);
+	clients.insert(std::make_pair(client.socket.fd, client));
+	logger.logConnection(Logger::ESTABLISHED, client.socket.fd, client);
 }
 
 void	Driver::processCookies(Request& request, Response& response)
@@ -249,109 +435,6 @@ void	Driver::processCookies(Request& request, Response& response)
 	}
 }
 
-Response	Driver::handleRequest(Request& request)
-{
-	Response	response;
-
-	response.insert("Server", name);
-	request.parseCookieHeader();
-	processCookies(request, response);
-	try
-	{
-		if (request.method == "GET")
-		{
-			get(response, request);
-		}
-		else if (request.method == "POST")
-		{
-			post(response, request);
-		}
-		else if (request.method == "DELETE")
-		{
-			delete_(response, request);
-		}
-		else
-			throw MethodNotAllowed405();	// Test-specific condition
-	}
-	catch (const ErrorCode& e)
-	{
-		response = e;
-	}
-	constructConnectionHeader(request, response);
-	response.insert("Date", Time::printHTTPDate());
-	return response;
-}
-
-void	Driver::generateResponses()
-{
-	while (!readyResponses.empty())
-	{
-		Client&		client = clients[readyEvents[0].data.fd];
-		Response&	response = readyResponses.front();
-		std::string	formattedResponse = response.toString();
-
-		send(client.socket.fd, formattedResponse.c_str(), formattedResponse.size(), 0);
-		logger.logResponse(response, client);
-
-		if (response.flags & Response::CONNECTION_CLOSE)
-		{
-			close(client.socket.fd);
-			epoll_ctl(epollFD, EPOLL_CTL_DEL, client.socket.fd, 0);
-			clients.erase(clients.find(client.socket.fd));
-		}
-		else
-		{
-			client.request = Request();
-		}
-		readyResponses.pop();
-	}
-}
-
-void	Driver::monitorConnections()
-{
-	std::map<int, Client>::iterator	it = clients.begin();
-
-	while (it != clients.end())
-	{
-		if (it->second.firstDataRecv == true && it->second.isTimeout() == true)
-		{
-			logger.logConnection(Logger::TIMEOUT, it->first, it->second);
-			close(it->first);
-			epoll_ctl(epollFD, EPOLL_CTL_DEL, it->first, 0);
-			clients.erase(it++);
-		}
-		else
-			it++;
-	}
-}
-
-void	Driver::acceptNewClient(const Socket& socket)
-{
-	Client	client;
-
-	client.addressLen = static_cast<socklen_t>(sizeof client.address);
-	Socket	clientSocket;
-	clientSocket.fd = accept(socket.fd, (sockaddr*)&client.address,
-							 &client.addressLen);
-	std::cout << ">> " << client.socket.fd << '\n';
-	fcntl(client.socket.fd, F_SETFL, O_NONBLOCK);
-	//++numClients;
-
-	//	SO_LINGER prevents close() from returning when there's still data in
-	//	the socket buffer. This avoids the "TCP reset problem" and allows
-	//	graceful closure.
-	linger	linger = {.l_onoff = 1, .l_linger = 5};
-	setsockopt(client.socket.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
-
-	epoll_event	event = epoll_event();
-	event.events = EPOLLIN | EPOLLRDHUP;
-	event.data.fd = clientSocket.fd;
-	client.socket = clientSocket;
-	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socket.fd, &event);
-	clients.insert(std::make_pair(client.socket.fd, client));
-	logger.logConnection(Logger::ESTABLISHED, client.socket.fd, client);
-}
-
 #include <iomanip>
 #include <algorithm>
 #include <sys/stat.h>
@@ -359,7 +442,7 @@ void	Driver::acceptNewClient(const Socket& socket)
 #define FILE_NAME_LEN 45
 #define FILE_SIZE_LEN 20
 
-void	Driver::generateDirectoryListing(Response& response, const std::string& dirName) const
+void	Driver::generateDirectoryListing(Response& response, const String& dirName) const
 {
 	DIR*	dir = opendir(dirName.c_str());
 
@@ -482,4 +565,78 @@ void	Driver::generateDirectoryListing(Response& response, const std::string& dir
 		   << "</html>";
 	response.messageBody += stream.str();
 	closedir(dir);
+}
+
+void	Driver::generateUploadsListing(
+	const Request& request,
+	Response& response,
+	const String& uploadsDir) const
+{
+	DIR*	dir = opendir(uploadsDir.c_str());
+
+	if (!dir)
+		throw NotFound404();
+
+	std::stringstream	stream;
+	std::vector<String>	uploadsList;
+
+	stream << "<html>\n"
+		   << 	"<head>\n"
+		   << 		"<style>\n\t"
+		   <<			"html { font-family: 'Comic Sans MS' }\n\t"
+		   << 			"body { background-color: #f4dde7 }\n"
+		   << 		"</style>\n"
+		   << 	"</head>\n"
+		   <<	"<body>\n"
+		   <<		"<h1>Uploads</h1>\n"
+		   <<		"<hr><pre>\n";
+
+	response.messageBody += stream.str();
+
+	const String&	sid = request.cookies.find("sid")->second.value;
+	for (dirent* entry = readdir(dir); entry != 0; entry = readdir(dir))
+	{
+		String						file(entry->d_name);
+		Optional<String::size_type> sidMatch = file.find(sid);
+
+		if (sidMatch.exists == false || sidMatch.value != 0)
+			continue ;
+
+		Optional<String::size_type>	delimiter = file.find("_");
+		String						trim = file.substr(delimiter.value + 1);
+		String						truncate = trim;
+
+		if (truncate.length() > FILE_NAME_LEN)
+		{
+			truncate.resize(FILE_NAME_LEN);
+			truncate.replace(FILE_NAME_LEN - 3, 3, "...");
+		}
+		stream.str("");
+		stream << "<a href=\""
+			   << "/" + uploadsDir + "/" + trim
+			   << "\">"
+			   << std::left
+			   << std::setw(FILE_NAME_LEN + 5)
+			   << truncate + "</a> "
+			   << "<button type=\"button\" onclick=\"del("
+			   << "'/" + uploadsDir + "/" + trim + "'"
+			   << ")\">Delete</button>\n";
+		uploadsList.push_back(stream.str());
+	}
+
+	std::sort(uploadsList.begin(), uploadsList.end());
+
+	for (std::vector<String>::const_iterator it = uploadsList.begin(); it != uploadsList.end(); it++)
+	{
+		response.messageBody += *it;
+	}
+
+	stream.str("");
+	stream << 		"</pre><hr>\n"
+		   << 		"<script>"
+		   <<			"async function del(url) { await fetch(url, { method: \"DELETE\" }); }"
+		   <<		"</script>"
+		   << 	"</body>\n"
+		   << "</html>";
+	response.messageBody += stream.str();
 }

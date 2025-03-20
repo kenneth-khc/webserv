@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/13 23:00:42 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/19 16:33:10 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,37 +14,54 @@
 # define CGI_HPP
 
 # include <vector>
-# include <unistd.h>
+# include "Time.hpp"
 # include "String.hpp"
-# include "Request.hpp"
 # include "Driver.hpp"
+# include "Client.hpp"
+# include "Request.hpp"
 
-# define NUM_OF_META_VARIABLES 4
-# define PHP_META_VARIABLES 2
-# define CGI_TIMEOUT_VALUE 3
+# define NUM_OF_CGI_FIELDS 3
+# define NUM_OF_META_VARIABLES 6
+# define NUM_OF_EXT_META_VARIABLES 1
+# define PHP_META_VARIABLES 3
 
 class CGI {
+		static const String	cgiFields[NUM_OF_CGI_FIELDS];
 		CGI(void);
 		CGI(const CGI &obj);
 		CGI	&operator=(const CGI &obj);
 	public:
-		const Driver		&driver;
+		Client				&client;
 		Request				&request;
+		Response			&response;
+
 		String				execPath;
 		String				extension;
 		String				pathInfo;
 		std::vector<char *>	envp;
-		char				**argv;
-		int					input[2];
-		int					output[2];
-		pid_t				pid;
-		String				response;
+		std::vector<char *>	argv;
 
-		CGI(const Driver &driver, Request &request);
+		int					inputFD;
+		int					outputFD;
+		pid_t				pid;
+		String::size_type	inputLength;
+		String				output;
+		bool				firstDataSend;
+		std::time_t			lastActive;
+		char				processStage;
+
+		CGI(const Driver &driver, Client &client, Request &request, Response &response);
 		~CGI(void);
-		void	generateEnv(void);
-		void	execute(void);
-		void	parseOutput(Response &response) const;
+		void	generateEnv(const Driver &driver);
+		void	execute(Driver &driver);
+		void	feedInput(int epollFD);
+		void	fetchOutput(int epollFD);
+		void	parseOutput(void);
+
+		enum ProcessStage {
+			INPUT_DONE = 0x001,
+			OUTPUT_DONE = 0x002
+		};
 };
 
 #endif

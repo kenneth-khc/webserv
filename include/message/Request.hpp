@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/13 07:38:16 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/19 17:20:23 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,24 +29,17 @@ class Request : public Message {
 		static const String	methods[NUM_OF_METHODS];
 		static const float	supportedVersions[NUM_OF_VERSIONS];
 
-		Client						*client;
-
-		bool						requestLineFound;
 		String						method;
 		String						requestTarget;
-		String						absolutePath;
+		String						path;
 		Optional<String>			query;
 		Optional<String>			decodedQuery;
 		std::map<String, String>	queryPairs;
-
-		bool						headersFound;
 		std::map<String, Cookie>	cookies;
 
-		bool						hasMessageBody;
-		bool						messageBodyFound;
 		//	For chunked message body
 		String::size_type			chunkSize;
-		String::size_type			length;
+		String::size_type			bodyLength;
 		bool						chunkSizeFound;
 		bool						lastChunk;
 
@@ -55,12 +48,22 @@ class Request : public Message {
 		Request(const Request &obj);
 		Request	&operator=(const Request &obj);
 
+		void	parseRequestLine(String &line);
 		bool	isValidMethod(const String &method);
 		bool	isSupportedVersion(const float &version);
-		void	parseRequestLine(String &line);
 		void	parseHeaders(String &line);
-		void	parseMessageBody(String &line);
 		void	parseCookieHeader(void);
+		void	checkIfBodyExists(void);
+		void	parseMessageBody(String &line);
+
+		enum ProcessStage {
+			REQUEST_LINE = 0x001,
+			HEADERS = 0x002,
+			HEAD_DONE = 0x004,
+			MESSAGE_BODY = 0x008,
+			READY = 0x010,
+			DONE = 0x020
+		};
 };
 
 #endif

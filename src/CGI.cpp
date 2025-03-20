@@ -6,39 +6,56 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/13 23:04:29 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/19 17:50:53 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <algorithm>
 #include <cstdlib>
-#include <cstdio>
-#include <fcntl.h>
 #include <sstream>
 #include <sys/wait.h>
 #include <cstring>
 #include <map>
 #include <iomanip>
+#include <fcntl.h>
 #include "Optional.hpp"
-#include "Time.hpp"
+#include "Server.hpp"
 #include "ErrorCode.hpp"
 #include "CGI.hpp"
-#include "Driver.hpp"
 
-CGI::CGI(const Driver &driver, Request &request) :
-	driver(driver),
-	request(request)
+const String	CGI::cgiFields[NUM_OF_CGI_FIELDS] = {
+	"content-type",
+	"location",
+	"status"
+};
+
+CGI::CGI(
+	const Driver &driver,
+	Client &client,
+	Request &request,
+	Response &response) :
+	client(client),
+	request(request),
+	response(response),
+	inputFD(0),
+	outputFD(0),
+	pid(0),
+	inputLength(0),
+	firstDataSend(false),
+	lastActive(0),
+	processStage(0)
 {
-	Optional<String::size_type>	extPos = request.absolutePath.find(".");
+	Optional<String::size_type>	extPos = request.path.find(".");
 
 	if (extPos.exists == false)
 		throw NotFound404();
 
-	Optional<String::size_type>	pathInfoPos = request.absolutePath.find("/", extPos.value);
+	Optional<String::size_type>	pathInfoPos = request.path.find("/", extPos.value);
 
 	if (pathInfoPos.exists == true)
-		this->extension = request.absolutePath.substr(extPos.value, pathInfoPos.value - extPos.value);
+		this->extension = request.path.substr(extPos.value, pathInfoPos.value - extPos.value);
 	else
-		this->extension = request.absolutePath.substr(extPos.value);
+		this->extension = request.path.substr(extPos.value);
 
 	String								pathInfo;
 	std::vector<String>::const_iterator	it = driver.cgiScript.begin();
@@ -46,22 +63,20 @@ CGI::CGI(const Driver &driver, Request &request) :
 	while (it != driver.cgiScript.end()) {
 		if (this->extension == ("." + *it)) {
 			if (pathInfoPos.exists == true) {
-				this->execPath = request.absolutePath.substr(1, pathInfoPos.value - 1);
-				pathInfo = request.absolutePath.substr(pathInfoPos.value);
+				this->execPath = request.path.substr(1, pathInfoPos.value - 1);
+				pathInfo = request.path.substr(pathInfoPos.value);
 			}
 			else
-				this->execPath = request.absolutePath.substr(1);
+				this->execPath = request.path.substr(1);
 			break ;
 		}
 		it++;
 	}
 	if (this->execPath.ends_with(".bla") == true)	// Test-specific condition
-		this->execPath.replace(this->execPath.begin(), this->execPath.end(), "subject/ubuntu_cgi_tester");
+		this->execPath = "subject/ubuntu_cgi_tester";
 
 	if (it == driver.cgiScript.end() || access(this->execPath.c_str(), X_OK) != 0)
 		throw NotFound404();
-
-	this->generateEnv();
 
 	String						cgiName;
 	Optional<String::size_type>	cgiNamePos = this->execPath.find_last_of("/");
@@ -71,36 +86,39 @@ CGI::CGI(const Driver &driver, Request &request) :
 	else
 		cgiName = this->execPath;
 
-	this->argv = new char*[2]();
-	this->argv[0] = new char[cgiName.length() + 1];
-	std::memcpy(this->argv[0], cgiName.c_str(), cgiName.length());
-	this->argv[0][cgiName.length()] = '\0';
+	this->argv.push_back(new char[cgiName.length() + 1]);
+	std::memcpy(this->argv[0], cgiName.c_str(), cgiName.length() + 1);
+	this->argv.push_back(0);
 }
 
 CGI::~CGI(void) {
-	for (std::vector<char *>::const_iterator it = this->envp.begin(); it != this->envp.end(); it++)
-		delete [] *it;
-	delete [] this->argv[0];
-	delete [] this->argv;
+	for (std::vector<char *>::const_iterator it = this->envp.begin(); it != this->envp.end(); it++) {
+		if (*it != 0)
+			delete [] *it;
+	}
+	for (std::vector<char *>::const_iterator it = this->argv.begin(); it != this->argv.end(); it++) {
+		if (*it != 0)
+			delete [] *it;
+	}
 }
 
-void	CGI::generateEnv(void) {
+void	CGI::generateEnv(const Driver &driver) {
+	(void)driver;
 	std::stringstream	portNum;
 	std::stringstream	serverProtocol;
 	std::stringstream	contentLength;
-	const Client		&client = driver.clients.find(driver.readyEvents[0].data.fd)->second;
 
-	portNum << client.socket.port;
-	serverProtocol << std::setprecision(2) << request.httpVersion;
+	portNum << this->client.socket.port;
+	serverProtocol << std::setprecision(2) << this->request.httpVersion;
 	contentLength << this->request.messageBody.length();
 
 	const String	metaVariables[NUM_OF_META_VARIABLES] = {
-		// "CONTENT_LENGTH=" + contentLength.str(),
-		"CONTENT_TYPE=" + this->request["Content-Type"].value,
+		"CONTENT_LENGTH=" + contentLength.str(),
+		"CONTENT_TYPE=" + (this->request)["Content-Type"].value,
 		// "GATEWAY_INTERFACE=CGI/1.1",
 		"PATH_INFO=/",	// Test-specific condition
-		// "QUERY_STRING=" + this->request.query.value,
-		// "REMOTE_ADDR=" + client.getIPAddr(),
+		"QUERY_STRING=" + this->request.query.value,
+		// "REMOTE_ADDR=" + this->client.getIPAddr(),
 		// "REMOTE_HOST=" + this->request["Host"].value,
 		"REQUEST_METHOD=" + this->request.method,
 		// "SCRIPT_NAME=/" + this->execPath,
@@ -108,107 +126,185 @@ void	CGI::generateEnv(void) {
 		// "SERVER_PORT=" + portNum,
 		"SERVER_PROTOCOL=HTTP/" + serverProtocol.str(),
 		// "SERVER_SOFTWARE=" + driver.name,
-		// "X_SID=" + this->request.cookies.find("sid")->second.value,
-		// "X_UPLOADS_DIR=" + driver.uploadsDir
 	};
 
-	int i = 0;
+	const String	extMetaVariables[NUM_OF_EXT_META_VARIABLES] = {
+		"X_UPLOADS_DIR=" + driver.uploadsDir
+	};
+
+	int 		i = 0;
+	std::size_t	len = 0;
 	for (int j = 0; j < NUM_OF_META_VARIABLES; j++) {
-		this->envp.push_back(new char[metaVariables[j].length() + 1]);
-		std::memcpy(this->envp[i], metaVariables[j].c_str(), metaVariables[j].length());
-		this->envp[i][metaVariables[j].length()] = '\0';
+		len = metaVariables[j].length() + 1;
+
+		this->envp.push_back(new char[len]);
+		std::memcpy(this->envp[i], metaVariables[j].c_str(), len);
 		i++;
 	}
+
+	for (int j = 0; j < NUM_OF_EXT_META_VARIABLES; j++) {
+		len = extMetaVariables[j].length() + 1;
+
+		this->envp.push_back(new char[len]);
+		std::memcpy(this->envp[i], extMetaVariables[j].c_str(), len);
+		i++;
+	}
+
 	if (extension == ".php") {
 		const String	phpMetaVariables[PHP_META_VARIABLES] = {
 			"REDIRECT_STATUS=200",
-			"SCRIPT_FILENAME=" + this->execPath
+			"SCRIPT_FILENAME=" + this->execPath,
+			"DOCUMENT_ROOT=/home/cteoh/Documents/webserv"
 		};
 
 		for (int j = 0; j < PHP_META_VARIABLES; j++) {
-			this->envp.push_back(new char[phpMetaVariables[j].length() + 1]);
-			std::memcpy(this->envp[i], phpMetaVariables[j].c_str(), phpMetaVariables[j].length());
-			this->envp[i][phpMetaVariables[j].length()] = '\0';
+			len = phpMetaVariables[j].length() + 1;
+
+			this->envp.push_back(new char[len]);
+			std::memcpy(this->envp[i], phpMetaVariables[j].c_str(), len);
 			i++;
 		}
 	}
+
+	std::multimap<String, String>::const_iterator it = this->request.headers.begin();
+	while (it != this->request.headers.end()) {
+		String	protocolMetaVariable = "HTTP_";
+
+		for (String::size_type i = 0; i < it->first.length(); i++) {
+			if (it->first[i] == '-')
+				protocolMetaVariable += "_";
+			else
+				protocolMetaVariable += std::toupper(it->first[i]);
+		}
+		protocolMetaVariable += "=" + it->second;
+
+		len = protocolMetaVariable.length() + 1;
+		this->envp.push_back(new char[len]);
+		std::memcpy(this->envp[i], protocolMetaVariable.c_str(), len);
+		i++;
+		it++;
+	}
 	this->envp.push_back(0);
 }
-#include <iostream>
-void	CGI::execute(void) {
-	(void)!pipe(this->input);
-	// (void)!pipe(this->output);
+
+void	CGI::execute(Driver &driver) {
+	int	input[2];
+	int	output[2];
+
+	(void)!pipe(input);
+	(void)!pipe(output);
 
 	this->pid = fork();
 	if (this->pid == 0) {
-		close(this->input[1]);
-		dup2(this->input[0], STDIN_FILENO);
-		close(this->input[0]);
-		close(this->output[0]);
-		// dup2(this->output[1], STDOUT_FILENO);
-		close(this->output[1]);
-		execve(this->execPath.c_str(), this->argv, this->envp.data());
+		close(input[1]);
+		dup2(input[0], STDIN_FILENO);
+		close(input[0]);
+		close(output[0]);
+		dup2(output[1], STDOUT_FILENO);
+		close(output[1]);
+		execve(this->execPath.c_str(), this->argv.data(), this->envp.data());
 		std::exit(1);
 	}
 
-	if (request.hasMessageBody)
-	{
-		request.parseMessageBody(request.client->message);
-		while (!request.messageBodyFound)
-		{
-			request.client->receiveBytes();
-			request.parseMessageBody(request.client->message);
+	close(input[0]);
+	close(output[1]);
+
+	epoll_event ev;
+	ev.events = EPOLLOUT;
+	fcntl(input[1], F_SETFL, O_NONBLOCK);
+	ev.data.fd = input[1];
+	epoll_ctl(driver.epollFD, EPOLL_CTL_ADD, input[1], &ev);
+	driver.cgis.insert(std::make_pair(input[1], this));
+	this->inputFD = input[1];
+
+	ev.events = EPOLLIN;
+	fcntl(output[0], F_SETFL, O_NONBLOCK);
+	ev.data.fd = output[0];
+	epoll_ctl(driver.epollFD, EPOLL_CTL_ADD, output[0], &ev);
+	driver.cgis.insert(std::make_pair(output[0], this));
+	this->outputFD = output[0];
+}
+
+void	CGI::feedInput(int epollFD) {
+	ssize_t	bytes = 0;
+	Request	&request = this->request;
+
+	if (this->inputLength < request.bodyLength && request.messageBody.length() > 0) {
+		ssize_t	bytesToWrite = request.bodyLength - this->inputLength;
+
+		bytes = write(this->inputFD, request.messageBody.c_str(), bytesToWrite);
+		if (bytes > 0) {
+			this->inputLength += bytes;
+			request.messageBody.erase(0, bytes);
+			if (this->firstDataSend == false) {
+				this->firstDataSend = true;
+				this->lastActive = Time::getTimeSinceEpoch();
+			}
 		}
 	}
-	close(this->input[0]);
-	close(this->input[1]);
-	close(this->output[1]);
+	if (this->inputLength == this->request.bodyLength) {
+		this->processStage |= CGI::INPUT_DONE;
+		epoll_ctl(epollFD, EPOLL_CTL_DEL, inputFD, 0);
+		close(inputFD);
+		this->inputFD = -1;
+	}
+}
 
-	ssize_t	bytes = 0;
+void	CGI::fetchOutput(int epollFD) {
+	if (this->processStage & CGI::OUTPUT_DONE)
+		return ;
+
+	ssize_t	bytes = -1;
 	char	buffer[1024];
 	int		stat_loc = 0;
 
-	std::time_t	startTime = Time::getTimeSinceEpoch();
-	std::time_t	currTime;
+	bytes = read(this->outputFD, buffer, 1023);
 
-	while (true)
-	{
-		bytes = read(this->output[0], buffer, 1023);
-		currTime = Time::getTimeSinceEpoch();
+	try {
 		if (bytes > 0) {
-			startTime = currTime;
 			buffer[bytes] = '\0';
-			this->response += buffer;
+			this->output += buffer;
+			this->lastActive = Time::getTimeSinceEpoch();
 		}
-		if (waitpid(this->pid, &stat_loc, WNOHANG) == pid) {
-			if (stat_loc == 0)
-				break ;
-			else
+		else if (bytes <= 0 && waitpid(this->pid, &stat_loc, WNOHANG) == this->pid) {
+			this->processStage |= CGI::OUTPUT_DONE;
+			if (stat_loc != 0)
 				throw InternalServerError500();
 		}
-		else if (currTime - startTime > CGI_TIMEOUT_VALUE) {
+		else if (this->firstDataSend == true &&
+			Time::getTimeSinceEpoch() - this->lastActive > Server::cgiTimeoutValue) {
+			this->processStage |= CGI::OUTPUT_DONE;
 			kill(this->pid, SIGKILL);
 			throw InternalServerError500();
 		}
-	};
-	close(this->output[0]);
+		if (this->processStage & CGI::OUTPUT_DONE) {
+			epoll_ctl(epollFD, EPOLL_CTL_DEL, this->outputFD, 0);
+			close(this->outputFD);
+			this->outputFD = -1;
+			this->parseOutput();
+		}
+	}
+	catch (const ErrorCode &e) {
+		this->response = e;
+	}
 }
 
-void	CGI::parseOutput(Response &response) const {
+void	CGI::parseOutput() {
 	String						delimiter = "\r\n\r\n";
-	Optional<String::size_type>	delimiterPos = this->response.find(delimiter);
+	Optional<String::size_type>	delimiterPos = this->output.find(delimiter);
 
 	if (delimiterPos.exists == false) {
 		delimiter = "\n\n";
-		delimiterPos = this->response.find(delimiter);
+		delimiterPos = this->output.find(delimiter);
 		if (delimiterPos.exists == false)
 			throw InternalServerError500();
 	}
 
-	String						headerPart = this->response.substr(0, delimiterPos.value);
-	String						bodyPart = this->response.substr(delimiterPos.value + delimiter.length());
-	std::vector<String>			headers;
-	std::map<String, String>	headerKeyValues;
+	String							headerPart = this->output.substr(0, delimiterPos.value);
+	String							bodyPart = this->output.substr(delimiterPos.value + delimiter.length());
+	std::vector<String>				headers;
+	std::vector<String>				existingFieldNames;
+	std::multimap<String, String>	validHeaders;
 
 	if (delimiter == "\r\n\r\n")
 		headers = headerPart.split("\r\n");
@@ -231,42 +327,57 @@ void	CGI::parseOutput(Response &response) const {
 
 		if (trim.length() != fieldName.length())
 			throw InternalServerError500();
-		if (headerKeyValues.find(fieldName) != headerKeyValues.end())
-			throw InternalServerError500();
 
-		headerKeyValues.insert(std::make_pair(fieldName, fieldValue));
+		if (fieldName.starts_with("X-") == true)
+			continue ;
+
+		existingFieldNames.push_back(fieldName.lower());
+		validHeaders.insert(std::make_pair(fieldName.title(), fieldValue));
 	}
-	if (headerKeyValues.size() == 0)
+
+	int	total = 0;
+	for (int i = 0; i < NUM_OF_CGI_FIELDS; i++) {
+		int	count = std::count(existingFieldNames.begin(), existingFieldNames.end(), cgiFields[i]);
+
+		if (count > 1)
+			throw InternalServerError500();
+		total += count;
+	}
+	if (total == 0)
 		throw InternalServerError500();
 
-	std::map<String, String>::const_iterator	it;
-	std::stringstream							stream;
-	String										str;
-	int											statusCode;
+	std::multimap<String, String>::iterator	it;
+	std::stringstream						stream;
+	String									str;
+	int										statusCode;
 
-	it = headerKeyValues.find("Status");
-	if (it == headerKeyValues.end())
-		response.setStatusCode(Response::OK);
+	it = validHeaders.find("Status");
+	if (it == validHeaders.end())
+		this->response.setStatusCode(Response::OK);
 	else {
 		stream << it->second;
 		stream >> statusCode;
-		response.setStatusCode(statusCode);
+		this->response.setStatusCode(statusCode);
 		String::getline(stream, str);
-		response.reasonPhrase = str.trim(" ");
+		this->response.reasonPhrase = str.trim(" ");
+		validHeaders.erase(it);
 	}
 
-	for (it = headerKeyValues.begin(); it != headerKeyValues.end(); it++)
-		response.insert(Response::stringToLower(it->first), it->second);
+	this->response.headers = validHeaders;
 
-	response.messageBody = bodyPart;
-	if (response["Content-Length"].exists == false)
-		response.insert("Content-Length", response.messageBody.length());
+	this->response.messageBody = bodyPart;
+	if (this->response["Content-Length"].exists == false)
+		this->response.insert("Content-Length", this->response.messageBody.length());
+	this->response.processStage = Response::POST_PROCESSING;
 }
 
-void	Driver::cgi(Response &response, Request &request) const {
-	CGI	cgi(*this, request);
+void	Driver::cgi(Request &request, Response &response) {
+	if (request.method != "GET" && request.method != "POST")
+		throw NotImplemented501();
 
-	cgi.execute();
-	std::cout << response.messageBody << std::endl;
-	cgi.parseOutput(response);
+	Client	&client = this->clients[currEvent->data.fd];
+	CGI		*cgi = new CGI(*this, client, request, response);
+
+	cgi->generateEnv(*this);
+	cgi->execute(*this);
 }

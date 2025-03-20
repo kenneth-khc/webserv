@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/04 18:42:38 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/19 15:59:56 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,9 +52,6 @@ int	main(int argc, char** argv)
 		if (driver.epollWait() != 0)
 		{
 			driver.processReadyEvents();
-			driver.processMessages();
-			driver.processReadyRequests();
-			driver.generateResponses();
 		}
 		driver.monitorConnections();
 	}

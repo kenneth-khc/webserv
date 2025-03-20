@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:14:43 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/09 14:26:46 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 00:31:04 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 #include "Driver.hpp"
 
 // TODO: consider other status codes. 200 OK? 202 Accepted? 403 Forbidden?
-void	Driver::delete_(Response& response, Request& request) const
+void	Driver::delete_(Request& request, Response& response) const
 {
 	DIR*	dir = opendir(uploadsDir.c_str());
 
@@ -57,10 +57,8 @@ void	Driver::delete_(Response& response, Request& request) const
 		throw NotFound404();
 	}
 
-	std::ifstream	ifs((miscPagesDir + "/delete_success.html").c_str());
-
 	response.setStatusCode(Response::OK);
-	String::getline(ifs, response.messageBody, '\0');
 	response.insert("Content-Type", "text/html");
-	response.insert("Content-Length", response.messageBody.length());
+	response.insert("Content-Length", 0);
+	response.processStage = Response::POST_PROCESSING;
 }

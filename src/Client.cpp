@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/12 18:10:39 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 01:32:35 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ firstDataRecv(false),
 lastActive(Time::getTimeSinceEpoch())
 {
 	messageBuffer.resize(1024);
+	requestQueue.push_back(Request());
 }
 
 String	Client::getIPAddr() const
@@ -84,28 +85,19 @@ ssize_t	Client::receiveBytes()
 		{
 			firstDataRecv = true;
 		}
-		updateLastActive();
+		lastActive = Time::getTimeSinceEpoch();
 	}
 	return bytes;
 }
 
-bool	Client::endOfRequestLineFound() const {
-	return message.find("\r\n").exists;
-}
-
-bool	Client::endOfHeaderFound() const {
-	return message.find("\r\n\r\n").exists;
-}
-
-bool	Client::isTimeout() const
+ssize_t	Client::sendBytes(Response& response)
 {
-	if (firstDataRecv == true
-		&& (Time::getTimeSinceEpoch() - lastActive >= Server::timeoutValue))
-		return (true);
-	return (false);
-}
+	String	&formattedResponse = response.formatted;
+	ssize_t	bytes = send(socket.fd, formattedResponse.c_str(), formattedResponse.size(), 0);
 
-void	Client::updateLastActive()
-{
-	lastActive = Time::getTimeSinceEpoch();
+	if (bytes > 0)
+	{
+		formattedResponse.erase(0, bytes);
+	}
+	return bytes;
 }

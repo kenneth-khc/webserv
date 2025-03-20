@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:13:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/10 18:19:49 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/19 23:55:14 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include "ErrorCode.hpp"
 #include "requestLine.hpp"
 
-void	extractRequestLineComponents(const String &line, Request &request) {
+void	extractRequestLineComponents(Request &request, const String &line) {
 	std::stringstream	stream(line);
 	String				str;
 	String				method;
@@ -35,19 +35,20 @@ void	extractRequestLineComponents(const String &line, Request &request) {
 
 	Optional<String::size_type>	queryPos = str.find("?");
 	if (queryPos.exists == true) {
-		request.absolutePath = str.substr(0, queryPos.value);
+		request.path = str.substr(0, queryPos.value);
 
 		request.query = Optional<String>(str.substr(queryPos.value + 1));
 		request.decodedQuery.exists = true;
 		for (String::size_type i = 0; i < request.query.value.length(); i++) {
 			if (request.query.value[i] == '%') {
-				std::stringstream	streamTwo(request.query.value.substr(i + 1, 2));
 				String::size_type	c;
 
-				streamTwo >> std::hex >> c;
+				std::stringstream(request.query.value.substr(i + 1, 2)) >> std::hex >> c;
 				request.decodedQuery.value += c;
 				i += 2;
 			}
+			else if (request.query.value[i] == '+')
+				request.decodedQuery.value += " ";
 			else
 				request.decodedQuery.value += request.query.value[i];
 		}
@@ -60,7 +61,7 @@ void	extractRequestLineComponents(const String &line, Request &request) {
 		}
 	}
 	else
-		request.absolutePath = str;
+		request.path = str;
 
 	String::getline(stream, str, '/');
 	if (str != "HTTP")

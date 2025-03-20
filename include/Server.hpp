@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/08 17:22:57 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/15 10:05:50 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,9 @@ struct	Server
 	int					socketFD;
 	int					numClients;
 
-	static const unsigned int	timeoutValue;
+	/* Server-wide timeout values in seconds */
+	static const unsigned int	clientTimeoutValue;
+	static const unsigned int	cgiTimeoutValue;
 
 	String					root;
 	std::map<String,String>	routes;

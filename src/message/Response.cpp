@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/05 17:23:24 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 01:56:30 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,9 @@
 
 Response::Response(void) :
 	Message(),
-	flags(0)
+	closeConnection(0)
 {
+	this->processStage = Response::PRE_PROCESSING;
 	this->httpVersion = 1.1;
 }
 
@@ -28,7 +29,7 @@ Response::Response(const Response &obj) :
 	Message(obj),
 	statusCode(obj.statusCode),
 	reasonPhrase(obj.reasonPhrase),
-	flags(obj.flags)
+	closeConnection(obj.closeConnection)
 {}
 
 Response&	Response::operator=(const Response& other)
@@ -38,7 +39,7 @@ Response&	Response::operator=(const Response& other)
 	Message::operator=(other);
 	this->statusCode = other.statusCode;
 	this->reasonPhrase = other.reasonPhrase;
-	this->flags = other.flags;
+	this->closeConnection = other.closeConnection;
 	return *this;
 }
 
@@ -53,7 +54,8 @@ Response&	Response::operator=(const ErrorCode& obj)
 	Message::operator=(obj);
 	this->statusCode = obj.statusCode;
 	this->reasonPhrase = obj.reasonPhrase;
-	this->flags = obj.flags;
+	this->closeConnection = obj.closeConnection;
+	this->insert("Server", serverName);
 
 	std::stringstream	stream;
 	stream << "<html>\n"
@@ -79,9 +81,8 @@ Response&	Response::operator=(const ErrorCode& obj)
 
 //	Turns the information stored in the Response instance into a complete
 //	HTTP response message
-const String	Response::toString(void) const {
+void	Response::format(void) {
 	std::stringstream	stream;
-	String				str;
 	String				temp;
 
 	stream << "HTTP/" << this->httpVersion << ' ';
@@ -94,14 +95,9 @@ const String	Response::toString(void) const {
 	}
 	stream << "\r\n";
 
+	formatted = stream.str();
 	if (this->messageBody.length() != 0)
-		stream << this->messageBody;
-
-	while (String::getline(stream, temp)) {
-		str += temp;
-		str += "\n";
-	};
-	return (str);
+		formatted += this->messageBody;
 }
 
 void	Response::setStatusCode(int statusCode) {
@@ -139,13 +135,14 @@ void	Response::setStatusCode(int statusCode) {
 void	Response::getFileContents(const String& file)
 {
 	std::ifstream	filestream(file.c_str());
-	String			fileContents;
-	String			str;
+	char			buffer[1024];
 
-	while (String::getline(filestream, str))
+	while (true)
 	{
-		fileContents += str;
-		fileContents += "\n";
+		std::streamsize	bytes = filestream.readsome(buffer, 1024);
+
+		if (bytes == 0)
+			return ;
+		messageBody.append(buffer, bytes);
 	}
-	messageBody = fileContents;
 }

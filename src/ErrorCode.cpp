@@ -6,11 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/12 15:42:34 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/19 16:18:42 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <sys/stat.h>
+#include "Time.hpp"
 #include "ErrorCode.hpp"
 
 ErrorCode::ErrorCode(void) : Response() {}
@@ -24,15 +24,17 @@ ErrorCode::ErrorCode(
 	this->httpVersion = httpVersion;
 	this->statusCode = statusCode;
 	this->reasonPhrase = reasonPhrase;
-
+	this->insert("Date", Time::printHTTPDate());
 	this->insert("Content-Type", "text/html");
+	this->processStage = Response::DONE;
 }
 
 ErrorCode::ErrorCode(
 	float httpVersion,
 	int statusCode,
 	String reasonPhrase,
-	const char *title)
+	const char *title) :
+	Response()
 {
 	this->httpVersion = httpVersion;
 	this->statusCode = statusCode;
@@ -40,6 +42,7 @@ ErrorCode::ErrorCode(
 	this->insert("Content-Type", "application/problem+json");
 	this->insert("Content-Language", "en");
 	this->messageBody = "{\n\t\"title\": \"" + String(title) + "\"\n}";
+	this->processStage = Response::DONE;
 }
 
 ErrorCode::~ErrorCode(void) throw() {}
@@ -59,11 +62,15 @@ ErrorCode	&ErrorCode::operator=(const ErrorCode &obj) {
 //	400 Bad Request
 BadRequest400::BadRequest400(void) :
 	ErrorCode(1.1, 400, "Bad Request")
-{}
+{
+	this->insert("Connection", "close");	// Close connection for all bad requests for now
+}
 
 BadRequest400::BadRequest400(const char *title) :
 	ErrorCode(1.1, 400, "Bad Request", title)
-{}
+{
+	this->insert("Connection", "close");	// Close connection for all bad requests for now
+}
 
 //	403 Forbidden
 Forbidden403::Forbidden403(void) :

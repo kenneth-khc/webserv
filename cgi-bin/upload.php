@@ -1,4 +1,4 @@
-#!/usr/bin/env php-cgi
+#!/nix/store/d7cf70kmr5j9p2mpyz65wxbxkp94fvsr-php-with-extensions-8.2.27/bin/php-cgi
 <?php
 	function printError($errorCode, $reasonPhrase) {
 		echo "Content-Type:text/html";
@@ -50,14 +50,14 @@
 		return $filePath;
 	}
 
-	function postMethod($uploadsDir, $sid) {
+	function postMethod($uploadsDir) {
 		if (strpos($_ENV['CONTENT_TYPE'], ';') !== false)
 			$contentType = strstr($_ENV['CONTENT_TYPE'], ';', true);
 		else
 			$contentType = $_ENV['CONTENT_TYPE'];
 
 		if ($contentType === "application/x-www-form-urlencoded") {
-			$uploadDest = constructFormPath("{$_ENV['PWD']}/{$uploadsDir}", $sid);
+			$uploadDest = constructFormPath($uploadsDir, $_COOKIE['sid']);
 			$json = json_encode($_POST, JSON_PRETTY_PRINT);
 			if (file_put_contents($uploadDest, $json) === false)
 				printError(500, "Internal Server Error");
@@ -72,7 +72,7 @@
 					}
 					elseif ($keyTwo === "tmp_name") {
 						foreach ($valueTwo as $keyThree => $valueThree) {
-							$fileName = constructFilePath("{$_ENV['PWD']}/{$uploadsDir}", $sid, $fileNames[$keyThree]);
+							$fileName = constructFilePath($uploadsDir, $_COOKIE['sid'], $fileNames[$keyThree]);
 							if (move_uploaded_file($valueThree, $fileName) === false)
 								printError(500, "Internal Server Error");
 						}
@@ -85,9 +85,9 @@
 		echo "";
 	}
 
-	function getMethod($uploadsDir, $sid) {
+	function getMethod($uploadsDir) {
 		$queryString = $_ENV['QUERY_STRING'];
-		$uploadDest = constructFormPath("{$_ENV['PWD']}/{$uploadsDir}", $sid);
+		$uploadDest = constructFormPath($uploadsDir, $_COOKIE['sid']);
 
 		$queries = explode('&', $queryString);
 		$queryPairs = array();
@@ -108,13 +108,12 @@
 	}
 
 	$method = $_ENV['REQUEST_METHOD'];
-	$uploadsDir = $_ENV['X_UPLOADS_DIR'];
-	$sid = $_ENV['X_SID'];
+	$uploadsDir = "{$_ENV['DOCUMENT_ROOT']}/{$_ENV['X_UPLOADS_DIR']}";
 
 	if ($method === "GET")
-		getMethod($uploadsDir, $sid);
+		getMethod($uploadsDir);
 	elseif ($method === "POST")
-		postMethod($uploadsDir, $sid);
+		postMethod($uploadsDir);
 	else
 		printError(501, "Not Implemented");
 ?>

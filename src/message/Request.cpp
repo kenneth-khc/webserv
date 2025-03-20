@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/20 02:59:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 19:11:31 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,13 +174,14 @@ void	Request::parseMessageBody(String &line) {
 	Optional<String>	contentLength = (*this)["Content-Length"];
 
 	if (contentLength.exists == true) {
-		String::iterator	it = line.begin();
+		String::size_type	remainingBytes = this->bodyLength - this->messageBody.length();
 
-		while (this->messageBody.length() < this->bodyLength && it != line.end()) {
-			this->messageBody += *it;
-			it++;
-		}
-		line.erase(line.begin(), it);
+		if (line.length() < remainingBytes)
+			remainingBytes = line.length();
+
+		this->messageBody.append(line.c_str(), remainingBytes);
+		line.erase(0, remainingBytes);
+
 		if (this->messageBody.length() == this->bodyLength) {
 			this->processStage &= ~Request::MESSAGE_BODY;
 			if (this->processStage == 0)
@@ -219,19 +220,18 @@ void	Request::parseMessageBody(String &line) {
 			this->chunkSizeFound = true;
 		}
 		if (this->chunkSizeFound == true) {
-			String::iterator	it = line.begin();
+			String::size_type	appendableBytes = this->chunkSize;
 
-			while (this->chunkSize > 0) {
-				if (it == line.end()) {
-					line.erase(line.begin(), it);
-					return ;
-				}
-				this->messageBody += *it;
-				this->bodyLength++;
-				it++;
-				this->chunkSize--;
-			}
-			line.erase(line.begin(), it);
+			if (line.length() < appendableBytes)
+				appendableBytes = line.length();
+
+			this->messageBody.append(line.c_str(), appendableBytes);
+			line.erase(0, appendableBytes);
+			this->chunkSize -= appendableBytes;
+			this->bodyLength += appendableBytes;
+
+			if (this->chunkSize > 0)
+				return ;
 
 			chunkDataTerminator = line.find("\r\n");
 			if (chunkDataTerminator.exists == false)

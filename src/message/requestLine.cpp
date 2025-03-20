@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:13:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/19 23:55:14 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 19:24:36 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,13 +44,13 @@ void	extractRequestLineComponents(Request &request, const String &line) {
 				String::size_type	c;
 
 				std::stringstream(request.query.value.substr(i + 1, 2)) >> std::hex >> c;
-				request.decodedQuery.value += c;
+				request.decodedQuery.value.push_back(c);
 				i += 2;
 			}
 			else if (request.query.value[i] == '+')
-				request.decodedQuery.value += " ";
+				request.decodedQuery.value.push_back(' ');
 			else
-				request.decodedQuery.value += request.query.value[i];
+				request.decodedQuery.value.push_back(request.query.value[i]);
 		}
 
 		const std::vector<String>	queries = request.decodedQuery.value.split("&");

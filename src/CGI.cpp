@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/19 17:50:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 19:40:55 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,9 +172,9 @@ void	CGI::generateEnv(const Driver &driver) {
 
 		for (String::size_type i = 0; i < it->first.length(); i++) {
 			if (it->first[i] == '-')
-				protocolMetaVariable += "_";
+				protocolMetaVariable.push_back('_');
 			else
-				protocolMetaVariable += std::toupper(it->first[i]);
+				protocolMetaVariable.push_back(std::toupper(it->first[i]));
 		}
 		protocolMetaVariable += "=" + it->second;
 
@@ -258,12 +258,11 @@ void	CGI::fetchOutput(int epollFD) {
 	char	buffer[1024];
 	int		stat_loc = 0;
 
-	bytes = read(this->outputFD, buffer, 1023);
+	bytes = read(this->outputFD, buffer, 1024);
 
 	try {
 		if (bytes > 0) {
-			buffer[bytes] = '\0';
-			this->output += buffer;
+			this->output.append(buffer, bytes);
 			this->lastActive = Time::getTimeSinceEpoch();
 		}
 		else if (bytes <= 0 && waitpid(this->pid, &stat_loc, WNOHANG) == this->pid) {

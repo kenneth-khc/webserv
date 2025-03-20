@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/18 16:31:50 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 19:21:41 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -607,7 +607,7 @@ String	String::lower() const
 
 	for (String::size_type i = 0; i < str.length(); i++)
 	{
-		lowercase += std::tolower(str[i]);
+		lowercase.push_back(std::tolower(str[i]));
 	}
 	return lowercase;
 }
@@ -618,7 +618,7 @@ String	String::upper() const
 
 	for (String::size_type i = 0; i < str.length(); i++)
 	{
-		uppercase += std::toupper(str[i]);
+		uppercase.push_back(std::toupper(str[i]));
 	}
 	return uppercase;
 }
@@ -632,12 +632,12 @@ String	String::title() const
 	{
 		if (toUpper && std::isalpha(str[i]) != 0)
 		{
-			titlecase += std::toupper(str[i]);
+			titlecase.push_back(std::toupper(str[i]));
 			toUpper = false;
 		}
 		else
 		{
-			titlecase += std::tolower(str[i]);
+			titlecase.push_back(std::tolower(str[i]));
 		}
 		if (std::isalpha(str[i]) == 0)
 		{

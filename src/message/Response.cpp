@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/20 01:56:30 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 19:18:01 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,7 @@ void	Response::format(void) {
 
 	formatted = stream.str();
 	if (this->messageBody.length() != 0)
-		formatted += this->messageBody;
+		formatted.append(this->messageBody.c_str(), this->messageBody.length());
 }
 
 void	Response::setStatusCode(int statusCode) {

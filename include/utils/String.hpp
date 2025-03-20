@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/20 01:55:36 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/20 19:24:14 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,8 @@ public:
 	iterator				erase(iterator, iterator);
 	template<typename CharT>
 	String&					append(const CharT*, size_type);
+	template<typename CharT>
+	void					push_back(CharT);
 
 	/* Custom additions to a String */
 
@@ -198,6 +200,12 @@ String&	String::append(const CharT* s, size_type count)
 {
 	str.append(s, count);
 	return *this;
+}
+
+template<typename CharT>
+void	String::push_back(CharT ch)
+{
+	str.push_back(ch);
 }
 
 // getline() overload template definitions

@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/16 01:24:08 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/22 02:39:17 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include "Directive.hpp"
 #include "Utils.hpp"
 #include "ErrorCode.hpp"
+#include "VectorInitializer.hpp"
 #include <cstddef>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -123,8 +124,10 @@ void	Driver::configNewServer(const Directive& directive)
 									 .value_or(std::vector<String>());
 
 	Server	newServer(domainNames, socket);
-	newServer.root = directive.recursivelyLookup("root")
+	newServer.root = directive.recursivelyLookup<String>("root")
 							  .value_or("html");
+	newServer.indexFiles = directive.recursivelyLookup< std::vector<String> >("index")
+									.value_or(vector_of<String>("index.html"));
 
 	newServer.configureLocations(directive);
 

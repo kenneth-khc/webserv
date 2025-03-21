@@ -60,10 +60,10 @@ std::vector<Directive*>	Directive::getDirectives(const String& key) const
 	return matchingDirectives;
 }
 
-Optional<String>	Directive::recursivelyLookup(const String& key) const
-{
-	return getParams<String>(key).or_else(LookupEnclosing(this, key));
-}
+/*Optional<String>	Directive::recursivelyLookup(const String& key) const*/
+/*{*/
+/*	return getParams<String>(key).or_else(LookupEnclosing(this, key));*/
+/*}*/
 
 bool	Directive::hasParameters() const
 {

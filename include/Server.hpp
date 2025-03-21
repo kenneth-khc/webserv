@@ -36,6 +36,7 @@ struct	Server
 	Location				defaultLocationConfig;
 	std::vector<Location>	locations;
 	bool					autoindex;
+	std::vector<String>		indexFiles;
 	MediaType				MIMEMappings;
 
 	static const unsigned int	timeoutValue;

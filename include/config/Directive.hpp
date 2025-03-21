@@ -49,7 +49,9 @@ struct	Directive
 	void					addDirective(Directive* dir);
 	const Directive*		getDirective(const String&);
 	std::vector<Directive*>	getDirectives(const String& key) const;
-	Optional<String>		recursivelyLookup(const String&) const;
+
+	template <typename ReturnType>
+	Optional<ReturnType>	recursivelyLookup(const String&) const;
 
 	Optional<Directive*>	find(const String& key) const;
 
@@ -63,6 +65,7 @@ struct	Directive
 private:
 	// Functor to pass into optional.or_else() to recursively lookup a value
 	// if not found in current scope
+	template <typename ReturnType>
 	struct	LookupEnclosing
 	{
 		const Directive*	directive;
@@ -72,16 +75,16 @@ private:
 			directive(directive),
 			key(key) {}
 
-		Optional<String>	operator()() const
+		Optional<ReturnType>	operator()() const
 		{
 			const Directive*	enclosing = directive->parent;
 			if (enclosing == NULL)
 			{
-				return makeNone<String>();
+				return makeNone<ReturnType>();
 			}
 			else
 			{
-				return enclosing->recursivelyLookup(key);
+				return enclosing->recursivelyLookup<ReturnType>(key);
 			}
 		}
 	};
@@ -90,6 +93,12 @@ private:
 
 typedef std::pair<std::multimap<String,Directive*>::const_iterator,
 				  std::multimap<String,Directive*>::const_iterator> DirectiveRange;
+
+template <typename ReturnType>
+Optional<ReturnType>	Directive::recursivelyLookup(const String& key) const
+{
+	return getParams<ReturnType>(key).or_else(LookupEnclosing<ReturnType>(this, key));
+}
 
 template <>
 inline Optional<String>

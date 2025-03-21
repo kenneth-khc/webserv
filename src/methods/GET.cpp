@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/08 16:46:28 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/22 02:17:47 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,13 @@
 #include "Time.hpp"
 #include "preconditions.hpp"
 #include "contentType.hpp"
+#include "Server.hpp"
 #include "etag.hpp"
-
-#include "Driver.hpp"
 
 #define FILE_NAME_LEN 45
 static void		generateUploadsListing(const String& uploadsDir, Response& response, const Request& request);
 static String	getUploadsReference(const String& uploadsDir, const Request &request);
-static void		getFromFileSystem(Response& response, const Request& request, const Location&);
+static void		getFromFileSystem(Response& response, const Request& request, const Location&, const String&);
 static void		generateDirectoryListing(Response& response, const std::string& dirName);
 
 void	Server::get(Response& response, Request& request, const Location& location) const
@@ -63,15 +62,30 @@ void	Server::get(Response& response, Request& request, const Location& location)
 		lang = queryLang->second;
 	}
 
-	getFromFileSystem(response, request, location);
+	getFromFileSystem(response, request, location, lang);
+}
+
+static String	getIndexFile(const Location& location, const String& filepath, const String& lang)
+{
+	const String	prefix = filepath + lang + "/";
+	size_t			i;
+	for (i = 0; i < location.indexFiles.size()-1; ++i)
+	{
+		const String&	indexFile = prefix + location.indexFiles[i];
+		if (access(indexFile.c_str(), R_OK) == 0)
+		{
+			return indexFile;
+		}
+	}
+	return prefix + location.indexFiles[i];
 }
 
 static void		getFromFileSystem(Response& response, const Request& request,
-								  const Location& location)
+								  const Location& location, const String& lang)
 {
 	Optional<String::size_type>	uploads = request.path.find(String("/") + "uploads");
 	String						filePath = request.resolvedPath;
-	struct 	stat				statbuf;
+	struct stat					statbuf;
 	if (uploads.exists == true && uploads.value == 0)
 	{
 		filePath = getUploadsReference("uploads", request);
@@ -80,9 +94,8 @@ static void		getFromFileSystem(Response& response, const Request& request,
 	{
 		if (request.path == "/")
 		{
-			//TODO: try all index pages
-			filePath += "/index.html";
-			response.insert("Cache-Control", "no-cache");
+			filePath = getIndexFile(location, filePath, lang);
+			response.insert("Cache-Control", "no-store");
 		}
 		else
 		{

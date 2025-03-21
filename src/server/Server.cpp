@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/16 01:48:17 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/22 02:04:31 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,15 +60,7 @@ void	Server::configureLocations(const Directive& directive)
 	for (size_t i = 0; i < locationBlocks.size(); ++i)
 	{
 		const Directive*	locationBlock = locationBlocks[i];
-		Location			location;
-		Location			loc(*locationBlock);
-
-		// TODO: process the URI here for more complex ones
-		location.uri = locationBlock->parameters[0];
-
-		location.root = locationBlock->recursivelyLookup("root")
-									  .value_or("html");
-
+		Location			location(*locationBlock);
 
 		this->locations.push_back(location);
 	}

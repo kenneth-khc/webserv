@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/15 22:52:12 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/22 02:36:40 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "Validator.hpp"
 #include "String.hpp"
 #include "ConfigErrors.hpp"
+#include "VectorInitializer.hpp"
 #include <dirent.h>
 #include <vector>
 #include <algorithm>
@@ -162,7 +163,7 @@ void	validateLocation(const Directive& dir, const Mappings&)
 {
 	// TODO: support exact matches?
 	validateParameterSize(dir, 1);
-	validateEnclosingContext(dir, (SERVER, LOCATION));
+	validateEnclosingContext(dir, vector_of(SERVER)(LOCATION));
 }
 
 /*
@@ -172,7 +173,7 @@ Context: http, server, location, if in location */
 void	validateRoot(const Directive& dir, const Mappings& mappings)
 {
 	validateParameterSize(dir, 1);
-	validateEnclosingContext(dir, (HTTP, SERVER, LOCATION));
+	validateEnclosingContext(dir, vector_of(HTTP)(SERVER)(LOCATION));
 	validateDuplicateDirective(dir, mappings);
 }
 
@@ -180,9 +181,11 @@ void	validateRoot(const Directive& dir, const Mappings& mappings)
 Syntax : index file ...;
 Default: index index.html;
 Context: http, server, location */
-void	validateIndex(const Directive& dir, const Mappings&)
+void	validateIndex(const Directive& dir, const Mappings& mappings)
 {
-	validateEnclosingContext(dir, (HTTP, SERVER, LOCATION));
+	validateEnclosingContext(dir, vector_of(HTTP)(SERVER)(LOCATION));
+	validateParameterSize(dir, 1, std::numeric_limits<size_t>::max());
+	validateDuplicateDirective(dir, mappings);
 }
 
 /*
@@ -201,7 +204,7 @@ Context: http, server, location */
 void	validateAutoindex(const Directive& dir, const Mappings& mappings)
 {
 	validateParameterSize(dir, 1);
-	validateEnclosingContext(dir, (HTTP, SERVER, LOCATION));
+	validateEnclosingContext(dir, vector_of(HTTP)(SERVER)(LOCATION));
 	validateDuplicateDirective(dir, mappings);
 }
 

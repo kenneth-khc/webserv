@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/20 19:11:31 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/21 18:51:21 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,43 +91,37 @@ void	Request::parseRequestLine(String &line) {
 	if (line.find("\r\n").exists == false)
 		return ;
 
-	String						str;
 	Optional<String::size_type>	terminatorPos = line.find("\r\n");
 
 	if (terminatorPos.exists == false)
 		throw BadRequest400();
-	str = line.substr(0, terminatorPos.value);
-	extractRequestLineComponents(*this, str);
-	line = line.substr(terminatorPos.value + 2);
+	extractRequestLineComponents(*this, line.substr(0, terminatorPos.value));
+	line.erase(0, terminatorPos.value);
 	this->processStage = Request::HEADERS;
 }
 
 void	Request::parseHeaders(String &line) {
-	if (line.find("\r\n\r\n").exists == false)
+	if (line.find("\r\n").exists == false)
 		return ;
 
-	String						str;
 	Optional<String::size_type>	headerLineTerminator;
-	Optional<String::size_type>	headerLineStart(0);
-	Optional<String::size_type>	headerSectionTerminator = line.find("\r\n\r\n");
-
-	if (headerSectionTerminator.exists == false)
-		throw BadRequest400();
 
 	while (true) {
-		headerLineTerminator = line.find("\r\n", headerLineStart.value);
-		str = line.substr(headerLineStart.value, headerLineTerminator.value - headerLineStart.value);
-
-		extractFieldLineComponents(*this, str);
-
-		headerLineStart.value = headerLineTerminator.value + 2;
-		if (headerLineStart.value >= headerSectionTerminator.value)
+		if (line.starts_with("\r\n\r\n") == true)
 			break ;
+
+		headerLineTerminator = line.find("\r\n", 2);
+		if (headerLineTerminator.exists == false)
+			return ;
+
+		extractFieldLineComponents(*this, line.substr(2, headerLineTerminator.value - 2));
+		line.erase(0, headerLineTerminator.value);
 	}
-	if (line[headerLineStart.value + 2] == '\0')
-		line = "";
-	else
-		line = line.substr(headerLineStart.value + 2);
+	line.erase(0, 4);
+
+	if ((*this)["Host"].exists == false)
+		throw BadRequest400();
+
 	this->processStage = Request::HEAD_DONE;
 }
 

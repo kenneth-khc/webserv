@@ -6,12 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:32:28 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/20 00:12:11 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/21 19:15:50 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
-#include <stdexcept>
 #include "ErrorCode.hpp"
 #include "Message.hpp"
 
@@ -65,45 +64,18 @@ Message	&Message::operator=(const Message &obj) {
 }
 
 void	Message::insert(const String &key, const String &value) {
-	std::multimap<String, String>::iterator	it = this->headers.begin();
-
-	it = this->headers.find(key);
-	if (it == this->headers.end() || key == "Set-Cookie") {
-		this->headers.insert(std::make_pair(key, value));
-	}
-	else {
-		for (int i = 0; i < NUM_OF_HEADERS; i++) {
-			if (allowedDuplicateHeaders[i] == key) {
-				it->second += ", " + value;
-				return ;
-			}
-		}
-		throw BadRequest400();
-	}
+	this->headers.insert(std::make_pair(key, value));
 }
 
 void	Message::insert(const String &key, const String::size_type &value) {
-	std::multimap<String, String>::iterator	it = this->headers.begin();
 	std::stringstream	stream;
 
-	it = this->headers.find(key);
 	stream << value;
-	if (it == this->headers.end() || key == "Set-Cookie") {
-		this->headers.insert(std::make_pair(key, stream.str()));
-	}
-	else {
-		for (int i = 0; i < NUM_OF_HEADERS; i++) {
-			if (allowedDuplicateHeaders[i] == key) {
-				it->second += ", " + stream.str();
-				return ;
-			}
-		}
-		throw BadRequest400();
-	}
+	this->headers.insert(std::make_pair(key, stream.str()));
 }
 
 Optional<String>	Message::operator[](const String &key) {
-	std::multimap<String, String>::iterator	it = this->headers.find(key.lower());
+	std::multimap<String, String>::iterator	it = this->headers.find(key);
 
 	if (it == this->headers.end())
 		return (Optional<String>());
@@ -112,7 +84,7 @@ Optional<String>	Message::operator[](const String &key) {
 }
 
 const Optional<String>	Message::operator[](const String &key) const {
-	std::multimap<String, String>::const_iterator	it = this->headers.find(key.lower());
+	std::multimap<String, String>::const_iterator	it = this->headers.find(key);
 
 	if (it == this->headers.end())
 		return (Optional<String>());

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/19 17:20:23 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/21 19:26:36 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,13 +48,22 @@ class Request : public Message {
 		Request(const Request &obj);
 		Request	&operator=(const Request &obj);
 
-		void	parseRequestLine(String &line);
-		bool	isValidMethod(const String &method);
-		bool	isSupportedVersion(const float &version);
-		void	parseHeaders(String &line);
-		void	parseCookieHeader(void);
-		void	checkIfBodyExists(void);
-		void	parseMessageBody(String &line);
+		template<typename type>
+		type	find(const String &key) const;
+
+		void					insert(const String &key, const String &value);
+		void					insert(const String &key, const String::size_type &value);
+		Optional<String>		operator[](const String &key);
+		const Optional<String>	operator[](const String &key) const;
+		void					erase(const String &key);
+
+		void					parseRequestLine(String &line);
+		bool					isValidMethod(const String &method);
+		bool					isSupportedVersion(const float &version);
+		void					parseHeaders(String &line);
+		void					parseCookieHeader(void);
+		void					checkIfBodyExists(void);
+		void					parseMessageBody(String &line);
 
 		enum ProcessStage {
 			REQUEST_LINE = 0x001,
@@ -65,5 +74,20 @@ class Request : public Message {
 			DONE = 0x020
 		};
 };
+
+template<>
+inline Optional<String>	Request::find< Optional<String> >(const String &key) const {
+	return (Message::find< Optional<String> >(key.lower()));
+}
+
+template<>
+inline Optional<int>	Request::find< Optional<int> >(const String &key) const {
+	return (Message::find< Optional<int> >(key.lower()));
+}
+
+template<>
+inline Optional<String::size_type>	Request::find< Optional<String::size_type> >(const String &key) const {
+	return (Message::find< Optional<String::size_type> >(key.lower()));
+}
 
 #endif

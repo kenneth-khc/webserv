@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/21 18:51:21 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/21 21:32:03 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,69 @@ Request	&Request::operator=(const Request &obj) {
 	return *this;
 }
 
+void	Request::insert(const String &key, const String &value) {
+	std::multimap<String, String>::iterator	it = this->headers.begin();
+	String									lowercase = key.lower();
+
+	it = this->headers.find(lowercase);
+	if (it == this->headers.end())
+		this->headers.insert(std::make_pair(lowercase, value));
+	else {
+		for (int i = 0; i < NUM_OF_HEADERS; i++) {
+			if (allowedDuplicateHeaders[i] == lowercase) {
+				it->second += ", " + value;
+				return ;
+			}
+		}
+		throw BadRequest400();
+	}
+}
+
+void	Request::insert(const String &key, const String::size_type &value) {
+	std::multimap<String, String>::iterator	it = this->headers.begin();
+	String									lowercase = key.lower();
+	std::stringstream						stream;
+
+	it = this->headers.find(lowercase);
+	stream << value;
+	if (it == this->headers.end())
+		this->headers.insert(std::make_pair(lowercase, stream.str()));
+	else {
+		for (int i = 0; i < NUM_OF_HEADERS; i++) {
+			if (allowedDuplicateHeaders[i] == lowercase) {
+				it->second += ", " + stream.str();
+				return ;
+			}
+		}
+		throw BadRequest400();
+	}
+}
+
+Optional<String>	Request::operator[](const String &key) {
+	return (Message::operator[](key.lower()));
+}
+
+const Optional<String>	Request::operator[](const String &key) const {
+	return (Message::operator[](key.lower()));
+}
+
+void	Request::erase(const String &key) {
+	this->headers.erase(key.lower());
+}
+
+void	Request::parseRequestLine(String &line) {
+	if (line.find("\r\n").exists == false)
+		return ;
+
+	Optional<String::size_type>	terminatorPos = line.find("\r\n");
+
+	if (terminatorPos.exists == false)
+		throw BadRequest400();
+	extractRequestLineComponents(*this, line.substr(0, terminatorPos.value));
+	line.erase(0, terminatorPos.value);
+	this->processStage = Request::HEADERS;
+}
+
 bool	Request::isValidMethod(const String &method) {
 	for (int i = 0; i < NUM_OF_METHODS; i++) {
 		if (method == methods[i]) {
@@ -85,19 +148,6 @@ bool	Request::isSupportedVersion(const float &version) {
 			return (false);
 	}
 	return (true);
-}
-
-void	Request::parseRequestLine(String &line) {
-	if (line.find("\r\n").exists == false)
-		return ;
-
-	Optional<String::size_type>	terminatorPos = line.find("\r\n");
-
-	if (terminatorPos.exists == false)
-		throw BadRequest400();
-	extractRequestLineComponents(*this, line.substr(0, terminatorPos.value));
-	line.erase(0, terminatorPos.value);
-	this->processStage = Request::HEADERS;
 }
 
 void	Request::parseHeaders(String &line) {
@@ -240,8 +290,8 @@ void	Request::parseMessageBody(String &line) {
 	// No support for chunked trailer section
 
 	this->lastChunk = false;
-	this->insert("content-length", this->bodyLength);
-	this->headers.erase("transfer-encoding");
+	this->insert("Content-Length", this->bodyLength);
+	this->erase("Transfer-Encoding");
 	this->processStage &= ~Request::MESSAGE_BODY;
 	if (this->processStage == 0)
 		this->processStage = Request::DONE;

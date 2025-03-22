@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/21 00:34:42 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/22 01:12:25 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,8 +244,8 @@ void	CGI::feedInput(int epollFD) {
 	}
 	if (this->inputLength == this->request.bodyLength) {
 		this->processStage |= CGI::INPUT_DONE;
-		epoll_ctl(epollFD, EPOLL_CTL_DEL, inputFD, 0);
-		close(inputFD);
+		epoll_ctl(epollFD, EPOLL_CTL_DEL, this->inputFD, 0);
+		close(this->inputFD);
 		this->inputFD = -1;
 	}
 }
@@ -367,7 +367,6 @@ void	CGI::parseOutput() {
 	this->response.messageBody = bodyPart;
 	if (this->response["Content-Length"].exists == false)
 		this->response.insert("Content-Length", this->response.messageBody.length());
-	this->response.processStage = Response::POST_PROCESSING;
 }
 
 void	Driver::cgi(Request &request, Response &response) {

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/21 21:32:03 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/21 22:47:04 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,6 +188,7 @@ void	Request::checkIfBodyExists(void) {
 	Optional<String>	contentLength = (*this)["Content-Length"];
 	Optional<String>	transferEncoding = (*this)["Transfer-Encoding"];
 
+	this->processStage = Request::MESSAGE_BODY;
 	if (transferEncoding.exists == true)
 	{
 		if (contentLength.exists == true)
@@ -199,7 +200,6 @@ void	Request::checkIfBodyExists(void) {
 		{
 			throw BadRequest400();
 		}
-		this->processStage = Request::READY | Request::MESSAGE_BODY;
 	}
 	else if (contentLength.exists == true)
 	{
@@ -208,10 +208,9 @@ void	Request::checkIfBodyExists(void) {
 			throw BadRequest400();
 		}
 		this->bodyLength = this->find< Optional<String::size_type> >("Content-Length").value;
-		this->processStage = Request::READY | Request::MESSAGE_BODY;
 	}
 	else
-		this->processStage = Request::READY | Request::DONE;
+		this->processStage = Request::DONE;
 }
 
 void	Request::parseMessageBody(String &line) {

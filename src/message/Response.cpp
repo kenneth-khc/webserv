@@ -6,10 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/21 17:11:20 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/22 01:12:54 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include "ErrorCode.hpp"
@@ -19,7 +20,6 @@ Response::Response(void) :
 	Message(),
 	closeConnection(true)
 {
-	this->processStage = Response::PRE_PROCESSING;
 	this->httpVersion = 1.1;
 }
 
@@ -85,7 +85,7 @@ void	Response::format(void) {
 	std::stringstream	stream;
 	String				temp;
 
-	stream << "HTTP/" << this->httpVersion << ' ';
+	stream << "HTTP/" << std::setprecision(2) << this->httpVersion << ' ';
 	stream << this->statusCode << ' ';
 	stream << this->reasonPhrase << "\r\n";
 

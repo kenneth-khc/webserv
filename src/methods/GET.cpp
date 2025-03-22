@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/20 01:14:23 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/22 01:14:47 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,6 @@ void	Driver::get(Request& request, Response& response)
 		response.setStatusCode(Response::OK);
 		response.insert("Content-Length", response.messageBody.length());
 		response.insert("Content-Type", "text/html");
-		response.processStage = Response::POST_PROCESSING;
 		return ;
 	}
 
@@ -115,7 +114,6 @@ void	Driver::get(Request& request, Response& response)
 		}
 		response.insert("ETag", constructETagHeader(statbuf.st_mtim, statbuf.st_size));
 		response.insert("Last-Modified", Time::printHTTPDate(statbuf.st_mtim));
-		response.processStage = Response::POST_PROCESSING;
 	}
 	else
 	{

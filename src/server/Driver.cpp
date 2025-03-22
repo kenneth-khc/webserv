@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/21 17:30:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/22 04:26:04 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,6 +221,11 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt)
 
 	try
 	{
+		if (client.responseQueue.size() != client.requestQueue.size())
+		{
+			client.responseQueue.push_back(Response());
+			client.responseQueue.back().insert("Server", name);
+		}
 		if (request.processStage & Request::REQUEST_LINE)
 		{
 			request.parseRequestLine(client.message);
@@ -234,52 +239,21 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt)
 			request.checkIfBodyExists();
 			logger.logRequest(request, client);
 		}
-	}
-	catch (const ErrorCode &e)
-	{
-		Response	response;
-		response.insert("Server", name);
-		response = e;
-		request.processStage |= Request::DONE;
-		client.responseQueue.push_back(response);
-		return ;
-	}
-
-	try {
-		if (request.processStage & Request::READY)
-		{
-			client.responseQueue.push_back(Response());
-			preprocessReadyRequest(request, client.responseQueue.back());
-			request.processStage &= ~Request::READY;
-		}
 		if (request.processStage & Request::MESSAGE_BODY)
 		{
 			request.parseMessageBody(client.message);
 		}
 		if (request.processStage & Request::DONE)
 		{
-			Response	&response = client.responseQueue.back();
-
-			processReadyRequest(request, response);
-			postprocessReadyRequest(request, response);
+			processReadyRequest(request, client.responseQueue.back());
+			client.requestQueue.push_back(Request());
 		}
 	}
 	catch (const ErrorCode &e)
 	{
 		request.processStage |= Request::DONE;
+		client.requestQueue.push_back(Request());
 		client.responseQueue.back() = e;
-		return ;
-	}
-}
-
-void	Driver::preprocessReadyRequest(Request& request, Response& response)
-{
-	if (response.processStage & Response::PRE_PROCESSING)
-	{
-		response.insert("Server", name);
-		request.parseCookieHeader();
-		processCookies(request, response);
-		response.processStage &= ~Response::PRE_PROCESSING;
 	}
 }
 
@@ -308,12 +282,17 @@ void	Driver::processCookies(Request& request, Response& response)
 
 void	Driver::processReadyRequest(Request& request, Response& response)
 {
+	request.parseCookieHeader();
+	processCookies(request, response);
+
 	if (request.path.starts_with("/" + cgiDir + "/") ||
 		request.path.ends_with(".bla"))	// Test-specific condition
 	{
 		cgi(request, response);
+		return ;
 	}
-	else if (request.method == "GET")
+
+	if (request.method == "GET")
 	{
 		get(request, response);
 	}
@@ -331,16 +310,10 @@ void	Driver::processReadyRequest(Request& request, Response& response)
 			throw MethodNotAllowed405();
 		throw NotImplemented501();
 	}
-}
 
-void	Driver::postprocessReadyRequest(Request& request, Response& response)
-{
-	if (response.processStage & Response::POST_PROCESSING)
-	{
-		constructConnectionHeader(request, response);
-		response.insert("Date", Time::printHTTPDate());
-		response.processStage = Response::DONE;
-	}
+	constructConnectionHeader(request, response);
+	response.insert("Date", Time::printHTTPDate());
+	response.processStage = Response::DONE;
 }
 
 void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt)
@@ -349,13 +322,15 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt)
 
 	if (cgi.processStage & CGI::INPUT_DONE)
 	{
-		cgi.processStage &= ~CGI::INPUT_DONE;
 		cgis.erase(cgiIt);
+		cgi.processStage &= ~CGI::INPUT_DONE;
 	}
-	if (cgi.processStage & CGI::OUTPUT_DONE)
+	else if (cgi.processStage & CGI::OUTPUT_DONE)
 	{
 		try {
-			postprocessReadyRequest(cgi.request, cgi.response);
+			constructConnectionHeader(cgi.request, cgi.response);
+			cgi.response.insert("Date", Time::printHTTPDate());
+			cgi.response.processStage = Response::DONE;
 		}
 		catch (const ErrorCode &e) {
 			cgi.response = e;

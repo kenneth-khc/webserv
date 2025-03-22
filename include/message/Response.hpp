@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/19 13:48:10 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/22 01:35:35 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,9 +37,7 @@ class Response : public Message {
 		void	getFileContents(const String &file);
 
 		enum ProcessStage {
-			PRE_PROCESSING = 0x001,
-			POST_PROCESSING = 0x002,
-			DONE = 0x004
+			DONE = 0x001
 		};
 
 		enum StatusCodes {

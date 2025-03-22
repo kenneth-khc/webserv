@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:14:43 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/20 00:31:04 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/22 01:12:31 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,5 +60,4 @@ void	Driver::delete_(Request& request, Response& response) const
 	response.setStatusCode(Response::OK);
 	response.insert("Content-Type", "text/html");
 	response.insert("Content-Length", 0);
-	response.processStage = Response::POST_PROCESSING;
 }

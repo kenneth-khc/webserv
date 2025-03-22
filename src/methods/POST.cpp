@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/20 02:03:00 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/22 01:12:35 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ void	Driver::post(Request& request, Response& response)
 			throw ContentTooLarge413();
 		response.setStatusCode(Response::OK);
 		response.insert("Content-Length", 0);
-		response.processStage = Response::POST_PROCESSING;
 	}
 	else if (request.path == "/pages/form.html")
 	{
@@ -68,7 +67,6 @@ void	Driver::post(Request& request, Response& response)
 		response.setStatusCode(Response::SEE_OTHER);
 		response.insert("Content-Length", 0);
 		response.insert("Location", "http://localhost:8000/pages/form.html");
-		response.processStage = Response::POST_PROCESSING;
 	}
 	else
 	{

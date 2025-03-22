@@ -63,9 +63,7 @@ struct	Driver
 	void		receiveMessage(std::map<int, Client>::iterator&);
 	void		processRequest(std::map<int, Client>::iterator&);
 	void		processCGI(std::map<int, CGI*>::iterator&);
-	void		preprocessReadyRequest(Request&, Response&);
 	void		processReadyRequest(Request&, Response&);
-	void		postprocessReadyRequest(Request&, Response&);
 	void		generateResponse(std::map<int, Client>::iterator&);
 
 	void		processCookies(Request&, Response&);

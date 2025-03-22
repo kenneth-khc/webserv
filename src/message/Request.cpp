@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/21 22:47:04 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/23 02:19:20 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ Request::Request(void) :
 	chunkSizeFound(false),
 	lastChunk(false)
 {
-	this->processStage = Request::REQUEST_LINE;
+	this->processStage = Request::EMPTY | Request::REQUEST_LINE;
 }
 
 Request::~Request(void) {}
@@ -120,13 +120,12 @@ void	Request::erase(const String &key) {
 }
 
 void	Request::parseRequestLine(String &line) {
-	if (line.find("\r\n").exists == false)
-		return ;
-
 	Optional<String::size_type>	terminatorPos = line.find("\r\n");
 
 	if (terminatorPos.exists == false)
-		throw BadRequest400();
+		return ;
+
+	this->processStage &= ~Request::EMPTY;
 	extractRequestLineComponents(*this, line.substr(0, terminatorPos.value));
 	line.erase(0, terminatorPos.value);
 	this->processStage = Request::HEADERS;

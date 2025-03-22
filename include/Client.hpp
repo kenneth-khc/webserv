@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/21 16:38:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/23 03:08:38 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ private:
 	std::deque<Request>		requestQueue;
 	std::deque<Response>	responseQueue;
 
-	bool					firstSend;
+	bool					keepAlive;
 	std::time_t				lastActive;
 };
 

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/22 04:26:04 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/23 03:11:31 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,11 +154,14 @@ void	Driver::processReadyEvents()
 			if (currEvent->events & EPOLLIN)
 			{
 				receiveMessage(clientIt);
-				processRequest(clientIt);
 			}
-			if (currEvent->events & EPOLLOUT && !clientIt->second.responseQueue.empty())
+			if (currEvent->events & EPOLLOUT)
 			{
-				generateResponse(clientIt);
+				processRequest(clientIt);
+				if (!clientIt->second.responseQueue.empty())
+				{
+					generateResponse(clientIt);
+				}
 			}
 		}
 		else if (cgiIt != cgis.end())
@@ -349,7 +352,7 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt)
 	if (!(response.processStage & Response::DONE))
 		return ;
 
-	if (response.formatted == "")
+	if (response.formatted.length() == 0)
 	{
 		if (request.method == "HEAD")
 			response.messageBody = "";
@@ -357,7 +360,7 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt)
 	}
 
 	client.sendBytes(response);
-	if (response.formatted == "")
+	if (response.formatted.length() == 0)
 	{
 		logger.logResponse(response, client);
 
@@ -369,11 +372,13 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt)
 		{
 			client.requestQueue.pop_front();
 			client.responseQueue.pop_front();
-			if (client.firstSend == false)
+			if (client.keepAlive == false &&
+				client.message.length() == 0 &&
+				client.requestQueue.front().processStage & Request::EMPTY)
 			{
-				client.firstSend = true;
+				client.keepAlive = true;
+				client.lastActive = Time::getTimeSinceEpoch();
 			}
-			client.lastActive = Time::getTimeSinceEpoch();
 		}
 	}
 }
@@ -396,7 +401,7 @@ void	Driver::monitorConnections()
 	{
 		Client	&client = it->second;
 
-		if (client.firstSend == true && client.requestQueue.empty() &&
+		if (client.keepAlive == true &&
 			(Time::getTimeSinceEpoch() - client.lastActive >= Server::keepAliveTimeout))
 		{
 			closeConnection(it++, Logger::TIMEOUT);

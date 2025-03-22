@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/22 15:36:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/23 02:17:22 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,11 +66,12 @@ class Request : public Message {
 		void					parseMessageBody(String &line);
 
 		enum ProcessStage {
-			REQUEST_LINE = 0x001,
-			HEADERS = 0x002,
-			HEAD_DONE = 0x004,
-			MESSAGE_BODY = 0x008,
-			DONE = 0x010
+			EMPTY = 0x001,
+			REQUEST_LINE = 0x002,
+			HEADERS = 0x004,
+			HEAD_DONE = 0x008,
+			MESSAGE_BODY = 0x010,
+			DONE = 0x020
 		};
 };
 

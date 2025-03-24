@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/24 09:39:31 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/24 16:13:52 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,17 @@ Server::Server(const Directive& serverBlock,
 	configureLocations(serverBlock);
 }
 
+void	Server::checkIfAllowedMethod(const Location& location, const Request& request)
+{
+	if (std::find(location.allowedMethods.begin(),
+				  location.allowedMethods.end(),
+				  request.method) == location.allowedMethods.end())
+	{
+		// TODO: should be 403 Forbidden? 405 Method Not Allowed?
+		throw NotFound404();
+	}
+}
+
 Response	Server::handleRequest(Request& request)
 {
 	Response	response;
@@ -80,6 +91,7 @@ Response	Server::handleRequest(Request& request)
 	request.resolvedPath = location->root + request.path;
 	try
 	{
+		checkIfAllowedMethod(*location, request);
 		if (request.method == "GET" || request.method == "HEAD")
 		{
 			get(response, request, *location);

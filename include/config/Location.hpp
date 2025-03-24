@@ -49,6 +49,8 @@ struct	Location
 	MediaType	MIMEMappings;
 
 	std::vector<String>	indexFiles;
+
+	std::vector<String>	allowedMethods;
 };
 
 #endif

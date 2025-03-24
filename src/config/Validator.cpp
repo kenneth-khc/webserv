@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/24 09:52:01 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/24 16:13:53 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,20 @@ void	validateParameterSize(const Directive& dir, size_t min, size_t max)
 	if (dir.parameters.size() < min || dir.parameters.size() > max)
 	{
 		throw InvalidParameterAmount();
+	}
+}
+
+void	validateParameterValues(const std::vector<String>& got,
+								const std::vector<String>& expected)
+{
+	for (size_t i = 0; i < got.size(); ++i)
+	{
+		if (std::find(expected.begin(),
+					  expected.end(),
+					  got[i]) == expected.end())
+		{
+			throw InvalidParameter(got[i]);
+		}
 	}
 }
 
@@ -219,9 +233,17 @@ Default: —
 Context: location */
 
 /*
-Syntax : allow methods ...;
+Syntax : allow_method methods ...;
 Default: —
 Context: location */
+void	validateAllowMethod(const Directive& dir, const Mappings& mappings)
+{
+	validateParameterSize(dir, 1, 3);
+	validateParameterValues(dir.parameters, vector_of<String>("GET")("POST")("DELETE"));
+	validateEnclosingContext(dir, LOCATION);
+	validateDuplicateDirective(dir, mappings);
+}
+
 
 /*
 Syntax : upload_directory file_path;

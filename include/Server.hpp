@@ -57,6 +57,7 @@ struct	Server
 	std::vector<String>	cgiScript;
 
 private:
+	void	checkIfAllowedMethod(const Location&, const Request&);
 	void	configureLocations(const Directive&);
 	void	assignSocket(const String&, const String&, std::map<int,Socket>&);
 };

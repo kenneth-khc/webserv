@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 03:00:41 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/15 22:52:11 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/22 05:26:42 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,5 +48,6 @@ void	validateRoot(const Directive&, const Mappings&);
 void	validateIndex(const Directive&, const Mappings&);
 void	validateTypes(const Directive&, const Mappings&);
 void	validateAutoindex(const Directive&, const Mappings&);
+void	validateAllowMethod(const Directive&, const Mappings&);
 
 #endif

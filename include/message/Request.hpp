@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/23 02:17:22 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 18:26:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,11 +58,11 @@ class Request : public Message {
 		void					erase(const String &key);
 
 		void					parseRequestLine(String &line);
-		bool					isValidMethod(const String &method);
-		bool					isSupportedVersion(const float &version);
+		bool					isValidMethod(void);
+		bool					isSupportedVersion(void);
 		void					parseHeaders(String &line);
 		void					parseCookieHeader(void);
-		void					checkIfBodyExists(void);
+		bool					checkIfBodyExists(void);
 		void					parseMessageBody(String &line);
 
 		enum ProcessStage {

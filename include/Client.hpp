@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/23 03:08:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 01:27:25 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,16 @@ private:
 	std::deque<Request>		requestQueue;
 	std::deque<Response>	responseQueue;
 
-	bool					keepAlive;
-	std::time_t				lastActive;
+	char					timer;
+	std::time_t				keepAliveTime;
+	std::time_t				clientHeaderTime;
+	std::time_t				clientBodyTime;
+
+	enum Timeout {
+		KEEP_ALIVE = 0x001,
+		CLIENT_HEADER = 0x002,
+		CLIENT_BODY = 0x004
+	};
 };
 
 #endif

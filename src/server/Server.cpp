@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/21 00:34:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 21:30:39 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@
 
 const unsigned int	Server::keepAliveTimeout = 5;
 const unsigned int	Server::cgiTimeout = 3;
+const unsigned int	Server::clientHeaderTimeout = 1;
+const unsigned int	Server::clientBodyTimeout = 1;
 
 Server::Server():
 domainNames(),

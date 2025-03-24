@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/23 02:19:20 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 21:47:14 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,24 +131,6 @@ void	Request::parseRequestLine(String &line) {
 	this->processStage = Request::HEADERS;
 }
 
-bool	Request::isValidMethod(const String &method) {
-	for (int i = 0; i < NUM_OF_METHODS; i++) {
-		if (method == methods[i]) {
-			this->method = methods[i];
-			return (true);
-		}
-	}
-	return (false);
-}
-
-bool	Request::isSupportedVersion(const float &version) {
-	for (int i = 0; i < NUM_OF_VERSIONS; i++) {
-		if (version > supportedVersions[i])
-			return (false);
-	}
-	return (true);
-}
-
 void	Request::parseHeaders(String &line) {
 	if (line.find("\r\n").exists == false)
 		return ;
@@ -183,7 +165,7 @@ void	Request::parseCookieHeader(void) {
 	isCookieString(this->cookies, cookieHeader.value);
 }
 
-void	Request::checkIfBodyExists(void) {
+bool	Request::checkIfBodyExists(void) {
 	Optional<String>	contentLength = (*this)["Content-Length"];
 	Optional<String>	transferEncoding = (*this)["Transfer-Encoding"];
 
@@ -210,6 +192,24 @@ void	Request::checkIfBodyExists(void) {
 	}
 	else
 		this->processStage = Request::DONE;
+
+	return (transferEncoding.exists || contentLength.exists);
+}
+
+bool	Request::isValidMethod(void) {
+	for (int i = 0; i < NUM_OF_METHODS; i++) {
+		if (this->method == methods[i])
+			return (true);
+	}
+	return (false);
+}
+
+bool	Request::isSupportedVersion(void) {
+	for (int i = 0; i < NUM_OF_VERSIONS; i++) {
+		if (this->httpVersion > supportedVersions[i])
+			return (false);
+	}
+	return (true);
 }
 
 void	Request::parseMessageBody(String &line) {

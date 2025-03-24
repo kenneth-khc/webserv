@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 14:00:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/14 17:45:06 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 18:28:52 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,8 +94,16 @@ void	Logger::logConnection(int status, int fd, Client& client) const
 			std::cout << "Established" << CRESET;
 			break ;
 
-		case Logger::TIMEOUT:
-			std::cout << "Timeout" 	<< CRESET;
+		case Logger::KEEP_ALIVE_TIMEOUT:
+			std::cout << "Keep Alive Timeout" << CRESET;
+			break ;
+
+		case Logger::CLIENT_HEADER_TIMEOUT:
+			std::cout << "Client Header Timeout" << CRESET;
+			break ;
+
+		case Logger::CLIENT_BODY_TIMEOUT:
+			std::cout << "Client Body Timeout" << CRESET;
 			break ;
 
 		case Logger::PEER_CLOSE:

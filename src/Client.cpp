@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/23 03:08:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 18:15:43 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,10 @@ Client::Client():
 address(),
 addressLen(),
 messageBuffer(),
-keepAlive(false),
-lastActive(Time::getTimeSinceEpoch())
+timer(Client::CLIENT_HEADER),
+keepAliveTime(Time::getTimeSinceEpoch()),
+clientHeaderTime(Time::getTimeSinceEpoch()),
+clientBodyTime(Time::getTimeSinceEpoch())
 {
 	messageBuffer.resize(1024);
 	requestQueue.push_back(Request());
@@ -78,9 +80,11 @@ ssize_t	Client::receiveBytes()
 	if (bytes > 0)
 	{
 		message.append(&messageBuffer[0], bytes);
-		if (keepAlive)
+		if (timer & Client::KEEP_ALIVE)
 		{
-			keepAlive = false;
+			timer &= ~Client::KEEP_ALIVE;
+			timer |= Client::CLIENT_HEADER;
+			clientHeaderTime = Time::getTimeSinceEpoch();
 		}
 	}
 	return bytes;

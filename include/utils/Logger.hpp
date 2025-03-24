@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 13:59:28 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/14 17:44:58 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 18:27:51 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,9 @@ public:
 
 	enum CONNECTION {
 		ESTABLISHED,
-		TIMEOUT,
+		KEEP_ALIVE_TIMEOUT,
+		CLIENT_HEADER_TIMEOUT,
+		CLIENT_BODY_TIMEOUT,
 		PEER_CLOSE,
 		CLOSE
 	};

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/22 01:12:54 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 18:52:38 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 
 Response::Response(void) :
 	Message(),
-	closeConnection(true)
+	closeConnection(false)
 {
 	this->httpVersion = 1.1;
 }

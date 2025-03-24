@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/23 03:11:31 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 18:49:35 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,44 +219,69 @@ void	Driver::receiveMessage(std::map<int, Client>::iterator& clientIt)
 
 void	Driver::processRequest(std::map<int, Client>::iterator& clientIt)
 {
-	Client&		client = clientIt->second;
-	Request&	request = client.requestQueue.back();
+	Client&	client = clientIt->second;
 
-	try
-	{
-		if (client.responseQueue.size() != client.requestQueue.size())
+	while (true) {
+		Request&			request = client.requestQueue.back();
+		String::size_type	initialMessageLength = client.message.length();
+
+		try
 		{
-			client.responseQueue.push_back(Response());
-			client.responseQueue.back().insert("Server", name);
+			if (client.responseQueue.size() != client.requestQueue.size())
+			{
+				client.responseQueue.push_back(Response());
+				client.responseQueue.back().insert("Server", name);
+			}
+			if (request.processStage & Request::REQUEST_LINE)
+			{
+				request.parseRequestLine(client.message);
+			}
+			if (request.processStage & Request::HEADERS)
+			{
+				request.parseHeaders(client.message);
+			}
+			if (request.processStage & Request::HEAD_DONE)
+			{
+				client.timer &= ~Client::CLIENT_HEADER;
+				if (request.checkIfBodyExists())
+				{
+					client.timer |= Client::CLIENT_BODY;
+					client.clientBodyTime = Time::getTimeSinceEpoch();
+				}
+				logger.logRequest(request, client);
+			}
+			if (request.processStage & Request::MESSAGE_BODY)
+			{
+				request.parseMessageBody(client.message);
+				if (client.message.length() < initialMessageLength)
+				{
+					client.clientBodyTime = Time::getTimeSinceEpoch();
+				}
+			}
+			if (request.processStage & Request::DONE)
+			{
+				client.timer &= ~Client::CLIENT_BODY;
+				processReadyRequest(request, client.responseQueue.back());
+				client.requestQueue.push_back(Request());
+				client.timer |= Client::CLIENT_HEADER;
+				client.clientHeaderTime = Time::getTimeSinceEpoch();
+			}
 		}
-		if (request.processStage & Request::REQUEST_LINE)
+		catch (const ErrorCode &e)
 		{
-			request.parseRequestLine(client.message);
-		}
-		if (request.processStage & Request::HEADERS)
-		{
-			request.parseHeaders(client.message);
-		}
-		if (request.processStage & Request::HEAD_DONE)
-		{
-			request.checkIfBodyExists();
-			logger.logRequest(request, client);
-		}
-		if (request.processStage & Request::MESSAGE_BODY)
-		{
-			request.parseMessageBody(client.message);
-		}
-		if (request.processStage & Request::DONE)
-		{
-			processReadyRequest(request, client.responseQueue.back());
+			request.processStage |= Request::DONE;
 			client.requestQueue.push_back(Request());
+			client.responseQueue.back() = e;
+			client.timer |= Client::CLIENT_HEADER;
+			client.clientHeaderTime = Time::getTimeSinceEpoch();
 		}
-	}
-	catch (const ErrorCode &e)
-	{
-		request.processStage |= Request::DONE;
-		client.requestQueue.push_back(Request());
-		client.responseQueue.back() = e;
+
+		if (request.processStage & Request::DONE &&
+			client.responseQueue.back()["Connection"].value == "close")
+			return ;
+
+		if (client.message.length() == initialMessageLength)
+			return ;
 	}
 }
 
@@ -285,6 +310,15 @@ void	Driver::processCookies(Request& request, Response& response)
 
 void	Driver::processReadyRequest(Request& request, Response& response)
 {
+	if (!request.isValidMethod())
+	{
+		throw NotImplemented501();
+	};
+	if (!request.isSupportedVersion())
+	{
+		throw VersionNotSupported505();
+	}
+
 	request.parseCookieHeader();
 	processCookies(request, response);
 
@@ -372,12 +406,13 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt)
 		{
 			client.requestQueue.pop_front();
 			client.responseQueue.pop_front();
-			if (client.keepAlive == false &&
+			if (!(client.timer & Client::KEEP_ALIVE) &&
 				client.message.length() == 0 &&
 				client.requestQueue.front().processStage & Request::EMPTY)
 			{
-				client.keepAlive = true;
-				client.lastActive = Time::getTimeSinceEpoch();
+				client.timer |= Client::KEEP_ALIVE;
+				client.timer &= ~Client::CLIENT_HEADER;
+				client.keepAliveTime = Time::getTimeSinceEpoch();
 			}
 		}
 	}
@@ -385,11 +420,12 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt)
 
 void	Driver::closeConnection(std::map<int, Client>::iterator clientIt, int logFlag)
 {
-	Client&	client = clientIt->second;
+	const int&	fd = clientIt->first;
+	Client&		client = clientIt->second;
 
-	logger.logConnection(logFlag, currEvent->data.fd, client);
-	epoll_ctl(epollFD, EPOLL_CTL_DEL, currEvent->data.fd, 0);
-	close(currEvent->data.fd);
+	logger.logConnection(logFlag, fd, client);
+	epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, 0);
+	close(fd);
 	clients.erase(clientIt);
 }
 
@@ -401,10 +437,20 @@ void	Driver::monitorConnections()
 	{
 		Client	&client = it->second;
 
-		if (client.keepAlive == true &&
-			(Time::getTimeSinceEpoch() - client.lastActive >= Server::keepAliveTimeout))
+		if (client.timer & Client::KEEP_ALIVE &&
+			(Time::getTimeSinceEpoch() - client.keepAliveTime >= Server::keepAliveTimeout))
 		{
-			closeConnection(it++, Logger::TIMEOUT);
+			closeConnection(it++, Logger::KEEP_ALIVE_TIMEOUT);
+		}
+		else if (client.timer & Client::CLIENT_HEADER &&
+			(Time::getTimeSinceEpoch() - client.clientHeaderTime >= Server::clientHeaderTimeout))
+		{
+			closeConnection(it++, Logger::CLIENT_HEADER_TIMEOUT);
+		}
+		else if (client.timer & Client::CLIENT_BODY &&
+			(Time::getTimeSinceEpoch() - client.clientBodyTime >= Server::clientBodyTimeout))
+		{
+			closeConnection(it++, Logger::CLIENT_BODY_TIMEOUT);
 		}
 		else
 		{

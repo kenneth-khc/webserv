@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/24 16:13:53 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/24 16:25:39 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
+#include <cctype>
 
 Validator::Validator(void (*function)(const Directive&,
 									  const Mappings&)):
@@ -244,6 +245,32 @@ void	validateAllowMethod(const Directive& dir, const Mappings& mappings)
 	validateDuplicateDirective(dir, mappings);
 }
 
+/*
+Syntax : client_max_body_size size;
+Default: 1m
+Context: http, server, location */
+void	validateClientMaxBodySize(const Directive& dir, const Mappings& mappings)
+{
+	validateParameterSize(dir, 1);
+	validateEnclosingContext(dir, vector_of(HTTP)(SERVER)(LOCATION));
+	validateDuplicateDirective(dir, mappings);
+
+	// validate size format
+	const String&	size = dir.parameters[0];
+	for (size_t i = 0; i < size.length() - 1; ++i)
+	{
+		if (!std::isdigit(size[i]))
+		{
+			throw InvalidParameter(size);
+		}
+	}
+	if (!(std::isdigit(size.back()) ||
+		  size.back() == 'k' || size.back() == 'K' ||
+		  size.back() == 'm' || size.back() == 'M'))
+	{
+		throw InvalidParameter(size);
+	}
+}
 
 /*
 Syntax : upload_directory file_path;

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/24 16:13:52 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/24 16:22:26 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 #include "Base64.hpp"
 #include "CGI.hpp"
 #include "VectorInitializer.hpp"
-#include "Utils.hpp"
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/epoll.h>
@@ -52,11 +51,14 @@ Server::Server(const Directive& serverBlock,
 					.value_or("html")),
 	locations(),
 	autoindex(serverBlock.recursivelyLookup<String>("autoindex")
-						 .transform(toBool)
+						 .transform(String::toBool)
 						 .value_or(false)),
 	indexFiles(serverBlock.recursivelyLookup< std::vector<String> >("index")
 						  .value_or(vector_of<String>("index.html"))),
 	MIMEMappings("mime.types"),
+	clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
+								 .transform(String::toSize)
+								 .value_or(1000000)),
 	cgiScript(vector_of<String>("py")("php"))
 {
 	// TODO: dynamic address

@@ -73,6 +73,8 @@ public:
 
 	char&				at(size_type);
 	const char&			at(size_type) const;
+	char&				back();
+	const char&			back() const;
 	size_type			size() const;
 	size_type			length() const;
 	bool				empty() const;
@@ -134,6 +136,12 @@ public:
 	bool				starts_with(const String& prefix) const;
 
 	int					toInt() const;
+	bool				toBool() const;
+	static bool			toBool(const String&);
+	std::size_t			toSizeType() const;
+	static std::size_t	toSizeType(const String&);
+	std::size_t			toSize() const;
+	static std::size_t	toSize(const String&);
 
 	template <typename Type>
 	static String	from(const Type& t)

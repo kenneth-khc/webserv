@@ -10,16 +10,3 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Utils.hpp"
-
-bool	toBool(const String& str)
-{
-	if (str == "on")
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}

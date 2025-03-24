@@ -13,6 +13,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <iostream>
+#include "Optional.hpp"
 #include "String.hpp"
 #include "Parser.hpp"
 #include "Lexer.hpp"

@@ -173,6 +173,16 @@ const char&	String::at(size_type index) const
 	return str[index];
 }
 
+char&	String::back()
+{
+	return str[str.length() - 1];
+}
+
+const char&	String::back() const
+{
+	return str[str.length() - 1];
+}
+
 String::size_type	String::size() const
 {
 	return str.size();
@@ -531,6 +541,64 @@ int	String::toInt() const
 	int	num;
 	std::istringstream(str) >> num;
 	return num;
+}
+
+std::size_t String::toSizeType() const
+{
+	std::size_t	num;
+	std::istringstream(str) >> num;
+	return num;
+}
+
+std::size_t String::toSizeType(const String& str)
+{
+	std::size_t	num;
+	std::istringstream(str) >> num;
+	return num;
+}
+
+bool	String::toBool() const
+{
+	return String::toBool(*this);
+}
+
+bool	String::toBool(const String& str)
+{
+	if (str == "on")
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+std::size_t String::toSize() const
+{
+	return String::toSize(*this);
+}
+
+std::size_t String::toSize(const String& str)
+{
+	std::size_t	bytes;
+	int			multiplier = 1;
+	if (std::isdigit(str.back()))
+	{
+		bytes = str.toSizeType() * multiplier;
+		return bytes;
+	}
+	else if (str.back() == 'k' || str.back() == 'K')
+	{
+		multiplier = 1000;
+	}
+	else if (str.back() == 'm' || str.back() == 'M')
+	{
+		multiplier = 1000000;
+	}
+	String	numberPart = str.substr(0, str.length() - 1);
+	bytes = numberPart.toSizeType() * multiplier;
+	return bytes;
 }
 
 template <typename Type>

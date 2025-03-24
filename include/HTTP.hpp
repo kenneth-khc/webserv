@@ -41,6 +41,7 @@ struct HTTP
 	bool				autoindex;
 	String				rootDirectory;
 	std::vector<String>	indexFiles;
+	std::size_t			clientMaxBodySize;
 
 	/* Insert a Server into the HTTP scope */
 	void	addServer(const Server&);

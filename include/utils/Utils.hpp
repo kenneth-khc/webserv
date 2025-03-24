@@ -25,6 +25,4 @@ ToType	to(const String& str)
 	return converted;
 }
 
-bool	toBool(const String&);
-
 #endif

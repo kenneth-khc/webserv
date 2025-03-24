@@ -38,6 +38,7 @@ struct	Server
 	bool					autoindex;
 	std::vector<String>		indexFiles;
 	MediaType				MIMEMappings;
+	std::size_t				clientMaxBodySize;
 
 	static const Location		defaultLocation;
 	static const unsigned int	timeoutValue;

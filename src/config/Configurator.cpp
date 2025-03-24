@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:55:07 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/22 05:26:31 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/24 16:23:22 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ Configurator::Configurator()
 	support("alias", no_op);
 	support("autoindex", validateAutoindex);
 	support("allow_method", validateAllowMethod);
+	support("client_max_body_size", validateClientMaxBodySize);
 }
 
 void	Configurator::support(const String& name, const Validator& validator)

@@ -11,21 +11,22 @@
 /* ************************************************************************** */
 
 #include "HTTP.hpp"
-#include "Utils.hpp"
 #include "VectorInitializer.hpp"
 
 HTTP::HTTP(const Directive& httpBlock):
 	servers(),
 	MIMEMappings("mime.types"),
 	autoindex(httpBlock.getParameterOf("autoindex")
-					   .transform(toBool)
+					   .transform(String::toBool)
 					   .value_or(false)),
 	rootDirectory(httpBlock.getParameterOf("root")
 						   .value_or("html")),
 	indexFiles(httpBlock.getParametersOf("index")
-						.value_or(vector_of<String>("index.html")))
+						.value_or(vector_of<String>("index.html"))),
+	clientMaxBodySize(httpBlock.getParameterOf("client_max_body_size")
+							   .transform(String::toSize)
+							   .value_or(1000000))
 {
-
 }
 
 void	HTTP::addServer(const Server& server)

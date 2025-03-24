@@ -12,7 +12,6 @@
 
 #include "Location.hpp"
 #include "VectorInitializer.hpp"
-#include "Utils.hpp"
 
 Location::Location():
 	matchType(PREFIX),
@@ -36,7 +35,7 @@ Location::Location(const Directive& directive):
 	alias(),
 
 	autoindex(directive.recursivelyLookup<String>("autoindex")
-					   .transform(toBool)
+					   .transform(String::toBool)
 					   .value_or(false)),
 
 	MIMEMappings("mime.types"),
@@ -45,8 +44,11 @@ Location::Location(const Directive& directive):
 						.value_or(vector_of<String>("index.html"))),
 
 	allowedMethods(directive.getParametersOf("allow_method")
-							.value_or(vector_of<String>("GET")))
-{
+							.value_or(vector_of<String>("GET"))),
 
+	clientMaxBodySize(directive.recursivelyLookup<String>("client_max_body_size")
+								 .transform(String::toSize)
+								 .value_or(1000000))
+{
 }
 

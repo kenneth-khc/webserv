@@ -49,5 +49,6 @@ void	validateIndex(const Directive&, const Mappings&);
 void	validateTypes(const Directive&, const Mappings&);
 void	validateAutoindex(const Directive&, const Mappings&);
 void	validateAllowMethod(const Directive&, const Mappings&);
+void	validateClientMaxBodySize(const Directive&, const Mappings&);
 
 #endif

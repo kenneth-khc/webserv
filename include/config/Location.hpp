@@ -51,6 +51,8 @@ struct	Location
 	std::vector<String>	indexFiles;
 
 	std::vector<String>	allowedMethods;
+
+	std::size_t	clientMaxBodySize;
 };
 
 #endif

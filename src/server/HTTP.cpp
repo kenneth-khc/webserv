@@ -1,44 +1,34 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Location.cpp                                       :+:      :+:    :+:   */
+/*   HTTP.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/15 22:41:03 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/22 07:30:17 by kecheong         ###   ########.fr       */
+/*   Created: 2025/03/22 07:22:02 by kecheong          #+#    #+#             */
+/*   Updated: 2025/03/22 08:15:41 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Location.hpp"
-#include "VectorInitializer.hpp"
+#include "HTTP.hpp"
 #include "Utils.hpp"
+#include "VectorInitializer.hpp"
 
-Location::Location():
-	matchType(PREFIX),
-	root("html"),
-	alias(),
-	autoindex(false),
+HTTP::HTTP(const Directive& httpBlock):
+	servers(),
 	MIMEMappings("mime.types"),
-	indexFiles()
-{
-
-}
-
-Location::Location(const Directive& directive):
-	matchType(PREFIX),
-	// TODO: location exact matches
-	uri(directive.parameters[0]),
-	root(directive.recursivelyLookup<String>("root")
-				  .value_or("html")),
-	alias(),
-	autoindex(directive.recursivelyLookup<String>("autoindex")
+	autoindex(httpBlock.getParameterOf("autoindex")
 					   .transform(toBool)
 					   .value_or(false)),
-	MIMEMappings("mime.types"),
-	indexFiles(directive.recursivelyLookup< std::vector<String> >("index")
+	rootDirectory(httpBlock.getParameterOf("root")
+						   .value_or("html")),
+	indexFiles(httpBlock.getParametersOf("index")
 						.value_or(vector_of<String>("index.html")))
 {
 
 }
 
+void	HTTP::addServer(const Server& server)
+{
+	servers.push_back(server);
+}

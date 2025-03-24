@@ -6,132 +6,74 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/22 02:39:17 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/24 09:39:33 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Driver.hpp"
 #include "Server.hpp"
 #include "Configuration.hpp"
-#include "ConfigErrors.hpp"
-#include "Socket.hpp"
 #include "contentLength.hpp"
-#include "Directive.hpp"
-#include "Utils.hpp"
 #include "ErrorCode.hpp"
-#include "VectorInitializer.hpp"
 #include <cstddef>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <sys/epoll.h>
+#include <string>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
-#include <iostream>
 #include <algorithm>
+#include <cstdio>
 
-const unsigned int	Driver::timeoutValue = 5;
-
-Driver::Driver():
-name("42webserv"),
-epollFD(-1),
-maxEvents(1),
-readyEvents(NULL),
-numReadyEvents(0),
-MIMEMappings("mime.types"),
-rootDir("root"),
-pagesDir("pages"),
-uploadsDir("uploads"),
-miscPagesDir("misc_pages"),
-cgiDir("cgi-bin"),
-autoindex(true)
+Driver::Driver(const Configuration& config):
+	webServerName("42webserv"),
+	http(config.get("http")),
+	epollFD(-1),
+	maxEvents(1),
+	readyEvents(new epoll_event[maxEvents]),
+	numReadyEvents(0),
+	/* Sockets and Clients */
+	listeners(),
+	establishedSockets(),
+	clients(),
+	readyRequests(),
+	readyResponses()
 {
-	readyEvents = new epoll_event[maxEvents];
-	/*cgiScript.push_back("py");*/
-	/*cgiScript.push_back("php");*/
-}
-
-// TODO: refactor this crap holy
-void	Driver::configureFrom(const Configuration& config)
-{
-	epollFD = epoll_create(1);
-	if (epollFD == -1){
-		// TODO: error handling 
-	}
-
-	const Directive*		http = config.get("http");
-	std::vector<Directive*>	serverDirectives = http->getDirectives("server");
-	for (size_t i = 0; i < serverDirectives.size(); ++i)
+	std::vector<Directive*>	serverBlocks = config.get("http")
+												 .getDirectives("server");
+	for (size_t i = 0; i < serverBlocks.size(); ++i)
 	{
-		const Directive*	serverDirective = serverDirectives[i];
-		try
-		{
-			configNewServer(*serverDirective);
-		}
-		catch (const ConfigError& e)
-		{
-			std::cout << e.what() << '\n';
-		}
+		const Directive&	serverBlock = *serverBlocks[i];
+		const Server&		httpServer = Server(serverBlock, listeners);
+		http.addServer(httpServer);
 	}
-	epoll_event event = {};
-	event.events |= EPOLLIN;
 
+	/* Epoll configuration */
+	epollFD = epoll_create(1);
+	if (epollFD == -1)
+	{
+		std::perror("epoll_create() failed");
+		std::exit(1);
+	}
 	for (std::map<int, Socket>::const_iterator it = listeners.begin();
 		 it != listeners.end(); ++it)
 	{
-		event.data.fd = it->second.fd;
-		int	retval = epoll_ctl(epollFD, EPOLL_CTL_ADD, event.data.fd, &event);
-		if (retval == -1)
-		{ //TODO: error handling
-		}
+		addToEpoll(it->second.fd, EPOLLIN);
 	}
 }
 
-Socket*	Driver::spawnSocket(const String& ip, const String& port)
+Driver::~Driver()
 {
-	Socket*	socket = NULL;
-	int		portNum = to<int>(port);
-
-	if (listeners.find(portNum) == listeners.end())
+	delete[] readyEvents;
+	close(epollFD);
+	for (std::map<int,Socket>::iterator	it = listeners.begin();
+		 it != listeners.end(); ++it)
 	{
-		Socket	listener = Socket::spawn(ip, port);
-		listener.bind();
-		// TODO: should listen to more than 1?
-		listener.listen(1);
-		listeners[listener.fd] = listener;
-		socket = &listeners[listener.fd];
+		close(it->first);
 	}
-	else
+	for (std::map<int,Socket>::iterator	it = establishedSockets.begin();
+		 it != establishedSockets.end(); ++it)
 	{
-		std::map<int,Socket>::iterator	it;
-		it = std::find_if(listeners.begin(),
-						  listeners.end(),
-						  IsMatchingPort(portNum));
-		socket = &it->second;
+		close(it->first);
 	}
-	return socket;
-}
-
-void	Driver::configNewServer(const Directive& directive)
-{
-	//TODO: dynamic address
-	String	address = "127.0.0.1";
-	String	port = directive.getParams<String>("listen").value_or("8000");
-	Socket*	socket = spawnSocket(address, port);
-
-	std::vector<String>	domainNames = directive
-									 .getParams< std::vector<String> >("server_name")
-									 .value_or(std::vector<String>());
-
-	Server	newServer(domainNames, socket);
-	newServer.root = directive.recursivelyLookup<String>("root")
-							  .value_or("html");
-	newServer.indexFiles = directive.recursivelyLookup< std::vector<String> >("index")
-									.value_or(vector_of<String>("index.html"));
-
-	newServer.configureLocations(directive);
-
-	servers.push_back(newServer);
 }
 
 int	Driver::epollWait()
@@ -159,15 +101,6 @@ int	Driver::epollWait()
 	return numReadyEvents;
 }
 
-void	Driver::addToEpoll(int fd, EPOLL_EVENTS events)
-{
-	epoll_event	ep = epoll_event();
-	ep.events = events;
-	ep.data.fd = fd;
-	epoll_ctl(epollFD, EPOLL_CTL_ADD, fd, &ep);
-	// TODO: error handling
-}
-
 void	Driver::processReadyEvents()
 {
 	for (int i = 0; i < numReadyEvents; ++i)
@@ -187,8 +120,8 @@ void	Driver::processReadyEvents()
 
 			Client	newClient(&establishedSockets[fd], &listener);
 			std::vector<Server>::iterator	it =
-			std::find_if(servers.begin(),
-						 servers.end(),
+			std::find_if(http.servers.begin(),
+						 http.servers.end(),
 						 isDefaultListener(&listener));
 			newClient.server = &(*it);
 
@@ -264,7 +197,7 @@ void	Driver::processMessages()
 	catch (const ErrorCode &e)
 	{
 		Response	response;
-		response.insert("Server", name);
+		response.insert("Server", webServerName);
 		response = e;
 		readyResponses.push(response);
 	}
@@ -273,12 +206,13 @@ void	Driver::processMessages()
 // TODO: this should probably also check that the port matches
 Optional<Server*>	Driver::matchServerName(const String& hostname)
 {
-	for (std::vector<Server>::iterator it = servers.begin();
-		 it != servers.end();
+	for (std::vector<Server>::iterator it = http.servers.begin();
+		 it != http.servers.end();
 		 ++it)
 	{
 		const std::vector<String>&	serverNames = it->domainNames;
-		if (std::find(serverNames.begin(), serverNames.end(), hostname) != serverNames.end())
+		if (std::find(serverNames.begin(),
+					  serverNames.end(), hostname) != serverNames.end())
 		{
 			Server*	server = &(*it);
 			return makeOptional(server);
@@ -292,71 +226,22 @@ void	Driver::processReadyRequests()
 	while (!readyRequests.empty())
 	{
 		Request&	request = readyRequests.front();
-		String		host = request.find< Optional<String> >("Host").value_or("");
+		String		host = request.find< Optional<String> >("Host")
+								  .value_or("");
 		if (host.find(':'))
 		{
 			host = host.consumeUntil(":").value;
 		}
 		// this picks the configuration block to use depending on server_name
 		// or defaulting back to first server with the matching port
-		Server*	server = matchServerName(host)
-						.value_or(request.client->server);
-
-		/*Response	response = handleRequest(request);*/
+		Server*		server = matchServerName(host)
+							.value_or(request.client->server);
 		Response	response = server->handleRequest(request);
 
 		readyResponses.push(response);
 		readyRequests.pop();
 	}
 }
-
-/*void	Driver::processCookies(Request& request, Response& response)*/
-/*{*/
-/*	std::map<String, Cookie>&	cookies = request.cookies;*/
-/**/
-/*	if (cookies.find("sid") == cookies.end())*/
-/*	{*/
-/*		String	sid = Base64::encode(Time::printHTTPDate());*/
-/*		cookies.insert(std::make_pair("sid", Cookie("sid", sid)));*/
-/*		response.insert("Set-Cookie", "sid=" + sid);*/
-/*	}*/
-/*	if (cookies.find("lang") == cookies.end())*/
-/*	{*/
-/*		cookies.insert(std::make_pair("lang", Cookie("lang", "en")));*/
-/*		response.insert("Set-Cookie", "lang=en");*/
-/*	}*/
-/*}*/
-
-/*Response	Driver::handleRequest(Request& request)*/
-/*{*/
-/*	Response	response;*/
-/**/
-/*	response.insert("Server", name);*/
-/*	request.parseCookieHeader();*/
-/*	processCookies(request, response);*/
-/*	try*/
-/*	{*/
-/*		if (request.method == "GET" || request.method == "HEAD")*/
-/*		{*/
-/*			get(response, request);*/
-/*		}*/
-/*		else if (request.method == "POST")*/
-/*		{*/
-/*			post(response, request);*/
-/*		}*/
-/*		else if (request.method == "DELETE")*/
-/*		{*/
-/*			delete_(response, request);*/
-/*		}*/
-/*	}*/
-/*	catch (const ErrorCode& e)*/
-/*	{*/
-/*		response = e;*/
-/*	}*/
-/*	constructConnectionHeader(request, response);*/
-/*	response.insert("Date", Time::printHTTPDate());*/
-/*	return response;*/
-/*}*/
 
 void	Driver::generateResponses()
 {
@@ -424,3 +309,16 @@ ssize_t	Driver::receiveBytes(Client& client)
 	return bytes;
 }
 
+void	Driver::addToEpoll(int fd, EPOLL_EVENTS events)
+{
+	epoll_event	ep = epoll_event();
+	ep.events = events;
+	ep.data.fd = fd;
+
+	int	retval = epoll_ctl(epollFD, EPOLL_CTL_ADD, fd, &ep);
+	if (retval == -1)
+	{
+		std::perror("epoll_ctl(ADD) failed");
+		std::exit(1);
+	}
+}

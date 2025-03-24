@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/16 01:28:23 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/22 07:44:25 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,30 +22,29 @@
 #include "MediaType.hpp"
 #include <sys/epoll.h>
 #include <sys/socket.h>
+#include <netdb.h>
+#include <unistd.h>
 
 struct	Server
 {
 	Server();
-	Server(std::vector<String>, Socket*);
+	Server(const Directive&, std::map<int,Socket>&);
 
 	Socket*					socket;
 	std::vector<String>		domainNames;
 
 	String					root;
-
-	Location				defaultLocationConfig;
 	std::vector<Location>	locations;
 	bool					autoindex;
 	std::vector<String>		indexFiles;
 	MediaType				MIMEMappings;
 
+	static const Location		defaultLocation;
 	static const unsigned int	timeoutValue;
 
-	void		configureLocations(const Directive&);
-
-	Response	handleRequest(Request&);
-	void		processCookies(Request&, Response&);
-	Optional<Location*>	matchURILocation(const Request&);
+	Response					handleRequest(Request&);
+	void						processCookies(Request&, Response&);
+	Optional<const Location*>	matchURILocation(const Request&);
 
 	/* Handling HTTP methods */
 	void		get(Response&, Request&, const Location&) const;
@@ -56,7 +55,10 @@ struct	Server
 
 	// TODO: dumped this here just to compile, fix it
 	std::vector<String>	cgiScript;
-	void		generateDirectoryListing(Response&, const std::string&) const;
+
+private:
+	void	configureLocations(const Directive&);
+	void	assignSocket(const String&, const String&, std::map<int,Socket>&);
 };
 
 // functor this functor that I hate C++98 go func yourself

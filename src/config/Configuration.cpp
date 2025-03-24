@@ -91,9 +91,14 @@ Optional<Directive>	Configuration::find(const String& key) const
 	}
 }
 
-const Directive*	Configuration::get(const String& key) const
+/*const Directive*	Configuration::get(const String& key) const*/
+/*{*/
+/*	return directives.find(key)->second;*/
+/*}*/
+
+const Directive&	Configuration::get(const String& key) const
 {
-	return directives.find(key)->second;
+	return *directives.find(key)->second;
 }
 
 void	Configuration::assertHasDirective(const String& key) const

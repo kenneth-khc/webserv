@@ -27,7 +27,8 @@ struct	Configuration
 	void				add(Directive*);
 	Optional<Directive>	find(const String&) const;
 	void				display() const;
-	const Directive*	get(const String&) const;
+	/*const Directive*	get(const String&) const;*/
+	const Directive&	get(const String&) const;
 	void				assertHasDirective(const String&) const;
 };
 

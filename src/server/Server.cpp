@@ -6,10 +6,17 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/22 02:04:31 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/24 09:39:31 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "Server.hpp"
+#include "ErrorCode.hpp"
+#include "connection.hpp"
+#include "Base64.hpp"
+#include "CGI.hpp"
+#include "VectorInitializer.hpp"
+#include "Utils.hpp"
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/epoll.h>
@@ -19,19 +26,15 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <ctime>
-#include "ErrorCode.hpp"
-#include "Server.hpp"
-#include "connection.hpp"
-#include "Base64.hpp"
-#include "CGI.hpp"
+#include <algorithm>
 
 const unsigned int	Server::timeoutValue = 5;
+const Location		Server::defaultLocation = Location();
 
 Server::Server():
 	socket(),
 	domainNames(),
 	root(),
-	defaultLocationConfig(),
 	locations(),
 	autoindex(true),
 	MIMEMappings("mime.types")
@@ -40,30 +43,28 @@ Server::Server():
 	cgiScript.push_back("php");
 }
 
-Server::Server(std::vector<String> domainNames, Socket* socket):
-	socket(socket),
-	domainNames(domainNames),
-	root(),
-	defaultLocationConfig(),
+Server::Server(const Directive& serverBlock,
+			   std::map<int,Socket>& existingSockets):
+	socket(),
+	domainNames(serverBlock.getParametersOf("server_name")
+						   .value_or(std::vector<String>())),
+	root(serverBlock.recursivelyLookup<String>("root")
+					.value_or("html")),
 	locations(),
-	autoindex(true),
-	MIMEMappings("mime.types")
+	autoindex(serverBlock.recursivelyLookup<String>("autoindex")
+						 .transform(toBool)
+						 .value_or(false)),
+	indexFiles(serverBlock.recursivelyLookup< std::vector<String> >("index")
+						  .value_or(vector_of<String>("index.html"))),
+	MIMEMappings("mime.types"),
+	cgiScript(vector_of<String>("py")("php"))
 {
-	cgiScript.push_back("py");
-	cgiScript.push_back("php");
-}
-
-void	Server::configureLocations(const Directive& directive)
-{
-	std::vector<Directive*>	locationBlocks = directive.getDirectives("location");
-
-	for (size_t i = 0; i < locationBlocks.size(); ++i)
-	{
-		const Directive*	locationBlock = locationBlocks[i];
-		Location			location(*locationBlock);
-
-		this->locations.push_back(location);
-	}
+	// TODO: dynamic address
+	const String&	address = "127.0.0.1";
+	const String&	port = serverBlock.getParameterOf("listen")
+									  .value_or("8000");
+	assignSocket(address, port, existingSockets);
+	configureLocations(serverBlock);
 }
 
 Response	Server::handleRequest(Request& request)
@@ -75,7 +76,7 @@ Response	Server::handleRequest(Request& request)
 	processCookies(request, response);
 	// match location
 	const Location*	location = matchURILocation(request)
-							  .value_or(&defaultLocationConfig);
+							  .value_or(&Server::defaultLocation);
 	request.resolvedPath = location->root + request.path;
 	try
 	{
@@ -101,7 +102,7 @@ Response	Server::handleRequest(Request& request)
 	return response;
 }
 
-Optional<Location*>	Server::matchURILocation(const Request& request)
+Optional<const Location*>	Server::matchURILocation(const Request& request)
 {
 	std::vector<Location>::iterator	longestMatch = locations.end();
 	size_t							longestMatchSoFar = 0;
@@ -119,11 +120,12 @@ Optional<Location*>	Server::matchURILocation(const Request& request)
 	}
 	if (longestMatch == locations.end())
 	{
-		return makeNone<Location*>();
+		return makeNone<const Location*>();
 	}
 	else
 	{
-		return makeOptional(&*longestMatch);
+		std::vector<Location>::const_iterator	retval = longestMatch;
+		return makeOptional(&*retval);
 	}
 }
 
@@ -149,5 +151,41 @@ void	Server::cgi(Response &response, const Request &request) const {
 
 	cgi.execute();
 	cgi.parseOutput(response);
+}
+
+void	Server::assignSocket(const String& address, const String& port,
+							 std::map<int,Socket>& existingSockets)
+{
+	unsigned short	portNum = port.toInt();
+
+	if (existingSockets.find(portNum) == existingSockets.end())
+	{
+		Socket	listener = Socket::spawn(address, port);
+		listener.bind();
+		listener.listen(1);
+		existingSockets[listener.fd] = listener;
+		socket = &existingSockets[listener.fd];
+	}
+	else
+	{
+		std::map<int,Socket>::iterator	it;
+		it = std::find_if(existingSockets.begin(),
+						  existingSockets.end(),
+						  IsMatchingPort(portNum));
+		socket = &it->second;
+	}
+}
+
+void	Server::configureLocations(const Directive& directive)
+{
+	std::vector<Directive*>	locationBlocks = directive.getDirectives("location");
+
+	for (size_t i = 0; i < locationBlocks.size(); ++i)
+	{
+		const Directive*	locationBlock = locationBlocks[i];
+		Location			location(*locationBlock);
+
+		this->locations.push_back(location);
+	}
 }
 

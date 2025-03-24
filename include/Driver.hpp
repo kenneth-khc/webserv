@@ -1,38 +1,40 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Driver.hpp                                        :+:      :+:    :+:   */
+/*   Driver.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 20:15:12 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/07 22:52:42 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/22 08:16:23 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef DRIVER_HPP
 #define DRIVER_HPP
 
-#include "Server.hpp"
+#include "Configuration.hpp"
+#include "HTTP.hpp"
 #include "Client.hpp"
 #include "Socket.hpp"
+#include "String.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
-#include "MediaType.hpp"
 #include "Logger.hpp"
-#include "Configuration.hpp"
-#include "Logger.hpp"
-#include <map>
+#include <sys/epoll.h>
+#include <sys/types.h>
 #include <queue>
+#include <map>
 
 extern "C" char	**environ;
 
 struct	Driver
 {
-	Driver();
+	Driver(const Configuration&);
+	~Driver();
 
-	String					name;
-	std::vector<Server>		servers;
+	String					webServerName;
+	struct HTTP				http;
 
 	int						epollFD;
 	int						maxEvents;
@@ -45,21 +47,8 @@ struct	Driver
 	std::queue<Request>		readyRequests;
 	std::queue<Response>	readyResponses;
 
-
-	//	TODO: Change access specifier?
-	//	Only include a server-wide mapping for now..,
-	//	Nginx allows defining in different http, server, and location blocks
-	MediaType				MIMEMappings;
-
-	//	TODO: Change access specifier?
-	/* Server-wide connection timeout value in seconds */
-	static const unsigned int	timeoutValue;
-
 	friend class Logger;
 	Logger	logger;
-
-	void		configureFrom(const Configuration&);
-	void		configNewServer(const Directive&);
 
 	int			epollWait();
 	void		acceptNewClient(const Socket&);
@@ -73,26 +62,18 @@ struct	Driver
 
 	void		monitorConnections();
 
-	// Resources Directories
-	const String 	rootDir;
-	const String 	pagesDir;
-	const String 	uploadsDir;
-	const String 	miscPagesDir;
-	const String	cgiDir;
-
-	bool				autoindex;
-
-	std::map<std::string,std::string>	directoryMappings;
-
 	friend class CGI;
 
 private:
+	/* No default construction or copying necessary */
+	Driver();
+	Driver(const Driver&);
+	Driver&	operator=(const Driver&);
+
 	void				addToEpoll(int, EPOLL_EVENTS);
-	Socket*				spawnSocket(const String&, const String&);
+	// TODO: check these 2 out
 	Optional<Server*>	matchServerName(const String&);
 	Optional<Server*>	matchPort(int);
-
-
 };
 
 #endif

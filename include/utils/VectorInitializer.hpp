@@ -66,6 +66,12 @@ VectorInitializer<ElementType>	vector_of(const ElementType& first)
 }
 
 template <typename ElementType>
+VectorInitializer<ElementType>	vector_of()
+{
+	return VectorInitializer<ElementType>();
+}
+
+template <typename ElementType>
 VectorInitializer<ElementType>&
 VectorInitializer<ElementType>::operator()(const ElementType& element)
 {

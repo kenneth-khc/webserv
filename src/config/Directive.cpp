@@ -31,39 +31,31 @@ enclosingContext(context)
 
 }
 
-/*void	Directive::addDirective(const Directive& dir)*/
-/*{*/
-/*	directives.insert(std::make_pair(dir.name, dir));*/
-/*}*/
-/**/
 void	Directive::addDirective(Directive* dir)
 {
 	directives.insert(std::make_pair(dir->name, dir));
 }
 
-const Directive*	Directive::getDirective(const String& key)
+const Directive*	Directive::getDirective(const String& key) const
 {
 	return directives.find(key)->second;
 }
 
 std::vector<Directive*>	Directive::getDirectives(const String& key) const
 {
+	typedef std::pair<String,Directive*>	keyValuePair;
+
 	std::vector<Directive*>	matchingDirectives;
-	DirectiveRange	range = directives.equal_range(key);
+	Directive::EqualRange	range = directives.equal_range(key);
 	while (range.first != range.second)
 	{
-		const std::pair<String,Directive*>&	entry = *range.first;
-		Directive*					directive = entry.second;
+		const keyValuePair&	entry = *range.first;
+		Directive*			directive = entry.second;
 		matchingDirectives.push_back(directive);
 		++range.first;
 	}
 	return matchingDirectives;
 }
-
-/*Optional<String>	Directive::recursivelyLookup(const String& key) const*/
-/*{*/
-/*	return getParams<String>(key).or_else(LookupEnclosing(this, key));*/
-/*}*/
 
 bool	Directive::hasParameters() const
 {
@@ -77,19 +69,6 @@ void	Directive::printParameters() const
 		std::cout << parameters[i];
 		if (i != parameters.size()-1)
 			std::cout << " ";
-	}
-}
-
-Optional<Directive*>	Directive::find(const String& key) const
-{
-	std::multimap<String,Directive*>::const_iterator it = directives.find(key);
-	if (it == directives.end())
-	{
-		return makeNone<Directive*>();
-	}
-	else
-	{
-		return makeOptional(it->second);
 	}
 }
 
@@ -148,6 +127,48 @@ String	stringifyContext(Context ctx)
 		throw std::exception();
 	}
 	
+}
+
+Optional<String>
+Directive::getParameterOf(const String& key) const
+{
+	typedef std::multimap<String,Directive*>::const_iterator	multimap_iterator;
+
+	multimap_iterator	it = directives.find(key);
+	if (it == directives.end())
+	{
+		return makeNone<String>();
+	}
+	else
+	{
+		const std::vector<String>&	parameters = it->second->parameters;
+		String						buffer;
+		for (size_t i = 0; i < parameters.size(); ++i)
+		{
+			buffer += parameters[i];
+			if (i != parameters.size() - 1)
+			{
+				buffer += ' ';
+			}
+		}
+		return makeOptional(buffer);
+	}
+}
+
+Optional< std::vector<String> >
+Directive::getParametersOf(const String& key) const
+{
+	typedef std::multimap<String,Directive*>::const_iterator	multimap_iterator;
+
+	multimap_iterator	it = directives.find(key);
+	if (it == directives.end())
+	{
+		return makeNone< std::vector<String> >();
+	}
+	else
+	{
+		return makeOptional(it->second->parameters);
+	}
 }
 
 void	Directive::cleanUp()

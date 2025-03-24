@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/22 02:36:40 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/24 09:52:01 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ void	validateEnclosingContext(const Directive& dir,
 void	validateDuplicateDirective(const Directive& dir,
 								   const Mappings& mappings)
 {
-	DirectiveRange	range = mappings.equal_range(dir.name);
+	Directive::EqualRange	range = mappings.equal_range(dir.name);
 	if (range.first == mappings.end())
 	{
 		return ;

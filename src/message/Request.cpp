@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/25 21:47:14 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 22:15:39 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,8 @@ void	Request::parseRequestLine(String &line) {
 	this->processStage &= ~Request::EMPTY;
 	extractRequestLineComponents(*this, line.substr(0, terminatorPos.value));
 	line.erase(0, terminatorPos.value);
-	this->processStage = Request::HEADERS;
+	this->processStage &= ~Request::REQUEST_LINE;
+	this->processStage |= Request::HEADERS;
 }
 
 void	Request::parseHeaders(String &line) {
@@ -153,7 +154,8 @@ void	Request::parseHeaders(String &line) {
 	if ((*this)["Host"].exists == false)
 		throw BadRequest400();
 
-	this->processStage = Request::HEAD_DONE;
+	this->processStage &= ~Request::HEADERS;
+	this->processStage |= Request::HEAD_DONE;
 }
 
 void	Request::parseCookieHeader(void) {
@@ -169,7 +171,8 @@ bool	Request::checkIfBodyExists(void) {
 	Optional<String>	contentLength = (*this)["Content-Length"];
 	Optional<String>	transferEncoding = (*this)["Transfer-Encoding"];
 
-	this->processStage = Request::MESSAGE_BODY;
+	this->processStage &= ~Request::HEAD_DONE;
+	this->processStage |= Request::MESSAGE_BODY;
 	if (transferEncoding.exists == true)
 	{
 		if (contentLength.exists == true)
@@ -191,7 +194,10 @@ bool	Request::checkIfBodyExists(void) {
 		this->bodyLength = this->find< Optional<String::size_type> >("Content-Length").value;
 	}
 	else
-		this->processStage = Request::DONE;
+	{
+		this->processStage &= ~Request::MESSAGE_BODY;
+		this->processStage |= Request::DONE;
+	}
 
 	return (transferEncoding.exists || contentLength.exists);
 }
@@ -226,8 +232,7 @@ void	Request::parseMessageBody(String &line) {
 
 		if (this->messageBody.length() == this->bodyLength) {
 			this->processStage &= ~Request::MESSAGE_BODY;
-			if (this->processStage == 0)
-				this->processStage = Request::DONE;
+			this->processStage |= Request::DONE;
 		}
 		return ;
 	}
@@ -291,6 +296,5 @@ void	Request::parseMessageBody(String &line) {
 	this->insert("Content-Length", this->bodyLength);
 	this->erase("Transfer-Encoding");
 	this->processStage &= ~Request::MESSAGE_BODY;
-	if (this->processStage == 0)
-		this->processStage = Request::DONE;
+	this->processStage |= Request::DONE;
 }

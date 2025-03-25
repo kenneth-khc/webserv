@@ -23,7 +23,7 @@ int	main(void) {
 
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 
-	// std::cout << "SEND: " << send(fd, "GET / HTTP/1.1\r\nHost: a\r\n\r\n", 27, 0) << std::endl;
+	std::cout << "SEND: " << send(fd, "GET / HTTP/1.1\r\nHost: a\r\n\r\n", 27, 0) << std::endl;
 	// std::cout << "SEND: " << send(fd, "GET / HTTP/1.1\r\n\r\n", 18, 0) << std::endl;
 	// std::cout << "SEND: " << send(fd, "GET / HTTP/1.1\r\n", 16, 0) << std::endl;
 	// std::cout << "SEND: " << send(fd, "GET / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n", 55, 0) << std::endl;
@@ -31,7 +31,7 @@ int	main(void) {
 	// std::cout << "SEND: " << send(fd, "GET /a HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n", 56, 0) << std::endl;
 	// std::cout << "SEND: " << send(fd, "GET /a HTTP/1.1\r\nHost: a\r\nContent-Length: 1\r\n\r\n", 47, 0) << std::endl;
 	// std::cout << "SEND: " << send(fd, "GET /a HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n?", 57, 0) << std::endl;
-	std::cout << "SEND: " << send(fd, "DEL / HTTP/1.1\r\nHost: a\r\n\r\n", 27, 0) << std::endl;
+	// std::cout << "SEND: " << send(fd, "DEL / HTTP/1.1\r\nHost: a\r\n\r\n", 27, 0) << std::endl;
 	// std::cout << "SEND: " << send(fd, "DEL / HTTP/1.1\r\n\r\n", 18, 0) << std::endl;
 	// std::cout << "SEND: " << send(fd, "DEL / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n", 55, 0) << std::endl;
 	// std::cout << "SEND: " << send(fd, "DEL /a HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n", 56, 0) << std::endl;

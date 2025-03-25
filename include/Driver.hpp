@@ -23,6 +23,8 @@
 #include "Configuration.hpp"
 #include "Logger.hpp"
 #include <map>
+#include <set>
+#include <vector>
 
 extern "C" char	**environ;
 
@@ -61,7 +63,7 @@ struct	Driver
 
 	void		processReadyEvents();
 	void		receiveMessage(std::map<int, Client>::iterator&);
-	void		processRequest(std::map<int, Client>::iterator&);
+	void		processRequest(std::map<int, Client>::iterator&, std::set<Client *>&);
 	void		processCGI(std::map<int, CGI*>::iterator&);
 	void		processReadyRequest(Request&, Response&);
 	void		generateResponse(std::map<int, Client>::iterator&);

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/25 18:15:43 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/26 19:00:33 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,15 +84,21 @@ ssize_t	Client::receiveBytes()
 		{
 			timer &= ~Client::KEEP_ALIVE;
 			timer |= Client::CLIENT_HEADER;
+		}
+		if (timer & Client::CLIENT_HEADER)
+		{
 			clientHeaderTime = Time::getTimeSinceEpoch();
+		}
+		if (timer & Client::CLIENT_BODY)
+		{
+			clientBodyTime = Time::getTimeSinceEpoch();
 		}
 	}
 	return bytes;
 }
 
-ssize_t	Client::sendBytes(Response& response)
+ssize_t	Client::sendBytes(String &formattedResponse)
 {
-	String	&formattedResponse = response.formatted;
 	ssize_t	bytes = send(socket.fd, formattedResponse.c_str(), formattedResponse.size(), 0);
 
 	if (bytes > 0)

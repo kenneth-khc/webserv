@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/22 01:12:25 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/27 02:53:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,9 +41,8 @@ CGI::CGI(
 	outputFD(0),
 	pid(0),
 	inputLength(0),
-	firstDataSend(false),
 	lastActive(0),
-	processStage(0)
+	processStage(CGI::HEADERS)
 {
 	Optional<String::size_type>	extPos = request.path.find(".");
 
@@ -236,10 +235,7 @@ void	CGI::feedInput(int epollFD) {
 		if (bytes > 0) {
 			this->inputLength += bytes;
 			request.messageBody.erase(0, bytes);
-			if (this->firstDataSend == false) {
-				this->firstDataSend = true;
-				this->lastActive = Time::getTimeSinceEpoch();
-			}
+			this->lastActive = Time::getTimeSinceEpoch();
 		}
 	}
 	if (this->inputLength == this->request.bodyLength) {
@@ -264,109 +260,114 @@ void	CGI::fetchOutput(int epollFD) {
 		if (bytes > 0) {
 			this->output.append(buffer, bytes);
 			this->lastActive = Time::getTimeSinceEpoch();
+			this->parseOutput();
 		}
 		else if (bytes <= 0 && waitpid(this->pid, &stat_loc, WNOHANG) == this->pid) {
 			this->processStage |= CGI::OUTPUT_DONE;
 			if (stat_loc != 0)
 				throw InternalServerError500();
+			this->parseOutput();
 		}
-		else if (this->firstDataSend == true &&
-			Time::getTimeSinceEpoch() - this->lastActive > Server::cgiTimeout) {
+		else if (Time::getTimeSinceEpoch() - this->lastActive >= Server::cgiTimeout) {
 			this->processStage |= CGI::OUTPUT_DONE;
 			kill(this->pid, SIGKILL);
 			throw InternalServerError500();
-		}
-		if (this->processStage & CGI::OUTPUT_DONE) {
-			epoll_ctl(epollFD, EPOLL_CTL_DEL, this->outputFD, 0);
-			close(this->outputFD);
-			this->outputFD = -1;
-			this->parseOutput();
 		}
 	}
 	catch (const ErrorCode &e) {
 		this->response = e;
 	}
+
+	if (this->processStage & CGI::OUTPUT_DONE) {
+		epoll_ctl(epollFD, EPOLL_CTL_DEL, this->outputFD, 0);
+		close(this->outputFD);
+		this->outputFD = -1;
+	}
 }
 
-void	CGI::parseOutput() {
-	String						delimiter = "\r\n\r\n";
-	Optional<String::size_type>	delimiterPos = this->output.find(delimiter);
+void	CGI::parseOutput(void) {
+	if (this->processStage & CGI::HEADERS) {
+		String						delimiter = "\r\n\r\n";
+		Optional<String::size_type>	delimiterPos = this->output.find(delimiter);
 
-	if (delimiterPos.exists == false) {
-		delimiter = "\n\n";
-		delimiterPos = this->output.find(delimiter);
-		if (delimiterPos.exists == false)
+		if (delimiterPos.exists == false) {
+			delimiter = "\n\n";
+			delimiterPos = this->output.find(delimiter);
+			if (delimiterPos.exists == false && this->processStage & CGI::OUTPUT_DONE)
+				throw InternalServerError500();
+			else
+				return ;
+		}
+
+		String							headerPart = this->output.substr(0, delimiterPos.value);
+		std::vector<String>				headers;
+		std::vector<String>				existingFieldNames;
+		std::multimap<String, String>	validHeaders;
+
+		this->output.erase(0, delimiterPos.value + delimiter.length());
+		if (delimiter == "\r\n\r\n")
+			headers = headerPart.split("\r\n");
+		else
+			headers = headerPart.split("\n");
+
+		for (std::vector<String>::const_iterator it = headers.begin(); it != headers.end(); it++) {
+			Optional<String::size_type>	pos = it->find(":");
+
+			if (pos.exists == false)
+				throw InternalServerError500();
+
+			String	fieldName = it->substr(0, pos.value);
+			String	fieldValue = it->substr(pos.value + 1);
+
+			if (fieldValue.length() == 0)
+				continue ;
+
+			String	trim = fieldName.trim(" ");
+
+			if (trim.length() != fieldName.length())
+				throw InternalServerError500();
+
+			existingFieldNames.push_back(fieldName.lower());
+			validHeaders.insert(std::make_pair(fieldName.title(), fieldValue.trim(" ")));
+		}
+
+		int	total = 0;
+		for (int i = 0; i < NUM_OF_CGI_FIELDS; i++) {
+			int	count = std::count(existingFieldNames.begin(), existingFieldNames.end(), cgiFields[i]);
+
+			if (count > 1)
+				throw InternalServerError500();
+			total += count;
+		}
+		if (total == 0)
 			throw InternalServerError500();
+
+		std::multimap<String, String>::iterator	it;
+		std::stringstream						stream;
+		String									str;
+		int										statusCode;
+
+		it = validHeaders.find("Status");
+		if (it == validHeaders.end())
+			this->response.setStatusCode(Response::OK);
+		else {
+			stream << it->second;
+			stream >> statusCode;
+			this->response.setStatusCode(statusCode);
+			String::getline(stream, str);
+			this->response.reasonPhrase = str.trim(" ");
+			validHeaders.erase(it);
+		}
+
+		this->response.headers = validHeaders;
+		this->processStage &= ~CGI::HEADERS;
+		this->processStage |= CGI::MESSAGE_BODY;
 	}
 
-	String							headerPart = this->output.substr(0, delimiterPos.value);
-	String							bodyPart = this->output.substr(delimiterPos.value + delimiter.length());
-	std::vector<String>				headers;
-	std::vector<String>				existingFieldNames;
-	std::multimap<String, String>	validHeaders;
-
-	if (delimiter == "\r\n\r\n")
-		headers = headerPart.split("\r\n");
-	else
-		headers = headerPart.split("\n");
-
-	for (std::vector<String>::const_iterator it = headers.begin(); it != headers.end(); it++) {
-		Optional<String::size_type>	pos = it->find(":");
-
-		if (pos.exists == false)
-			throw InternalServerError500();
-
-		String	fieldName = it->substr(0, pos.value);
-		String	fieldValue = it->substr(pos.value + 1);
-
-		if (fieldValue.length() == 0)
-			continue ;
-
-		String	trim = fieldName.trim(" ");
-
-		if (trim.length() != fieldName.length())
-			throw InternalServerError500();
-
-		if (fieldName.starts_with("X-") == true)
-			continue ;
-
-		existingFieldNames.push_back(fieldName.lower());
-		validHeaders.insert(std::make_pair(fieldName.title(), fieldValue));
+	if (this->processStage & CGI::MESSAGE_BODY) {
+		this->response.messageBody.append(this->output.c_str(), this->output.length());
+		this->output.erase(0, this->output.length());
 	}
-
-	int	total = 0;
-	for (int i = 0; i < NUM_OF_CGI_FIELDS; i++) {
-		int	count = std::count(existingFieldNames.begin(), existingFieldNames.end(), cgiFields[i]);
-
-		if (count > 1)
-			throw InternalServerError500();
-		total += count;
-	}
-	if (total == 0)
-		throw InternalServerError500();
-
-	std::multimap<String, String>::iterator	it;
-	std::stringstream						stream;
-	String									str;
-	int										statusCode;
-
-	it = validHeaders.find("Status");
-	if (it == validHeaders.end())
-		this->response.setStatusCode(Response::OK);
-	else {
-		stream << it->second;
-		stream >> statusCode;
-		this->response.setStatusCode(statusCode);
-		String::getline(stream, str);
-		this->response.reasonPhrase = str.trim(" ");
-		validHeaders.erase(it);
-	}
-
-	this->response.headers = validHeaders;
-
-	this->response.messageBody = bodyPart;
-	if (this->response["Content-Length"].exists == false)
-		this->response.insert("Content-Length", this->response.messageBody.length());
 }
 
 void	Driver::cgi(Request &request, Response &response) {

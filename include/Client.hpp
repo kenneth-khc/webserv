@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/25 01:27:25 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 22:51:35 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ public:
 	String	getPortNum() const;
 
 	ssize_t	receiveBytes();
-	ssize_t	sendBytes(Response &response);
+	ssize_t	sendBytes(String &formattedResponse);
 
 	Socket					socket;
 	String					message;

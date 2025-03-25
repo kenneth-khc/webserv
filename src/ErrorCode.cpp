@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/19 16:18:42 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/25 22:12:47 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ ErrorCode::ErrorCode(
 	this->reasonPhrase = reasonPhrase;
 	this->insert("Date", Time::printHTTPDate());
 	this->insert("Content-Type", "text/html");
-	this->processStage = Response::DONE;
+	this->processStage |= Response::DONE;
 }
 
 ErrorCode::ErrorCode(
@@ -42,7 +42,7 @@ ErrorCode::ErrorCode(
 	this->insert("Content-Type", "application/problem+json");
 	this->insert("Content-Language", "en");
 	this->messageBody = "{\n\t\"title\": \"" + String(title) + "\"\n}";
-	this->processStage = Response::DONE;
+	this->processStage |= Response::DONE;
 }
 
 ErrorCode::~ErrorCode(void) throw() {}

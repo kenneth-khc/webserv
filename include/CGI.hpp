@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/19 16:33:10 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/26 00:50:10 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ class CGI {
 		pid_t				pid;
 		String::size_type	inputLength;
 		String				output;
-		bool				firstDataSend;
 		std::time_t			lastActive;
 		char				processStage;
 
@@ -60,7 +59,9 @@ class CGI {
 
 		enum ProcessStage {
 			INPUT_DONE = 0x001,
-			OUTPUT_DONE = 0x002
+			HEADERS = 0x002,
+			MESSAGE_BODY = 0x004,
+			OUTPUT_DONE = 0x008
 		};
 };
 

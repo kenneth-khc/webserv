@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/25 18:49:35 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/27 01:26:15 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,6 +127,8 @@ int	Driver::epollWait()
 
 void	Driver::processReadyEvents()
 {
+	std::set<Client *>	activeClients;
+
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
 		currEvent = &readyEvents[i];
@@ -157,7 +159,7 @@ void	Driver::processReadyEvents()
 			}
 			if (currEvent->events & EPOLLOUT)
 			{
-				processRequest(clientIt);
+				processRequest(clientIt, activeClients);
 				if (!clientIt->second.responseQueue.empty())
 				{
 					generateResponse(clientIt);
@@ -179,6 +181,18 @@ void	Driver::processReadyEvents()
 				cgiIt->second->fetchOutput(epollFD);
 			}
 			processCGI(cgiIt);
+		}
+	}
+
+	for (std::set<Client *>::iterator it = activeClients.begin(); it != activeClients.end(); it++)
+	{
+		if ((*it)->timer & Client::CLIENT_HEADER)
+		{
+			(*it)->clientHeaderTime = Time::getTimeSinceEpoch();
+		}
+		if ((*it)->timer & Client::CLIENT_BODY)
+		{
+			(*it)->clientBodyTime = Time::getTimeSinceEpoch();
 		}
 	}
 }
@@ -217,13 +231,12 @@ void	Driver::receiveMessage(std::map<int, Client>::iterator& clientIt)
 	client.receiveBytes();
 }
 
-void	Driver::processRequest(std::map<int, Client>::iterator& clientIt)
+void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<Client *>& activeClients)
 {
 	Client&	client = clientIt->second;
 
 	while (true) {
-		Request&			request = client.requestQueue.back();
-		String::size_type	initialMessageLength = client.message.length();
+		Request&	request = client.requestQueue.back();
 
 		try
 		{
@@ -246,41 +259,45 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt)
 				if (request.checkIfBodyExists())
 				{
 					client.timer |= Client::CLIENT_BODY;
-					client.clientBodyTime = Time::getTimeSinceEpoch();
+					activeClients.insert(&client);
 				}
 				logger.logRequest(request, client);
 			}
 			if (request.processStage & Request::MESSAGE_BODY)
 			{
 				request.parseMessageBody(client.message);
-				if (client.message.length() < initialMessageLength)
-				{
-					client.clientBodyTime = Time::getTimeSinceEpoch();
-				}
 			}
 			if (request.processStage & Request::DONE)
 			{
 				client.timer &= ~Client::CLIENT_BODY;
 				processReadyRequest(request, client.responseQueue.back());
 				client.requestQueue.push_back(Request());
-				client.timer |= Client::CLIENT_HEADER;
-				client.clientHeaderTime = Time::getTimeSinceEpoch();
+				if (client.message.length() > 0)
+				{
+					client.timer |= Client::CLIENT_HEADER;
+					activeClients.insert(&client);
+				}
 			}
+			else
+			{
+				return ;
+			}
+
 		}
 		catch (const ErrorCode &e)
 		{
 			request.processStage |= Request::DONE;
 			client.requestQueue.push_back(Request());
 			client.responseQueue.back() = e;
-			client.timer |= Client::CLIENT_HEADER;
-			client.clientHeaderTime = Time::getTimeSinceEpoch();
+			if (client.message.length() > 0)
+			{
+				client.timer |= Client::CLIENT_HEADER;
+				activeClients.insert(&client);
+			}
 		}
 
 		if (request.processStage & Request::DONE &&
 			client.responseQueue.back()["Connection"].value == "close")
-			return ;
-
-		if (client.message.length() == initialMessageLength)
 			return ;
 	}
 }
@@ -350,7 +367,7 @@ void	Driver::processReadyRequest(Request& request, Response& response)
 
 	constructConnectionHeader(request, response);
 	response.insert("Date", Time::printHTTPDate());
-	response.processStage = Response::DONE;
+	response.processStage |= Response::DONE;
 }
 
 void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt)
@@ -367,7 +384,7 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt)
 		try {
 			constructConnectionHeader(cgi.request, cgi.response);
 			cgi.response.insert("Date", Time::printHTTPDate());
-			cgi.response.processStage = Response::DONE;
+			cgi.response.processStage |= Response::DONE;
 		}
 		catch (const ErrorCode &e) {
 			cgi.response = e;
@@ -383,18 +400,18 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt)
 	Request&	request = client.requestQueue.front();
 	Response&	response = client.responseQueue.front();
 
-	if (!(response.processStage & Response::DONE))
-		return ;
-
-	if (response.formatted.length() == 0)
+	if (!(response.processStage & Response::SEND_READY) && response.isReady() == false)
 	{
-		if (request.method == "HEAD")
-			response.messageBody = "";
-		response.format();
+		return ;
 	}
 
-	client.sendBytes(response);
-	if (response.formatted.length() == 0)
+	if (request.method != "HEAD")
+	{
+		response.appendMessageBody();
+	}
+	client.sendBytes(response.formatted);
+
+	if (response.processStage & Response::DONE)
 	{
 		logger.logResponse(response, client);
 
@@ -437,20 +454,20 @@ void	Driver::monitorConnections()
 	{
 		Client	&client = it->second;
 
-		if (client.timer & Client::KEEP_ALIVE &&
-			(Time::getTimeSinceEpoch() - client.keepAliveTime >= Server::keepAliveTimeout))
+		if (client.timer & Client::CLIENT_BODY &&
+			(Time::getTimeSinceEpoch() - client.clientBodyTime >= Server::clientBodyTimeout))
 		{
-			closeConnection(it++, Logger::KEEP_ALIVE_TIMEOUT);
+			closeConnection(it++, Logger::CLIENT_BODY_TIMEOUT);
 		}
 		else if (client.timer & Client::CLIENT_HEADER &&
 			(Time::getTimeSinceEpoch() - client.clientHeaderTime >= Server::clientHeaderTimeout))
 		{
 			closeConnection(it++, Logger::CLIENT_HEADER_TIMEOUT);
 		}
-		else if (client.timer & Client::CLIENT_BODY &&
-			(Time::getTimeSinceEpoch() - client.clientBodyTime >= Server::clientBodyTimeout))
+		else if (client.timer & Client::KEEP_ALIVE &&
+			(Time::getTimeSinceEpoch() - client.keepAliveTime >= Server::keepAliveTimeout))
 		{
-			closeConnection(it++, Logger::CLIENT_BODY_TIMEOUT);
+			closeConnection(it++, Logger::KEEP_ALIVE_TIMEOUT);
 		}
 		else
 		{

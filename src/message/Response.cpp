@@ -6,10 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/25 18:52:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/26 16:54:15 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <ios>
 #include <iomanip>
 #include <fstream>
 #include <sstream>
@@ -81,7 +82,21 @@ Response&	Response::operator=(const ErrorCode& obj)
 
 //	Turns the information stored in the Response instance into a complete
 //	HTTP response message
-void	Response::format(void) {
+bool	Response::isReady(void) {
+	if (this->messageBody.length() == 0 && !(this->processStage & Response::DONE))
+		return (false);
+
+	if ((*this)["Content-Length"].exists == false) {
+		Optional<String>	transferEncoding = (*this)["Transfer-Encoding"];
+
+		if (transferEncoding.exists == true) {
+			if (transferEncoding.value.find("chunked").exists == false)
+				this->headers.find("Transfer-Encoding")->second += ", chunked";
+		}
+		else
+			this->insert("Transfer-Encoding", "chunked");
+	}
+
 	std::stringstream	stream;
 	String				temp;
 
@@ -95,9 +110,32 @@ void	Response::format(void) {
 	}
 	stream << "\r\n";
 
-	formatted = stream.str();
-	if (this->messageBody.length() != 0)
-		formatted.append(this->messageBody.c_str(), this->messageBody.length());
+	this->formatted.append(stream.str().c_str(), stream.str().length());
+	this->processStage |= Response::SEND_READY;
+	return (true);
+}
+
+void	Response::appendMessageBody(void) {
+	if (!(this->processStage & Response::DONE) && this->messageBody.length() == 0)
+		return ;
+
+	if ((*this)["Content-Length"].exists == true) {
+		this->formatted.append(this->messageBody.c_str(), this->messageBody.length());
+		this->messageBody.erase(0, this->messageBody.length());
+		return ;
+	}
+
+	std::stringstream	chunkSize;
+
+	chunkSize << std::hex << std::uppercase << this->messageBody.length();
+	this->formatted.append(chunkSize.str().c_str(), chunkSize.str().length());
+	this->formatted.append("\r\n", 2);
+	this->formatted.append(this->messageBody.c_str(), this->messageBody.length());
+	this->formatted.append("\r\n", 2);
+	this->messageBody.erase(0, this->messageBody.length());
+
+	if (this->processStage & Response::DONE && chunkSize.str() != "0" && this->messageBody.length() == 0)
+		this->formatted.append("0\r\n\r\n", 5);
 }
 
 void	Response::setStatusCode(int statusCode) {

@@ -67,6 +67,7 @@ typedef std::pair<std::multimap<String,Directive*>::const_iterator,
 	Optional<ReturnType>	recursivelyLookup(const String&) const;
 
 	void					printParameters() const;
+	Optional< std::map<int,String> >	generateErrorPagesMapping() const;
 
 	void					cleanUp();
 

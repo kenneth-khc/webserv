@@ -41,6 +41,7 @@ Server::Server():
 	cgiScript.push_back("py");
 	cgiScript.push_back("php");
 }
+#include <iostream>
 
 Server::Server(const Directive& serverBlock,
 			   std::map<int,Socket>& existingSockets):
@@ -67,6 +68,9 @@ Server::Server(const Directive& serverBlock,
 									  .value_or("8000");
 	assignSocket(address, port, existingSockets);
 	configureLocations(serverBlock);
+	errorPages = serverBlock.generateErrorPagesMapping()
+							.value_or(std::map<int,String>());
+	std::cout << "Server EP size: " << errorPages.size() << "\n";
 }
 
 void	Server::checkIfAllowedMethod(const Location& location, const Request& request)

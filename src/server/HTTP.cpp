@@ -13,6 +13,7 @@
 #include "HTTP.hpp"
 #include "VectorInitializer.hpp"
 
+#include <iostream>
 HTTP::HTTP(const Directive& httpBlock):
 	servers(),
 	MIMEMappings("mime.types"),
@@ -27,6 +28,9 @@ HTTP::HTTP(const Directive& httpBlock):
 							   .transform(String::toSize)
 							   .value_or(1000000))
 {
+	errorPages = httpBlock.generateErrorPagesMapping()
+						  .value_or(std::map<int, String>());
+	std::cout << "HTTP EP size: " << errorPages.size() << "\n";
 }
 
 void	HTTP::addServer(const Server& server)

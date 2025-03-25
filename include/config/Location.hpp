@@ -53,6 +53,8 @@ struct	Location
 	std::vector<String>	allowedMethods;
 
 	std::size_t	clientMaxBodySize;
+
+	std::map<int,String>	errorPages;
 };
 
 #endif

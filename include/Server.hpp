@@ -39,6 +39,7 @@ struct	Server
 	std::vector<String>		indexFiles;
 	MediaType				MIMEMappings;
 	std::size_t				clientMaxBodySize;
+	std::map<int,String>	errorPages;
 
 	static const Location		defaultLocation;
 	static const unsigned int	timeoutValue;

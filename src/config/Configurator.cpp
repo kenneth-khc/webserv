@@ -34,6 +34,7 @@ Configurator::Configurator()
 	support("autoindex", validateAutoindex);
 	support("allow_method", validateAllowMethod);
 	support("client_max_body_size", validateClientMaxBodySize);
+	support("error_page", validateErrorPage);
 }
 
 void	Configurator::support(const String& name, const Validator& validator)

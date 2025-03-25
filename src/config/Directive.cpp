@@ -12,6 +12,7 @@
 
 #include "Directive.hpp"
 #include "ConfigErrors.hpp"
+#include "VectorInitializer.hpp"
 #include <iostream>
 
 Directive::Directive()
@@ -168,6 +169,31 @@ Directive::getParametersOf(const String& key) const
 	else
 	{
 		return makeOptional(it->second->parameters);
+	}
+}
+
+Optional< std::map<int,String> >	Directive::generateErrorPagesMapping() const
+{
+	std::map<int,String>		errorPages;
+	const std::vector<String>&	errorPage = recursivelyLookup< std::vector<String> >("error_page")
+										   .value_or(vector_of<String>());
+	if (errorPage.size() < 2)
+	{
+		return makeNone< std::map<int,String> >();
+	}
+	const String&	page = errorPage.back();
+	for (size_t i = 0; i < errorPage.size()-1; ++i)
+	{
+		std::pair<int,String> mapping = std::make_pair(errorPage[i].toInt(), page);
+		errorPages.insert(mapping);
+	}
+	if (errorPages.empty())
+	{
+		return makeNone< std::map<int,String> >();
+	}
+	else
+	{
+		return makeOptional(errorPages);
 	}
 }
 

@@ -24,6 +24,7 @@ Location::Location():
 
 }
 
+#include <iostream>
 Location::Location(const Directive& directive):
 	matchType(PREFIX),
 	// TODO: location exact matches
@@ -50,5 +51,9 @@ Location::Location(const Directive& directive):
 								 .transform(String::toSize)
 								 .value_or(1000000))
 {
+	// TODO: recurse instead of manually chasing the pointers lol lmao
+	errorPages = directive.generateErrorPagesMapping()
+						  .value_or(std::map<int,String>());
+	std::cout << "Location EP size: " << errorPages.size() << "\n";
 }
 

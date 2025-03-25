@@ -42,6 +42,7 @@ struct HTTP
 	String				rootDirectory;
 	std::vector<String>	indexFiles;
 	std::size_t			clientMaxBodySize;
+	std::map<int,String>	errorPages;
 
 	/* Insert a Server into the HTTP scope */
 	void	addServer(const Server&);

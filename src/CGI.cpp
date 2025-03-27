@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/27 02:53:13 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/27 03:59:03 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ CGI::CGI(
 	response(response),
 	inputFD(0),
 	outputFD(0),
+	outputPipeSize(0),
 	pid(0),
 	inputLength(0),
 	lastActive(0),
@@ -222,6 +223,7 @@ void	CGI::execute(Driver &driver) {
 	epoll_ctl(driver.epollFD, EPOLL_CTL_ADD, output[0], &ev);
 	driver.cgis.insert(std::make_pair(output[0], this));
 	this->outputFD = output[0];
+	this->outputPipeSize = fcntl(this->outputFD, F_GETPIPE_SZ);
 }
 
 void	CGI::feedInput(int epollFD) {
@@ -251,10 +253,10 @@ void	CGI::fetchOutput(int epollFD) {
 		return ;
 
 	ssize_t	bytes = -1;
-	char	buffer[1024];
+	char	*buffer = new char[this->outputPipeSize];
 	int		stat_loc = 0;
 
-	bytes = read(this->outputFD, buffer, 1024);
+	bytes = read(this->outputFD, buffer, this->outputPipeSize);
 
 	try {
 		if (bytes > 0) {
@@ -277,6 +279,7 @@ void	CGI::fetchOutput(int epollFD) {
 	catch (const ErrorCode &e) {
 		this->response = e;
 	}
+	delete [] buffer;
 
 	if (this->processStage & CGI::OUTPUT_DONE) {
 		epoll_ctl(epollFD, EPOLL_CTL_DEL, this->outputFD, 0);

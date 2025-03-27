@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/26 00:50:10 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/27 03:57:09 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ class CGI {
 
 		int					inputFD;
 		int					outputFD;
+		int					outputPipeSize;
 		pid_t				pid;
 		String::size_type	inputLength;
 		String				output;

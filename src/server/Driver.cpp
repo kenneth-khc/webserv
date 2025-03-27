@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/27 01:26:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 01:17:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include "Time.hpp"
 #include "Base64.hpp"
 #include "CGI.hpp"
+#include <queue>
 #include <deque>
 #include <cstddef>
 #include <sys/socket.h>
@@ -34,6 +35,7 @@
 
 Driver::Driver():
 name("42webserv"),
+epollTimeout(-1),
 epollFD(-1),
 maxEvents(1021),
 readyEvents(NULL),
@@ -114,7 +116,12 @@ void	Driver::configNewServer(const Directive& directive)
 
 int	Driver::epollWait()
 {
-	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, 1000);
+	if (epollTimeout != -1)
+	{
+		epollTimeout *= 1000;
+	}
+
+	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, epollTimeout);
 	// std::cout << "epoll_wait() returned with " << numReadyEvents
 			//   << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
 
@@ -162,7 +169,7 @@ void	Driver::processReadyEvents()
 				processRequest(clientIt, activeClients);
 				if (!clientIt->second.responseQueue.empty())
 				{
-					generateResponse(clientIt);
+					generateResponse(clientIt, activeClients);
 				}
 			}
 		}
@@ -186,13 +193,17 @@ void	Driver::processReadyEvents()
 
 	for (std::set<Client *>::iterator it = activeClients.begin(); it != activeClients.end(); it++)
 	{
-		if ((*it)->timer & Client::CLIENT_HEADER)
+		if ((*it)->timer & Client::CLIENT_BODY && Server::clientBodyTimeoutDuration > 0)
 		{
-			(*it)->clientHeaderTime = Time::getTimeSinceEpoch();
+			(*it)->clientBodyTimeout = Time::getTimeSinceEpoch() + Server::clientBodyTimeoutDuration;
 		}
-		if ((*it)->timer & Client::CLIENT_BODY)
+		else if ((*it)->timer & Client::CLIENT_HEADER && Server::clientHeaderTimeoutDuration > 0)
 		{
-			(*it)->clientBodyTime = Time::getTimeSinceEpoch();
+			(*it)->clientHeaderTimeout = Time::getTimeSinceEpoch() + Server::clientHeaderTimeoutDuration;
+		}
+	else if ((*it)->timer & Client::KEEP_ALIVE && Server::keepAliveTimeoutDuration > 0)
+		{
+			(*it)->keepAliveTimeout = Time::getTimeSinceEpoch() + Server::keepAliveTimeoutDuration;
 		}
 	}
 }
@@ -236,7 +247,8 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 	Client&	client = clientIt->second;
 
 	while (true) {
-		Request&	request = client.requestQueue.back();
+		Request&			request = client.requestQueue.back();
+		String::size_type	initialMessageLength = client.message.length();
 
 		try
 		{
@@ -259,7 +271,6 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 				if (request.checkIfBodyExists())
 				{
 					client.timer |= Client::CLIENT_BODY;
-					activeClients.insert(&client);
 				}
 				logger.logRequest(request, client);
 			}
@@ -275,11 +286,14 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 				if (client.message.length() > 0)
 				{
 					client.timer |= Client::CLIENT_HEADER;
-					activeClients.insert(&client);
 				}
 			}
 			else
 			{
+				if (initialMessageLength != client.message.length())
+				{
+					activeClients.insert(&client);
+				}
 				return ;
 			}
 
@@ -292,7 +306,6 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 			if (client.message.length() > 0)
 			{
 				client.timer |= Client::CLIENT_HEADER;
-				activeClients.insert(&client);
 			}
 		}
 
@@ -394,7 +407,7 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt)
 	}
 }
 
-void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt)
+void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt, std::set<Client *>& activeClients)
 {
 	Client&		client = clientIt->second;
 	Request&	request = client.requestQueue.front();
@@ -429,10 +442,39 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt)
 			{
 				client.timer |= Client::KEEP_ALIVE;
 				client.timer &= ~Client::CLIENT_HEADER;
-				client.keepAliveTime = Time::getTimeSinceEpoch();
+				client.timer &= ~Client::CLIENT_BODY;
+				activeClients.insert(&client);
 			}
 		}
 	}
+}
+
+void	Driver::updateEpollTimeout()
+{
+	std::priority_queue<std::time_t>	timeoutPriority;
+
+	for (std::map<int, Client>::const_iterator it = clients.begin(); it != clients.end(); it++)
+	{
+		const Client	&client = it->second;
+
+		if (client.timer & Client::CLIENT_BODY)
+		{
+			timeoutPriority.push(client.clientBodyTimeout);
+		}
+		else if (client.timer & Client::CLIENT_HEADER)
+		{
+			timeoutPriority.push(client.clientHeaderTimeout);
+		}
+		else if (client.timer & Client::KEEP_ALIVE)
+		{
+			timeoutPriority.push(client.keepAliveTimeout);
+		}
+	}
+
+	if (timeoutPriority.size() == 0)
+		epollTimeout = -1;
+	else
+		epollTimeout = timeoutPriority.top() - Time::getTimeSinceEpoch();
 }
 
 void	Driver::closeConnection(std::map<int, Client>::iterator clientIt, int logFlag)
@@ -455,17 +497,17 @@ void	Driver::monitorConnections()
 		Client	&client = it->second;
 
 		if (client.timer & Client::CLIENT_BODY &&
-			(Time::getTimeSinceEpoch() - client.clientBodyTime >= Server::clientBodyTimeout))
+			Time::getTimeSinceEpoch() >= client.clientBodyTimeout)
 		{
 			closeConnection(it++, Logger::CLIENT_BODY_TIMEOUT);
 		}
 		else if (client.timer & Client::CLIENT_HEADER &&
-			(Time::getTimeSinceEpoch() - client.clientHeaderTime >= Server::clientHeaderTimeout))
+			Time::getTimeSinceEpoch() >= client.clientHeaderTimeout)
 		{
 			closeConnection(it++, Logger::CLIENT_HEADER_TIMEOUT);
 		}
 		else if (client.timer & Client::KEEP_ALIVE &&
-			(Time::getTimeSinceEpoch() - client.keepAliveTime >= Server::keepAliveTimeout))
+			Time::getTimeSinceEpoch() >= client.keepAliveTimeout)
 		{
 			closeConnection(it++, Logger::KEEP_ALIVE_TIMEOUT);
 		}

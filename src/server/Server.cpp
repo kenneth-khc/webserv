@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/27 02:07:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 00:59:27 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,10 @@
 #include <ctime>
 #include "Server.hpp"
 
-const unsigned int	Server::keepAliveTimeout = 5;
-const unsigned int	Server::cgiTimeout = 3;
-const unsigned int	Server::clientHeaderTimeout = 2;
-const unsigned int	Server::clientBodyTimeout = 2;
+const unsigned int	Server::keepAliveTimeoutDuration = 5;
+const unsigned int	Server::cgiTimeoutDuration = 3;
+const unsigned int	Server::clientHeaderTimeoutDuration = 2;
+const unsigned int	Server::clientBodyTimeoutDuration = 2;
 
 Server::Server():
 domainNames(),

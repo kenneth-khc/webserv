@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/26 19:00:33 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 01:08:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,12 +23,25 @@ address(),
 addressLen(),
 messageBuffer(),
 timer(Client::CLIENT_HEADER),
-keepAliveTime(Time::getTimeSinceEpoch()),
-clientHeaderTime(Time::getTimeSinceEpoch()),
-clientBodyTime(Time::getTimeSinceEpoch())
+keepAliveTimeout(0),
+clientHeaderTimeout(0),
+clientBodyTimeout(0)
 {
 	messageBuffer.resize(1024);
 	requestQueue.push_back(Request());
+
+	if (Server::clientHeaderTimeoutDuration > 0)
+	{
+		clientHeaderTimeout = Time::getTimeSinceEpoch() + Server::clientHeaderTimeoutDuration;
+	}
+	if (Server::clientBodyTimeoutDuration > 0)
+	{
+		clientBodyTimeout = Time::getTimeSinceEpoch() + Server::clientBodyTimeoutDuration;
+	}
+	if (Server::keepAliveTimeoutDuration > 0)
+	{
+		keepAliveTimeout = Time::getTimeSinceEpoch() + Server::keepAliveTimeoutDuration;
+	}
 }
 
 String	Client::getIPAddr() const
@@ -87,11 +100,11 @@ ssize_t	Client::receiveBytes()
 		}
 		if (timer & Client::CLIENT_HEADER)
 		{
-			clientHeaderTime = Time::getTimeSinceEpoch();
+			clientHeaderTimeout = Time::getTimeSinceEpoch() + Server::clientHeaderTimeoutDuration;
 		}
 		if (timer & Client::CLIENT_BODY)
 		{
-			clientBodyTime = Time::getTimeSinceEpoch();
+			clientBodyTimeout = Time::getTimeSinceEpoch() + Server::clientBodyTimeoutDuration;
 		}
 	}
 	return bytes;

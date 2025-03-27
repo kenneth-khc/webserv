@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/19 15:59:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/27 21:23:52 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ int	main(int argc, char** argv)
 	std::cout << "Server is running...\n";
 	while (1)
 	{
+		driver.updateEpollTimeout();
 		if (driver.epollWait() != 0)
 		{
 			driver.processReadyEvents();

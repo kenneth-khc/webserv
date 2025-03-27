@@ -37,6 +37,7 @@ struct	Driver
 	String					name;
 	std::vector<Server>		servers;
 
+	int						epollTimeout;
 	int						epollFD;
 	int						maxEvents;
 	epoll_event*			readyEvents;
@@ -64,13 +65,15 @@ struct	Driver
 	void		processReadyEvents();
 	void		receiveMessage(std::map<int, Client>::iterator&);
 	void		processRequest(std::map<int, Client>::iterator&, std::set<Client *>&);
-	void		processCGI(std::map<int, CGI*>::iterator&);
 	void		processReadyRequest(Request&, Response&);
-	void		generateResponse(std::map<int, Client>::iterator&);
-
 	void		processCookies(Request&, Response&);
-	void		closeConnection(std::map<int, Client>::iterator, int);
+	void		processCGI(std::map<int, CGI*>::iterator&);
+	void		generateResponse(std::map<int, Client>::iterator&, std::set<Client *>&);
+
+	void		updateEpollTimeout();
+
 	void		monitorConnections();
+	void		closeConnection(std::map<int, Client>::iterator, int);
 
 	/* Handling HTTP methods */
 	void		get(Request&, Response&);

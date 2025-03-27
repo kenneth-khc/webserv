@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/25 01:00:25 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/27 16:30:12 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,10 +31,10 @@ struct	Server
 	int					numClients;
 
 	/* Server-wide timeout values in seconds */
-	static const unsigned int	keepAliveTimeout;
-	static const unsigned int	cgiTimeout;
-	static const unsigned int	clientHeaderTimeout;
-	static const unsigned int	clientBodyTimeout;
+	static const unsigned int	keepAliveTimeoutDuration;
+	static const unsigned int	cgiTimeoutDuration;
+	static const unsigned int	clientHeaderTimeoutDuration;
+	static const unsigned int	clientBodyTimeoutDuration;
 
 	String					root;
 	std::map<String,String>	routes;

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/25 22:51:35 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/27 17:52:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,9 +48,9 @@ private:
 	std::deque<Response>	responseQueue;
 
 	char					timer;
-	std::time_t				keepAliveTime;
-	std::time_t				clientHeaderTime;
-	std::time_t				clientBodyTime;
+	std::time_t				keepAliveTimeout;
+	std::time_t				clientHeaderTimeout;
+	std::time_t				clientBodyTimeout;
 
 	enum Timeout {
 		KEEP_ALIVE = 0x001,

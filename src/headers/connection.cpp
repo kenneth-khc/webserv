@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 23:43:39 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/25 21:22:59 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/27 16:29:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ void	constructConnectionHeader(const Request &request, Response &response) {
 	else {
 		std::stringstream	stream;
 
-		stream << Server::keepAliveTimeout;
+		stream << Server::keepAliveTimeoutDuration;
 		response.insert("Connection", "keep-alive");
 		response.insert("Keep-Alive", "timeout=" + stream.str());
 	}

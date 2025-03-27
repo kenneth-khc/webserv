@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 22:13:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/25 01:32:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 02:18:49 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,6 @@ void	extractRequestLineComponents(Request &request, const String &line) {
 	Optional<String::size_type>	queryPos = str.find("?");
 	if (queryPos.exists == true) {
 		request.path = str.substr(0, queryPos.value);
-
 		request.query = Optional<String>(str.substr(queryPos.value + 1));
 		request.decodedQuery.exists = true;
 		for (String::size_type i = 0; i < request.query.value.length(); i++) {

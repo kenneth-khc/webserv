@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:14:43 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/22 01:12:31 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 02:19:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,16 +20,16 @@
 #include "Driver.hpp"
 
 // TODO: consider other status codes. 200 OK? 202 Accepted? 403 Forbidden?
-void	Driver::delete_(Request& request, Response& response) const
+void	Server::delete_(Response& response, Request& request) const
 {
-	DIR*	dir = opendir(uploadsDir.c_str());
+	DIR*	dir = opendir("uploads");
 
 	if (!dir)
 	{
 		throw NotFound404();
 	}
 
-	Optional<String::size_type>	uploads = request.requestTarget.find("/" + uploadsDir);
+	Optional<String::size_type>	uploads = request.requestTarget.find(String("/") + "uploads");
 
 	if (uploads.exists == false || uploads.value != 0)
 	{
@@ -47,7 +47,7 @@ void	Driver::delete_(Request& request, Response& response) const
 
 		if (d_name.find(sid).exists == true && d_name.find(fileName).exists == true)
 		{
-			std::remove((uploadsDir + "/" + d_name).c_str());
+			std::remove((String("uploads") + "/" + d_name).c_str());
 			break ;
 		}
 		entry = readdir(dir);

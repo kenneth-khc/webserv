@@ -1,41 +1,49 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Driver.hpp                                        :+:      :+:    :+:   */
+/*   Driver.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 20:15:12 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/07 22:52:42 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/28 20:14:32 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef DRIVER_HPP
 #define DRIVER_HPP
 
-#include "Server.hpp"
+#include "Configuration.hpp"
+#include "HTTP.hpp"
 #include "Client.hpp"
 #include "Socket.hpp"
+#include "String.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
-#include "MediaType.hpp"
 #include "Logger.hpp"
 #include "Configuration.hpp"
 #include "Logger.hpp"
-#include <map>
+#include <sys/epoll.h>
+#include <sys/types.h>
 #include <set>
 #include <vector>
+#include <queue>
+#include <map>
 
 extern "C" char	**environ;
 
 class CGI;
 
+/*int						globalEpollFD;*/
+/*std::map<int, CGI*>*	globalCgis;*/
+
 struct	Driver
 {
-	Driver();
+	Driver(const Configuration&);
+	~Driver();
 
-	String					name;
-	std::vector<Server>		servers;
+	String					webServerName;
+	struct HTTP				http;
 
 	int						epollTimeout;
 	int						epollFD;
@@ -45,28 +53,18 @@ struct	Driver
 	epoll_event				*currEvent;
 
 	std::map<int, Socket>	listeners;
+	std::map<int, Socket>	establishedSockets;
 	std::map<int, Client>	clients;
 	std::map<int, CGI *>	cgis;
-
-	//	TODO: Change access specifier?
-	//	Only include a server-wide mapping for now..,
-	//	Nginx allows defining in different http, server, and location blocks
-	MediaType				MIMEMappings;
 
 	friend class Logger;
 	Logger	logger;
 
-	void		configureFrom(const Configuration&);
-	void		configNewServer(const Directive&);
-
 	int			epollWait();
-	void		acceptNewClient(const Socket&);
 
 	void		processReadyEvents();
 	void		receiveMessage(std::map<int, Client>::iterator&);
 	void		processRequest(std::map<int, Client>::iterator&, std::set<Client *>&);
-	void		processReadyRequest(Request&, Response&);
-	void		processCookies(Request&, Response&);
 	void		processCGI(std::map<int, CGI*>::iterator&);
 	void		generateResponse(std::map<int, Client>::iterator&, std::set<Client *>&);
 
@@ -75,31 +73,16 @@ struct	Driver
 	void		monitorConnections();
 	void		closeConnection(std::map<int, Client>::iterator, int);
 
-	/* Handling HTTP methods */
-	void		get(Request&, Response&);
-	void		post(Request&, Response&);
-	void		delete_(Request&, Response&) const;
+private:
+	/* No default construction or copying necessary */
+	Driver();
+	Driver(const Driver&);
+	Driver&	operator=(const Driver&);
 
-	void		cgi(Request&, Response&);
-	void		generateDirectoryListing(Response&, const String&) const;
-	void		generateUploadsListing(const Request&, Response&, const String&) const;
-
-	// Resources Directories
-	const String 	rootDir;
-	const String 	pagesDir;
-	const String 	uploadsDir;
-	const String 	miscPagesDir;
-	const String	cgiDir;
-
-	bool				autoindex;
-	bool				uploads;
-
-	std::vector<String>	cgiScript;
-
-	std::map<std::string,std::string>	directoryMappings;
-
-	friend class CGI;
-
+	void				addToEpoll(int, EPOLL_EVENTS);
+	// TODO: check these 2 out
+	Optional<Server*>	matchServerName(const String&);
+	Optional<Server*>	matchPort(int);
 };
 
 #endif

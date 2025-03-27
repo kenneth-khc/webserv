@@ -6,12 +6,13 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:57:05 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/01 19:24:30 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/16 01:48:08 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Directive.hpp"
 #include "ConfigErrors.hpp"
+#include "VectorInitializer.hpp"
 #include <iostream>
 
 Directive::Directive()
@@ -24,29 +25,33 @@ Directive::Directive(const String& dname,
 					 Context context):
 name(dname),
 parameters(parameters),
+enclosing(),
+parent(),
 enclosingContext(context)
 {
 
 }
 
-void	Directive::addDirective(const Directive& dir)
+void	Directive::addDirective(Directive* dir)
 {
-	directives.insert(std::make_pair(dir.name, dir));
+	directives.insert(std::make_pair(dir->name, dir));
 }
 
-const Directive&	Directive::getDirective(const String& key)
+const Directive*	Directive::getDirective(const String& key) const
 {
 	return directives.find(key)->second;
 }
 
-std::vector<Directive>	Directive::getDirectives(const String& key) const
+std::vector<Directive*>	Directive::getDirectives(const String& key) const
 {
-	std::vector<Directive>	matchingDirectives;
-	DirectiveRange	range = directives.equal_range(key);
+	typedef std::pair<String,Directive*>	keyValuePair;
+
+	std::vector<Directive*>	matchingDirectives;
+	Directive::EqualRange	range = directives.equal_range(key);
 	while (range.first != range.second)
 	{
-		const std::pair<String,Directive>&	entry = *range.first;
-		const Directive&					directive = entry.second;
+		const keyValuePair&	entry = *range.first;
+		Directive*			directive = entry.second;
 		matchingDirectives.push_back(directive);
 		++range.first;
 	}
@@ -65,19 +70,6 @@ void	Directive::printParameters() const
 		std::cout << parameters[i];
 		if (i != parameters.size()-1)
 			std::cout << " ";
-	}
-}
-
-Optional<Directive>	Directive::find(const String& key) const
-{
-	std::multimap<String,Directive>::const_iterator it = directives.find(key);
-	if (it == directives.end())
-	{
-		return makeNone<Directive>();
-	}
-	else
-	{
-		return makeOptional(it->second);
 	}
 }
 
@@ -138,3 +130,81 @@ String	stringifyContext(Context ctx)
 	
 }
 
+Optional<String>
+Directive::getParameterOf(const String& key) const
+{
+	typedef std::multimap<String,Directive*>::const_iterator	multimap_iterator;
+
+	multimap_iterator	it = directives.find(key);
+	if (it == directives.end())
+	{
+		return makeNone<String>();
+	}
+	else
+	{
+		const std::vector<String>&	parameters = it->second->parameters;
+		String						buffer;
+		for (size_t i = 0; i < parameters.size(); ++i)
+		{
+			buffer += parameters[i];
+			if (i != parameters.size() - 1)
+			{
+				buffer += ' ';
+			}
+		}
+		return makeOptional(buffer);
+	}
+}
+
+Optional< std::vector<String> >
+Directive::getParametersOf(const String& key) const
+{
+	typedef std::multimap<String,Directive*>::const_iterator	multimap_iterator;
+
+	multimap_iterator	it = directives.find(key);
+	if (it == directives.end())
+	{
+		return makeNone< std::vector<String> >();
+	}
+	else
+	{
+		return makeOptional(it->second->parameters);
+	}
+}
+
+Optional< std::map<int,String> >	Directive::generateErrorPagesMapping() const
+{
+	std::map<int,String>		errorPages;
+	const std::vector<String>&	errorPage = recursivelyLookup< std::vector<String> >("error_page")
+										   .value_or(vector_of<String>());
+	if (errorPage.size() < 2)
+	{
+		return makeNone< std::map<int,String> >();
+	}
+	const String&	page = errorPage.back();
+	for (size_t i = 0; i < errorPage.size()-1; ++i)
+	{
+		std::pair<int,String> mapping = std::make_pair(errorPage[i].toInt(), page);
+		errorPages.insert(mapping);
+	}
+	if (errorPages.empty())
+	{
+		return makeNone< std::map<int,String> >();
+	}
+	else
+	{
+		return makeOptional(errorPages);
+	}
+}
+
+void	Directive::cleanUp()
+{
+	for (Mappings::iterator it = this->directives.begin();
+		 it != this->directives.end();
+		 ++it)
+	{
+		Directive*	child = it->second;
+		child->cleanUp();
+		delete child;
+	}
+}

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/27 16:29:37 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 03:40:53 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,9 @@
 #include "ErrorCode.hpp"
 #include "CGI.hpp"
 
+extern int 					globalEpollFD;
+extern std::map<int, CGI*>*	globalCgis;
+
 const String	CGI::cgiFields[NUM_OF_CGI_FIELDS] = {
 	"content-type",
 	"location",
@@ -30,7 +33,7 @@ const String	CGI::cgiFields[NUM_OF_CGI_FIELDS] = {
 };
 
 CGI::CGI(
-	const Driver &driver,
+	const Server &server,
 	Client &client,
 	Request &request,
 	Response &response) :
@@ -58,9 +61,9 @@ CGI::CGI(
 		this->extension = request.path.substr(extPos.value);
 
 	String								pathInfo;
-	std::vector<String>::const_iterator	it = driver.cgiScript.begin();
+	std::vector<String>::const_iterator	it = server.cgiScript.begin();
 
-	while (it != driver.cgiScript.end()) {
+	while (it != server.cgiScript.end()) {
 		if (this->extension == ("." + *it)) {
 			if (pathInfoPos.exists == true) {
 				this->execPath = request.path.substr(1, pathInfoPos.value - 1);
@@ -75,7 +78,7 @@ CGI::CGI(
 	if (this->execPath.ends_with(".bla") == true)	// Test-specific condition
 		this->execPath = "subject/ubuntu_cgi_tester";
 
-	if (it == driver.cgiScript.end() || access(this->execPath.c_str(), X_OK) != 0)
+	if (it == server.cgiScript.end() || access(this->execPath.c_str(), X_OK) != 0)
 		throw NotFound404();
 
 	String						cgiName;
@@ -102,13 +105,13 @@ CGI::~CGI(void) {
 	}
 }
 
-void	CGI::generateEnv(const Driver &driver) {
-	(void)driver;
+void	CGI::generateEnv(const Server &server) {
+	(void)server;
 	std::stringstream	portNum;
 	std::stringstream	serverProtocol;
 	std::stringstream	contentLength;
 
-	portNum << this->client.socket.port;
+	portNum << this->client.socket->port;
 	serverProtocol << std::setprecision(2) << this->request.httpVersion;
 	contentLength << this->request.messageBody.length();
 
@@ -118,7 +121,7 @@ void	CGI::generateEnv(const Driver &driver) {
 		// "GATEWAY_INTERFACE=CGI/1.1",
 		"PATH_INFO=/",	// Test-specific condition
 		"QUERY_STRING=" + this->request.query.value,
-		// "REMOTE_ADDR=" + this->client.getIPAddr(),
+		// "REMOTE_ADDR=" + this->client->socket->ip,
 		// "REMOTE_HOST=" + this->request["Host"].value,
 		"REQUEST_METHOD=" + this->request.method,
 		// "SCRIPT_NAME=/" + this->execPath,
@@ -129,7 +132,7 @@ void	CGI::generateEnv(const Driver &driver) {
 	};
 
 	const String	extMetaVariables[NUM_OF_EXT_META_VARIABLES] = {
-		"X_UPLOADS_DIR=" + driver.uploadsDir
+		"X_UPLOADS_DIR=uploads"
 	};
 
 	int 		i = 0;
@@ -187,7 +190,8 @@ void	CGI::generateEnv(const Driver &driver) {
 	this->envp.push_back(0);
 }
 
-void	CGI::execute(Driver &driver) {
+void	CGI::execute(const Server &server) {
+	(void)server;
 	int	input[2];
 	int	output[2];
 
@@ -213,15 +217,15 @@ void	CGI::execute(Driver &driver) {
 	ev.events = EPOLLOUT;
 	fcntl(input[1], F_SETFL, O_NONBLOCK);
 	ev.data.fd = input[1];
-	epoll_ctl(driver.epollFD, EPOLL_CTL_ADD, input[1], &ev);
-	driver.cgis.insert(std::make_pair(input[1], this));
+	epoll_ctl(globalEpollFD, EPOLL_CTL_ADD, input[1], &ev);
+	globalCgis->insert(std::make_pair(input[1], this));
 	this->inputFD = input[1];
 
 	ev.events = EPOLLIN;
 	fcntl(output[0], F_SETFL, O_NONBLOCK);
 	ev.data.fd = output[0];
-	epoll_ctl(driver.epollFD, EPOLL_CTL_ADD, output[0], &ev);
-	driver.cgis.insert(std::make_pair(output[0], this));
+	epoll_ctl(globalEpollFD, EPOLL_CTL_ADD, output[0], &ev);
+	globalCgis->insert(std::make_pair(output[0], this));
 	this->outputFD = output[0];
 	this->outputPipeSize = fcntl(this->outputFD, F_GETPIPE_SZ);
 }
@@ -371,15 +375,4 @@ void	CGI::parseOutput(void) {
 		this->response.messageBody.append(this->output.c_str(), this->output.length());
 		this->output.erase(0, this->output.length());
 	}
-}
-
-void	Driver::cgi(Request &request, Response &response) {
-	if (request.method != "GET" && request.method != "POST")
-		throw NotImplemented501();
-
-	Client	&client = this->clients[currEvent->data.fd];
-	CGI		*cgi = new CGI(*this, client, request, response);
-
-	cgi->generateEnv(*this);
-	cgi->execute(*this);
 }

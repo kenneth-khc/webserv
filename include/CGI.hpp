@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/27 03:57:09 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 03:12:01 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,10 +50,10 @@ class CGI {
 		std::time_t			lastActive;
 		char				processStage;
 
-		CGI(const Driver &driver, Client &client, Request &request, Response &response);
+		CGI(const Server &server, Client &client, Request &request, Response &response);
 		~CGI(void);
-		void	generateEnv(const Driver &driver);
-		void	execute(Driver &driver);
+		void	generateEnv(const Server &server);
+		void	execute(const Server &server);
 		void	feedInput(int epollFD);
 		void	fetchOutput(int epollFD);
 		void	parseOutput(void);

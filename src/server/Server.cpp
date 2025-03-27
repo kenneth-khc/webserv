@@ -56,7 +56,8 @@ Server::Server(const Directive& serverBlock,
 						 .value_or(false)),
 	indexFiles(serverBlock.recursivelyLookup< std::vector<String> >("index")
 						  .value_or(vector_of<String>("index.html"))),
-	MIMEMappings("mime.types"),
+	MIMEMappings(serverBlock.recursivelyLookup<String>("types")
+							.value_or("")),
 	clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
 								 .transform(String::toSize)
 								 .value_or(1000000)),
@@ -70,7 +71,11 @@ Server::Server(const Directive& serverBlock,
 	configureLocations(serverBlock);
 	errorPages = serverBlock.generateErrorPagesMapping()
 							.value_or(std::map<int,String>());
-	std::cout << "Server EP size: " << errorPages.size() << "\n";
+	for (std::map<int,String>::iterator it = errorPages.begin();
+		 it != errorPages.end(); ++it)
+	{
+		std::cout << it->first << " -> " << it->second << '\n';
+	}
 }
 
 void	Server::checkIfAllowedMethod(const Location& location, const Request& request)

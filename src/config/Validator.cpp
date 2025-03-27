@@ -204,12 +204,22 @@ void	validateIndex(const Directive& dir, const Mappings& mappings)
 }
 
 /*
-Syntax : types file;
+Syntax : types filename;
 Default: —
-Context: http */
-void	validateTypes(const Directive&, const Mappings&)
+Context: http, server, location */
+void	validateTypes(const Directive& dir, const Mappings& mappings)
 {
+	validateParameterSize(dir, 1);
+	validateEnclosingContext(dir, HTTP);
+	validateDuplicateDirective(dir, mappings);
+}
 
+void	validateBoolean(const String& str)
+{
+	if (str != "on" && str != "off")
+	{
+		throw InvalidParameter(str);
+	}
 }
 
 /*
@@ -221,20 +231,47 @@ void	validateAutoindex(const Directive& dir, const Mappings& mappings)
 	validateParameterSize(dir, 1);
 	validateEnclosingContext(dir, vector_of(HTTP)(SERVER)(LOCATION));
 	validateDuplicateDirective(dir, mappings);
+	validateBoolean(dir.parameters[0]);
 }
 
 /*
 Syntax : ExecCGI boolean;
 Default: off
 Context: location */
+void	validateExecCGI(const Directive& dir, const Mappings& mappings)
+{
+	validateParameterSize(dir, 1);
+	validateEnclosingContext(dir, LOCATION);
+	validateDuplicateDirective(dir, mappings);
+	validateBoolean(dir.parameters[0]);
+}
+
+void	validateFileExtension(const String& str)
+{
+	if (str[0] != '.')
+	{
+		throw InvalidParameter(str);
+	}
+}
 
 /*
-Syntax : CGI-script
+Syntax : CGI-script file-extension ... ;
 Default: —
 Context: location */
+void	validateCGIScript(const Directive& dir, const Mappings& mappings)
+{
+	validateParameterSize(dir, 1, std::numeric_limits<size_t>::max());
+	validateEnclosingContext(dir, LOCATION);
+	validateDuplicateDirective(dir, mappings);
+	const std::vector<String>&	parameters = dir.parameters;
+	for (size_t i = 0; i < parameters.size(); ++i)
+	{
+		validateFileExtension(parameters[i]);
+	}
+}
 
 /*
-Syntax : allow_method methods ...;
+Syntax : allow_method methods ... ;
 Default: —
 Context: location */
 void	validateAllowMethod(const Directive& dir, const Mappings& mappings)
@@ -276,7 +313,9 @@ void	validateErrorCode(const String& code)
 {
 	static std::vector<String>	errorCodes = vector_of<String>
 	("300")("301")("302")("303")("304")("305")("306")("307")("308")
-	("400")("401")("402")("403")("404")("405")("406")("407")("408")("409")("410")("411")("412")("413")("414")("415")("416")("417")("418")("421")("422")("423")("424")("425")("426")("428")("429")("431")("451")
+	("400")("401")("402")("403")("404")("405")("406")("407")("408")("409")("410")
+	("411")("412")("413")("414")("415")("416")("417")("418")("421")("422")("423")
+	("424")("425")("426")("428")("429")("431")("451")
 	("500")("501")("502")("503")("504")("505")("506")("507")("508")("510")("511");
 
 	if (std::find(errorCodes.begin(),
@@ -286,10 +325,24 @@ void	validateErrorCode(const String& code)
 	}
 }
 
+void	validateAcceptUploads(const Directive& dir, const Mappings& mappings)
+{
+	validateParameterSize(dir, 1);
+	validateEnclosingContext(dir, LOCATION);
+	validateDuplicateDirective(dir, mappings);
+	validateBoolean(dir.parameters[0]);
+}
+
 /*
 Syntax : upload_directory file_path;
 Default: —
 Context: location */
+void	validateUploadDirectory(const Directive& dir, const Mappings& mappings)
+{
+	validateParameterSize(dir, 1);
+	validateEnclosingContext(dir, LOCATION);
+	validateDuplicateDirective(dir, mappings);
+}
 
 /*
 Syntax : error_page code ... uri;

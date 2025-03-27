@@ -51,5 +51,9 @@ void	validateAutoindex(const Directive&, const Mappings&);
 void	validateAllowMethod(const Directive&, const Mappings&);
 void	validateClientMaxBodySize(const Directive&, const Mappings&);
 void	validateErrorPage(const Directive&, const Mappings&);
+void	validateExecCGI(const Directive&, const Mappings&);
+void	validateCGIScript(const Directive&, const Mappings&);
+void	validateAcceptUploads(const Directive&, const Mappings&);
+void	validateUploadDirectory(const Directive&, const Mappings&);
 
 #endif

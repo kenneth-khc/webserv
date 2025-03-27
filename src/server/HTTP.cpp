@@ -16,7 +16,8 @@
 #include <iostream>
 HTTP::HTTP(const Directive& httpBlock):
 	servers(),
-	MIMEMappings("mime.types"),
+	MIMEMappings(httpBlock.getParameterOf("types")
+						  .value_or("")),
 	autoindex(httpBlock.getParameterOf("autoindex")
 					   .transform(String::toBool)
 					   .value_or(false)),
@@ -30,7 +31,11 @@ HTTP::HTTP(const Directive& httpBlock):
 {
 	errorPages = httpBlock.generateErrorPagesMapping()
 						  .value_or(std::map<int, String>());
-	std::cout << "HTTP EP size: " << errorPages.size() << "\n";
+	for (std::map<int,String>::iterator it = errorPages.begin();
+		 it != errorPages.end(); ++it)
+	{
+		std::cout << it->first << " -> " << it->second << '\n';
+	}
 }
 
 void	HTTP::addServer(const Server& server)

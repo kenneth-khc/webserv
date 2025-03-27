@@ -36,12 +36,12 @@ struct HTTP
 	/* Read configuration options from a HTTP Directive */
 	HTTP(const Directive&);
 
-	std::vector<Server>	servers;
-	MediaType			MIMEMappings;
-	bool				autoindex;
-	String				rootDirectory;
-	std::vector<String>	indexFiles;
-	std::size_t			clientMaxBodySize;
+	std::vector<Server>		servers;
+	MediaType				MIMEMappings;
+	bool					autoindex;
+	String					rootDirectory;
+	std::vector<String>		indexFiles;
+	std::size_t				clientMaxBodySize;
 	std::map<int,String>	errorPages;
 
 	/* Insert a Server into the HTTP scope */

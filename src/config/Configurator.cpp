@@ -35,6 +35,10 @@ Configurator::Configurator()
 	support("allow_method", validateAllowMethod);
 	support("client_max_body_size", validateClientMaxBodySize);
 	support("error_page", validateErrorPage);
+	support("exec_CGI", validateExecCGI);
+	support("CGI_script", validateCGIScript);
+	support("accept_uploads", validateAcceptUploads);
+	support("upload_directory", validateUploadDirectory);
 }
 
 void	Configurator::support(const String& name, const Validator& validator)

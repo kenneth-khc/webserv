@@ -25,35 +25,60 @@ Location::Location():
 }
 
 #include <iostream>
-Location::Location(const Directive& directive):
+Location::Location(const Directive& locationBlock):
 	matchType(PREFIX),
 	// TODO: location exact matches
-	uri(directive.parameters[0]),
+	uri(locationBlock.parameters[0]),
 
-	root(directive.recursivelyLookup<String>("root")
-				  .value_or("html")),
+	root(locationBlock.recursivelyLookup<String>("root")
+					  .value_or("html")),
 
 	alias(),
 
-	autoindex(directive.recursivelyLookup<String>("autoindex")
-					   .transform(String::toBool)
-					   .value_or(false)),
+	autoindex(locationBlock.recursivelyLookup<String>("autoindex")
+						   .transform(String::toBool)
+						   .value_or(false)),
 
-	MIMEMappings("mime.types"),
+	MIMEMappings(locationBlock.recursivelyLookup<String>("types")
+							  .value_or("")),
 
-	indexFiles(directive.recursivelyLookup< std::vector<String> >("index")
-						.value_or(vector_of<String>("index.html"))),
+	indexFiles(locationBlock.recursivelyLookup< std::vector<String> >("index")
+							.value_or(vector_of<String>("index.html"))),
 
-	allowedMethods(directive.getParametersOf("allow_method")
-							.value_or(vector_of<String>("GET"))),
+	allowedMethods(locationBlock.getParametersOf("allow_method")
+								.value_or(vector_of<String>("GET"))),
 
-	clientMaxBodySize(directive.recursivelyLookup<String>("client_max_body_size")
-								 .transform(String::toSize)
-								 .value_or(1000000))
+	clientMaxBodySize(locationBlock.recursivelyLookup<String>("client_max_body_size")
+								   .transform(String::toSize)
+								   .value_or(1000000)),
+
+	executeCGI(locationBlock.getParameterOf("exec_CGI")
+							.transform(String::toBool)
+							.value_or(false)),
+
+	CGIScriptFileExtensions(locationBlock.getParametersOf("CGI_script")
+										 .value_or(vector_of<String>())),
+
+	acceptUploads(locationBlock.getParameterOf("accept_uploads")
+							   .transform(String::toBool)
+							   .value_or(false)),
+
+	uploadDirectory(locationBlock.getParameterOf("upload_directory")
+								 .value_or(""))
 {
 	// TODO: recurse instead of manually chasing the pointers lol lmao
-	errorPages = directive.generateErrorPagesMapping()
-						  .value_or(std::map<int,String>());
-	std::cout << "Location EP size: " << errorPages.size() << "\n";
+	errorPages = locationBlock.generateErrorPagesMapping()
+							  .value_or(std::map<int,String>());
+	for (std::map<int,String>::iterator it = errorPages.begin();
+		 it != errorPages.end(); ++it)
+	{
+		std::cout << it->first << " -> " << it->second << '\n';
+	}
+	std::cout << "EXEC_CGI: " << executeCGI << "\n";
+	for (size_t i = 0; i < CGIScriptFileExtensions.size(); ++i)
+	{
+		std::cout << "CGI_Script: " << CGIScriptFileExtensions[i] << "\n";
+	}
+	std::cout << "\n";
 }
 

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 20:15:12 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 20:14:32 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 21:59:58 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include "Response.hpp"
 #include "Logger.hpp"
 #include "Configuration.hpp"
+#include "PathHandler.hpp"
 #include "Logger.hpp"
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -43,6 +44,7 @@ struct	Driver
 	~Driver();
 
 	String					webServerName;
+	PathHandler				pathmaker;
 	struct HTTP				http;
 
 	int						epollTimeout;

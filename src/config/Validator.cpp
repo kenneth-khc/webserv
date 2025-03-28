@@ -277,7 +277,8 @@ Context: location */
 void	validateAllowMethod(const Directive& dir, const Mappings& mappings)
 {
 	validateParameterSize(dir, 1, 3);
-	validateParameterValues(dir.parameters, vector_of<String>("GET")("POST")("DELETE"));
+	validateParameterValues(dir.parameters,
+							vector_of<String>("GET")("POST")("DELETE")("HEAD"));
 	validateEnclosingContext(dir, LOCATION);
 	validateDuplicateDirective(dir, mappings);
 }

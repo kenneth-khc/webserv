@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 20:15:13 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 21:46:19 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,11 +74,6 @@ Server::Server(const Directive& serverBlock,
 	configureLocations(serverBlock);
 	errorPages = serverBlock.generateErrorPagesMapping()
 							.value_or(std::map<int,String>());
-	for (std::map<int,String>::iterator it = errorPages.begin();
-		 it != errorPages.end(); ++it)
-	{
-		std::cout << it->first << " -> " << it->second << '\n';
-	}
 }
 
 void	Server::checkIfAllowedMethod(const Location& location, const Request& request)

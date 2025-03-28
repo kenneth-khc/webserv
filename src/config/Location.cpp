@@ -69,16 +69,5 @@ Location::Location(const Directive& locationBlock):
 	// TODO: recurse instead of manually chasing the pointers lol lmao
 	errorPages = locationBlock.generateErrorPagesMapping()
 							  .value_or(std::map<int,String>());
-	for (std::map<int,String>::iterator it = errorPages.begin();
-		 it != errorPages.end(); ++it)
-	{
-		std::cout << it->first << " -> " << it->second << '\n';
-	}
-	std::cout << "EXEC_CGI: " << executeCGI << "\n";
-	for (size_t i = 0; i < CGIScriptFileExtensions.size(); ++i)
-	{
-		std::cout << "CGI_Script: " << CGIScriptFileExtensions[i] << "\n";
-	}
-	std::cout << "\n";
 }
 

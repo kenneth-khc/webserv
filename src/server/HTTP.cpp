@@ -13,29 +13,28 @@
 #include "HTTP.hpp"
 #include "VectorInitializer.hpp"
 
-#include <iostream>
 HTTP::HTTP(const Directive& httpBlock):
 	servers(),
+
 	MIMEMappings(httpBlock.getParameterOf("types")
 						  .value_or("")),
+
 	autoindex(httpBlock.getParameterOf("autoindex")
 					   .transform(String::toBool)
 					   .value_or(false)),
+
 	rootDirectory(httpBlock.getParameterOf("root")
 						   .value_or("html")),
+
 	indexFiles(httpBlock.getParametersOf("index")
 						.value_or(vector_of<String>("index.html"))),
+
 	clientMaxBodySize(httpBlock.getParameterOf("client_max_body_size")
 							   .transform(String::toSize)
 							   .value_or(1000000))
 {
 	errorPages = httpBlock.generateErrorPagesMapping()
 						  .value_or(std::map<int, String>());
-	for (std::map<int,String>::iterator it = errorPages.begin();
-		 it != errorPages.end(); ++it)
-	{
-		std::cout << it->first << " -> " << it->second << '\n';
-	}
 }
 
 void	HTTP::addServer(const Server& server)

@@ -34,6 +34,7 @@ std::map<int,CGI*>*	globalCgis;
 
 Driver::Driver(const Configuration& config):
 	webServerName("42webserv"),
+	pathmaker(config.get("prefix").parameters[0]),
 	http(config.get("http")),
 	epollTimeout(-1),
 	epollFD(-1),

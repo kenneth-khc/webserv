@@ -114,6 +114,16 @@ String	String::operator+(const String& rhs) const
 	return String(str + rhs.str);
 }
 
+String	String::operator+(char rhs)
+{
+	return String(str + rhs);
+}
+
+String	String::operator+(char rhs) const
+{
+	return String(str + rhs);
+}
+
 String	String::operator+(const char* rhs)
 {
 	return *this + String(rhs);

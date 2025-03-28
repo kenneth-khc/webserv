@@ -63,6 +63,8 @@ public:
 	const char*				operator+(size_type) const;
 	String					operator+(const String&);
 	String					operator+(const String&) const;
+	String					operator+(char);
+	String					operator+(char) const;
 	String					operator+(const char*);
 	String					operator+(const char*) const;
 	friend String			operator+(const char*, const String&);

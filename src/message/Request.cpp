@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/25 22:15:39 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 17:11:20 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,15 @@ const float	Request::supportedVersions[NUM_OF_VERSIONS] = { 1.1 };
 
 Request::Request(void) :
 	Message(),
+	client(0),
+	method(),
+	requestTarget(),
+	path(),
+	resolvedPath(),
+	query(),
+	decodedQuery(),
+	queryPairs(),
+	cookies(),
 	chunkSize(0),
 	bodyLength(0),
 	chunkSizeFound(false),
@@ -40,9 +49,11 @@ Request::~Request(void) {}
 
 Request::Request(const Request &obj) :
 	Message(obj),
+	client(obj.client),
 	method(obj.method),
 	requestTarget(obj.requestTarget),
 	path(obj.path),
+	resolvedPath(obj.resolvedPath),
 	query(obj.query),
 	queryPairs(obj.queryPairs),
 	cookies(obj.cookies),
@@ -56,16 +67,18 @@ Request	&Request::operator=(const Request &obj) {
 	if (this == &obj)
 		return (*this);
 	Message::operator=(obj);
+	this->client = obj.client;
 	this->method = obj.method;
 	this->requestTarget = obj.requestTarget;
 	this->path = obj.path;
+	this->resolvedPath = obj.resolvedPath;
 	this->query = obj.query;
 	this->queryPairs = obj.queryPairs;
 	this->cookies = obj.cookies;
-	this->chunkSize = obj.chunkSize;
-	this->bodyLength = obj.bodyLength;
-	this->chunkSizeFound = obj.chunkSizeFound;
-	this->lastChunk = obj.lastChunk;
+	this->chunkSize = 0;
+	this->bodyLength = 0;
+	this->chunkSizeFound = false;
+	this->lastChunk = false;
 	return *this;
 }
 

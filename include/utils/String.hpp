@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/20 19:24:14 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 03:35:34 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,9 +72,10 @@ public:
 	operator	std::string() const;
 
 	/* Wrapper to call std::string functions */
-
 	char&					at(size_type);
 	const char&				at(size_type) const;
+	char&					back();
+	const char&				back() const;
 	size_type				size() const;
 	size_type				length() const;
 	bool					empty() const;
@@ -144,6 +145,12 @@ public:
 	String				trim(const String& set) const;
 
 	int					toInt() const;
+	bool				toBool() const;
+	static bool			toBool(const String&);
+	std::size_t			toSizeType() const;
+	static std::size_t	toSizeType(const String&);
+	std::size_t			toSize() const;
+	static std::size_t	toSize(const String&);
 
 	// Checks if the string starts with the given prefix
 	bool				starts_with(const String&) const;

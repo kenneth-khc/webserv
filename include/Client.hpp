@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/27 17:52:13 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 17:18:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,9 @@
 #include "Request.hpp"
 #include "Response.hpp"
 
+struct	Socket;
+struct	Server;
+
 class	Client
 {
 	friend struct Server;
@@ -28,19 +31,17 @@ class	Client
 
 public:
 	Client();
-
-	String	getIPAddr() const;
-	String	getPortNum() const;
+	Client(Socket*, const Socket*);
+	Client(const Client&);
 
 	ssize_t	receiveBytes();
 	ssize_t	sendBytes(String &formattedResponse);
 
-	Socket					socket;
-	String					message;
+	Socket*				socket;
+	const Socket*		receivedBy;
+	Server*				server;
+	String				message;
 private:
-	sockaddr_storage		address;
-	socklen_t				addressLen;
-
 	std::vector<char>		messageBuffer;
 	static const size_t		MAX_REQUEST_SIZE;
 	Request					request;

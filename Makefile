@@ -6,7 +6,7 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/03/10 00:26:16 by cteoh            ###   ########.fr        #
+#    Updated: 2025/03/28 20:18:46 by cteoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,7 @@
 NAME := webserv
 
 CXX := g++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98 $(includes)
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98 #-fuse-ld=mold
 
 src_dir := src
 dirs := $(src_dir) \
@@ -48,7 +48,7 @@ uploads_dir := uploads
 all: $(NAME)
 
 $(NAME): $(objs) $(uploads_dir)
-	$(CXX) $(CXXFLAGS) $(objs) -o $(NAME)
+	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(NAME)
 
 $(obj_dir):
 	mkdir -p $(obj_dir)
@@ -71,7 +71,7 @@ re: fclean all
 optimized: CXXFLAGS += -O3
 optimized: all
 
-debug_server: CXXFLAGS += -O -g3
+debug_server: CXXFLAGS += -g3
 debug_server: all
 
 fsan: CXXFLAGS += -fsanitize=address,undefined -g3

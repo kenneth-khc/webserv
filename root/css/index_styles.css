@@ -32,10 +32,9 @@ body {
 	gap: 10px;
 }
 
-/* Main title, form, and language */
+/* Main title, form */
 #title-container,
-.pseudo-button,
-#language-container {
+.pseudo-button {
 	width: 100%;
 }
 
@@ -50,12 +49,6 @@ body {
 
 form {
 	margin-top: 4px;
-}
-
-#language-container {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
 }
 
 .main-element {

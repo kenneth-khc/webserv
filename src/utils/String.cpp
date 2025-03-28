@@ -6,13 +6,14 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/20 19:21:41 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 03:27:31 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 #include <fstream>
 #include <stdexcept>
+#include <cstring>
 #include "String.hpp"
 #include "Optional.hpp"
 
@@ -170,6 +171,16 @@ const char&	String::at(size_type index) const
 		throw std::out_of_range(message);
 	}
 	return str[index];
+}
+
+char&	String::back()
+{
+	return str[str.length() - 1];
+}
+
+const char&	String::back() const
+{
+	return str[str.length() - 1];
 }
 
 String::size_type	String::size() const
@@ -552,32 +563,16 @@ String	String::trim(const String& set) const
 	return str.substr(start, len);
 }
 
+bool	String::starts_with(const String& prefix) const
+{
+	return std::strncmp(c_str(), prefix.c_str(), prefix.size()) == 0;
+}
+
 int	String::toInt() const
 {
 	int	num;
 	std::istringstream(str) >> num;
 	return num;
-}
-
-bool	String::starts_with(const String& prefix) const
-{
-	if (prefix.str.length() > str.length())
-	{
-		return false;
-	}
-
-	String::const_iterator	it = str.begin();
-	String::const_iterator	prefixIt = prefix.str.begin();
-	while (prefixIt != prefix.str.end())
-	{
-		if (*it != *prefixIt)
-		{
-			return false;
-		}
-		it++;
-		prefixIt++;
-	}
-	return true;
 }
 
 bool	String::ends_with(const String& suffix) const
@@ -645,6 +640,64 @@ String	String::title() const
 		}
 	}
 	return titlecase;
+}
+
+std::size_t String::toSizeType() const
+{
+	std::size_t	num;
+	std::istringstream(str) >> num;
+	return num;
+}
+
+std::size_t String::toSizeType(const String& str)
+{
+	std::size_t	num;
+	std::istringstream(str) >> num;
+	return num;
+}
+
+bool	String::toBool() const
+{
+	return String::toBool(*this);
+}
+
+bool	String::toBool(const String& str)
+{
+	if (str == "on")
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+std::size_t String::toSize() const
+{
+	return String::toSize(*this);
+}
+
+std::size_t String::toSize(const String& str)
+{
+	std::size_t	bytes;
+	int			multiplier = 1;
+	if (std::isdigit(str.back()))
+	{
+		bytes = str.toSizeType() * multiplier;
+		return bytes;
+	}
+	else if (str.back() == 'k' || str.back() == 'K')
+	{
+		multiplier = 1000;
+	}
+	else if (str.back() == 'm' || str.back() == 'M')
+	{
+		multiplier = 1000000;
+	}
+	String	numberPart = str.substr(0, str.length() - 1);
+	bytes = numberPart.toSizeType() * multiplier;
+	return bytes;
 }
 
 template <typename Type>

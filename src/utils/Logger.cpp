@@ -6,16 +6,14 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 14:00:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/25 18:28:52 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 03:26:27 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
-#include <string>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include "Server.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
@@ -49,12 +47,10 @@ void	Logger::logIPPort(sockaddr* client)
 void	Logger::logRequest(Request& request, Client& client) const
 {
 	std::cout << YELLOW;
-	std::cout << client.getIPAddr() << ":" << client.getPortNum();
+	std::cout << client.socket->ip << ":" << client.socket->port;
 	std::cout << " => ";
-	std::cout
-			  //<< server.hostName
-			  << ":"
-			  << client.socket.port  << CRESET
+	std::cout << client.receivedBy->ip << ":" << client.receivedBy->port
+			  << CRESET
 			  << " | ";
 	std::cout << GREEN;
 	std::cout << request.method;
@@ -66,11 +62,10 @@ void	Logger::logRequest(Request& request, Client& client) const
 void	Logger::logResponse(Response& response, Client& client) const
 {
 	std::cout << YELLOW;
-	std::cout << client.getIPAddr() << ":" << client.getPortNum();
+	std::cout << client.socket->ip << ":" << client.socket->port;
 	std::cout << " <= ";
-	std::cout
-			  //<< server.hostName << ":"
-			  << client.socket.port  << CRESET
+	std::cout << client.receivedBy->ip << ":" << client.receivedBy->port
+			  << CRESET
 			  << " | ";
 	std::cout << GREEN;
 	std::cout << "HTTP/" << response.httpVersion << " "
@@ -82,10 +77,10 @@ void	Logger::logResponse(Response& response, Client& client) const
 void	Logger::logConnection(int status, int fd, Client& client) const
 {
 	std::cout << YELLOW;
-	std::cout << client.getIPAddr() << ":" << client.getPortNum();
+	std::cout << client.socket->ip << ":" << client.socket->port;
 	std::cout << " <> ";
-	std::cout //<< ":"
-			  << client.socket.port  << CRESET
+	std::cout << client.receivedBy->ip << ":" << client.receivedBy->port
+			  << CRESET
 			  << " | ";
 	std::cout << RED
 			  << "FD " << fd << " ";

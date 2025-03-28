@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:32:28 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/21 19:15:50 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 17:08:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,9 @@ const String	Message::allowedDuplicateHeaders[NUM_OF_HEADERS] = {
 
 Message::Message(void) :
 	processStage(0),
-	httpVersion(0.0)
+	httpVersion(0.0),
+	headers(),
+	messageBody()
 {}
 
 Message::~Message(void) {}

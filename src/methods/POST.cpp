@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/22 01:12:35 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 02:22:45 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@
 #include "Server.hpp"
 #include "ErrorCode.hpp"
 #include "POSTBody.hpp"
-#include "Driver.hpp"
 
 using std::size_t;
 using std::ofstream;
@@ -34,9 +33,12 @@ static void		uploadFiles(const POSTBody& body, const String& uploadsDir, const S
 static String	constructFormPath(const String& uploadsDir, const String& sid);
 static void		uploadForm(const POSTBody& body, const String& uploadsDir, const String& sid);
 
-void	Driver::post(Request& request, Response& response)
+void	Server::post(Response& response, Request& request) const
 {
-	if (request.path == "/")	// Test-specific condition
+	POSTBody					msgBody(request);
+	Optional<String::size_type>	pos = request.requestTarget.find(String("/") + "cgi-bin" + "/");
+
+	if (pos.exists == true && pos.value == 0)
 	{
 		throw MethodNotAllowed405();
 	}
@@ -52,13 +54,14 @@ void	Driver::post(Request& request, Response& response)
 		POSTBody		msgBody(request);
 		const String&	sid = request.cookies.find("sid")->second.value;
 
+		//TODO: dynamic uploads dir
 		if (msgBody.contentType == "application/x-www-form-urlencoded")
 		{
-			uploadForm(msgBody, uploadsDir, sid);
+			uploadForm(msgBody, "uploads", sid);
 		}
 		else if (msgBody.contentType == "multipart/form-data")
 		{
-			uploadFiles(msgBody, uploadsDir, sid);
+			uploadFiles(msgBody, "uploads", sid);
 		}
 		else
 		{

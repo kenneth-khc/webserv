@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/03 06:04:17 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/06 00:00:43 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/16 01:48:14 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,12 +37,23 @@ public:
 	Optional&	operator=(const T&);
 	Optional	operator()(const T&);
 	operator	bool() const;
-	operator	T()	const;
+	/*operator	T()	const;*/
 
 	void		reset();
+
 	template <typename U>
 	T	value_or(const U& defaultValue) const;
 
+	template <typename Function>
+	Optional<T>	or_else(const Function&) const;
+
+	template <typename ReturnType>
+	Optional<ReturnType>
+	transform(ReturnType (*)(const T&)) const;
+
+	template <typename Functor>
+	Optional<typename Functor::return_type>
+	transform(const Functor&) const;
 };
 
 template <typename T>
@@ -136,6 +147,51 @@ T	Optional<T>::value_or(const U& defaultValue) const
 	else
 	{
 		return static_cast<T>(defaultValue);
+	}
+}
+
+template <typename T>
+template <typename Function>
+Optional<T>	Optional<T>::or_else(const Function& func) const
+{
+	if (exists)
+	{
+		return *this;
+	}
+	else
+	{
+		return func();
+	}
+}
+
+template <typename T>
+template <typename ReturnType>
+Optional<ReturnType>
+Optional<T>::transform(ReturnType (*func)(const T&)) const
+{
+	if (exists)
+	{
+		return makeOptional<ReturnType>(func(value));
+	}
+	else
+	{
+		return makeNone<ReturnType>();
+	}
+}
+
+template <typename T>
+template <typename Functor>
+Optional<typename Functor::return_type>
+Optional<T>::transform(const Functor& func) const
+{
+	typedef typename Functor::return_type	return_type;
+	if (exists)
+	{
+		return makeOptional<return_type>(func(value));
+	}
+	else
+	{
+		return makeNone<return_type>();
 	}
 }
 

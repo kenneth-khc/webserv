@@ -1,28 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Utils.hpp                                          :+:      :+:    :+:   */
+/*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/05 13:04:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/22 07:30:15 by kecheong         ###   ########.fr       */
+/*   Created: 2025/03/22 07:29:48 by kecheong          #+#    #+#             */
+/*   Updated: 2025/03/22 07:29:54 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef UTILS_HPP
-#define UTILS_HPP
-
-#include "String.hpp"
-#include <sstream>
-
-template <typename ToType>
-ToType	to(const String& str)
-{
-	std::istringstream	ss(str);
-	ToType				converted;
-	ss >> converted;
-	return converted;
-}
-
-#endif

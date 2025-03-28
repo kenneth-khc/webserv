@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/25 18:26:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 02:08:54 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,11 @@ class Request : public Message {
 		static const String	methods[NUM_OF_METHODS];
 		static const float	supportedVersions[NUM_OF_VERSIONS];
 
+		Client*						client;
 		String						method;
 		String						requestTarget;
 		String						path;
+		String						resolvedPath;
 		Optional<String>			query;
 		Optional<String>			decodedQuery;
 		std::map<String, String>	queryPairs;

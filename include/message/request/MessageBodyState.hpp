@@ -1,24 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   requestFields.hpp                                  :+:      :+:    :+:   */
+/*   MessageBodyState.hpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/26 02:00:34 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/14 22:09:44 by cteoh            ###   ########.fr       */
+/*   Created: 2025/03/29 18:30:21 by cteoh             #+#    #+#             */
+/*   Updated: 2025/03/30 03:25:43 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef REQUESTFIELDS_HPP
-# define REQUESTFIELDS_HPP
+#ifndef MESSAGEBODYSTATE_HPP
+# define MESSAGEBODYSTATE_HPP
 
-# include "String.hpp"
-# include "Request.hpp"
+# include "RequestState.hpp"
 
-void	extractFieldLineComponents(Request &request, const String &line);
-bool	isFieldValue(const String &line);
-bool	isFieldContent(const String &line);
-bool	isFieldVisibleCharacter(const unsigned char &character);
+class MessageBodyState : public RequestState {
+		String::size_type	chunkSize;
+		String::size_type	bodyLength;
+		bool				hasChunkSize;
+		bool				isLastChunk;
+	public:
+		MessageBodyState(void);
+
+		RequestState	*process(Request &request, Client &client);
+		int				getState(void) const;
+};
 
 #endif

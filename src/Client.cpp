@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 17:17:49 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/30 00:40:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,8 @@ const size_t	Client::MAX_REQUEST_SIZE = 1 * 1024 * 1024;
 
 Client::Client():
 server(NULL),
-messageBuffer(),
 timer(Client::CLIENT_HEADER),
+messageBuffer(),
 keepAliveTimeout(0),
 clientHeaderTimeout(0),
 clientBodyTimeout(0)
@@ -47,9 +47,9 @@ socket(socket),
 receivedBy(receivedBy),
 server(NULL),
 message(),
+timer(Client::CLIENT_HEADER),
 messageBuffer(),
 request(),
-timer(Client::CLIENT_HEADER),
 keepAliveTimeout(0),
 clientHeaderTimeout(0),
 clientBodyTimeout(0)
@@ -76,9 +76,9 @@ socket(rhs.socket),
 receivedBy(rhs.receivedBy),
 server(rhs.server),
 message(rhs.message),
+timer(rhs.timer),
 messageBuffer(rhs.messageBuffer),
 request(rhs.request),
-timer(rhs.timer),
 keepAliveTimeout(rhs.keepAliveTimeout),
 clientHeaderTimeout(rhs.clientHeaderTimeout),
 clientBodyTimeout(rhs.clientBodyTimeout)

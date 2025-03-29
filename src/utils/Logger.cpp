@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 14:00:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 03:26:27 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/30 02:44:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include "Client.hpp"
 
 const char*	Logger::GREEN = "\e[0;32m";
 const char*	Logger::YELLOW = "\e[0;33m";

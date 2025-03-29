@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/28 03:40:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/30 00:35:50 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -231,11 +231,12 @@ void	CGI::execute(const Server &server) {
 }
 
 void	CGI::feedInput(int epollFD) {
-	ssize_t	bytes = 0;
-	Request	&request = this->request;
+	ssize_t					bytes = 0;
+	Request					&request = this->request;
+	const String::size_type	&contentLength = request.find< Optional<String::size_type> >("Content-Length").value;
 
-	if (this->inputLength < request.bodyLength && request.messageBody.length() > 0) {
-		ssize_t	bytesToWrite = request.bodyLength - this->inputLength;
+	if (this->inputLength < contentLength && request.messageBody.length() > 0) {
+		ssize_t	bytesToWrite = contentLength - this->inputLength;
 
 		bytes = write(this->inputFD, request.messageBody.c_str(), bytesToWrite);
 		if (bytes > 0) {
@@ -244,7 +245,7 @@ void	CGI::feedInput(int epollFD) {
 			this->lastActive = Time::getTimeSinceEpoch();
 		}
 	}
-	if (this->inputLength == this->request.bodyLength) {
+	if (this->inputLength == contentLength) {
 		this->processStage |= CGI::INPUT_DONE;
 		epoll_ctl(epollFD, EPOLL_CTL_DEL, this->inputFD, 0);
 		close(this->inputFD);

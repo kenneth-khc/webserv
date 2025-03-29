@@ -1,22 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   requestLine.hpp                                    :+:      :+:    :+:   */
+/*   RequestLineState.hpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/24 22:13:16 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/14 22:10:11 by cteoh            ###   ########.fr       */
+/*   Created: 2025/03/29 16:45:20 by cteoh             #+#    #+#             */
+/*   Updated: 2025/03/30 03:30:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef REQUESTLINE_HPP
-# define REQUESTLINE_HPP
+#ifndef REQUESTLINESTATE_HPP
+# define REQUESTLINESTATE_HPP
 
-# include "String.hpp"
-# include "Request.hpp"
+# include "RequestState.hpp"
 
-void	extractRequestLineComponents(Request &request, const String &line);
+class RequestLineState : public RequestState {
+	public:
+		RequestState	*process(Request &request, Client &client);
+		int				getState(void) const;
+};
 
 /******************/
 /* Request Target */

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/28 02:08:54 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/31 17:41:44 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,10 @@
 # include <map>
 # include "Optional.hpp"
 # include "String.hpp"
+# include "Logger.hpp"
 # include "Message.hpp"
 # include "Cookie.hpp"
+# include "RequestState.hpp"
 
 # define NUM_OF_METHODS 4
 # define NUM_OF_VERSIONS 1
@@ -39,12 +41,6 @@ class Request : public Message {
 		std::map<String, String>	queryPairs;
 		std::map<String, Cookie>	cookies;
 
-		//	For chunked message body
-		String::size_type			chunkSize;
-		String::size_type			bodyLength;
-		bool						chunkSizeFound;
-		bool						lastChunk;
-
 		Request(void);
 		~Request(void);
 		Request(const Request &obj);
@@ -59,22 +55,12 @@ class Request : public Message {
 		const Optional<String>	operator[](const String &key) const;
 		void					erase(const String &key);
 
-		void					parseRequestLine(String &line);
 		bool					isValidMethod(void);
 		bool					isSupportedVersion(void);
-		void					parseHeaders(String &line);
 		void					parseCookieHeader(void);
-		bool					checkIfBodyExists(void);
-		void					parseMessageBody(String &line);
 
-		enum ProcessStage {
-			EMPTY = 0x001,
-			REQUEST_LINE = 0x002,
-			HEADERS = 0x004,
-			HEAD_DONE = 0x008,
-			MESSAGE_BODY = 0x010,
-			DONE = 0x020
-		};
+		RequestState			*state;
+		RequestState			*processState(Client &client, Logger &logger);
 };
 
 template<>

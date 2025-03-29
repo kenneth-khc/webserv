@@ -6,19 +6,23 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 20:11:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/31 17:42:31 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Driver.hpp"
 #include "Server.hpp"
 #include "Configuration.hpp"
-#include "contentLength.hpp"
+#include "ConfigErrors.hpp"
+#include "Directive.hpp"
+#include "Utils.hpp"
 #include "connection.hpp"
 #include "ErrorCode.hpp"
 #include "Time.hpp"
 #include "Base64.hpp"
 #include "CGI.hpp"
+#include "Request.hpp"
+#include "DoneState.hpp"
 #include <queue>
 #include <deque>
 #include <cstddef>
@@ -188,7 +192,7 @@ void	Driver::processReadyEvents()
 		{
 			(*it)->clientHeaderTimeout = Time::getTimeSinceEpoch() + Server::clientHeaderTimeoutDuration;
 		}
-	else if ((*it)->timer & Client::KEEP_ALIVE && Server::keepAliveTimeoutDuration > 0)
+		else if ((*it)->timer & Client::KEEP_ALIVE && Server::keepAliveTimeoutDuration > 0)
 		{
 			(*it)->keepAliveTimeout = Time::getTimeSinceEpoch() + Server::keepAliveTimeoutDuration;
 		}
@@ -224,7 +228,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 {
 	Client&	client = clientIt->second;
 
-	while (true) {
+	while (client.message.length() > 0) {
 		Request&			request = client.requestQueue.back();
 		String::size_type	initialMessageLength = client.message.length();
 
@@ -235,75 +239,47 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 				client.responseQueue.push_back(Response());
 				client.responseQueue.back().insert("Server", webServerName);
 			}
-			if (request.processStage & Request::REQUEST_LINE)
+			while (request.processState(client, logger)->getState() != RequestState::DONE)
 			{
-				request.parseRequestLine(client.message);
-			}
-			if (request.processStage & Request::HEADERS)
-			{
-				request.parseHeaders(client.message);
-			}
-			if (request.processStage & Request::HEAD_DONE)
-			{
-				client.timer &= ~Client::CLIENT_HEADER;
-				if (request.checkIfBodyExists())
-				{
-					client.timer |= Client::CLIENT_BODY;
-				}
-				logger.logRequest(request, client);
-			}
-			if (request.processStage & Request::MESSAGE_BODY)
-			{
-				request.parseMessageBody(client.message);
-			}
-			if (request.processStage & Request::DONE)
-			{
-				client.timer &= ~Client::CLIENT_BODY;
-
-				String				host = request.find< Optional<String> >("Host")
-										  		  .value_or("");
-				if (host.find(':'))
-				{
-					host = host.consumeUntil(":").value;
-				}
-
-				request.client = &(clientIt->second);
-				// this picks the configuration block to use depending on server_name
-				// or defaulting back to first server with the matching port
-				Server*		server = matchServerName(host)
-									.value_or(request.client->server);
-
-				server->handleRequest(request, client.responseQueue.back());
-				client.requestQueue.push_back(Request());
-				if (client.message.length() > 0)
-				{
-					client.timer |= Client::CLIENT_HEADER;
-				}
-			}
-			else
-			{
-				if (initialMessageLength != client.message.length())
+				if (initialMessageLength == client.message.length())
 				{
 					activeClients.insert(&client);
+					return ;
 				}
-				return ;
+				else
+				{
+					initialMessageLength = client.message.length();
+				}
 			}
 
+			String				host = request.find< Optional<String> >("Host")
+											  .value_or("");
+			if (host.find(':'))
+			{
+				host = host.consumeUntil(":").value;
+			}
+
+			request.client = &client;
+			// this picks the configuration block to use depending on server_name
+			// or defaulting back to first server with the matching port
+			Server*		server = matchServerName(host)
+								.value_or(request.client->server);
+
+			server->handleRequest(request, client.responseQueue.back());
 		}
 		catch (const ErrorCode &e)
 		{
-			request.processStage |= Request::DONE;
-			client.requestQueue.push_back(Request());
+			delete request.state;
+			request.state = new DoneState();
+			request.processState(client, logger);
 			client.responseQueue.back() = e;
-			if (client.message.length() > 0)
-			{
-				client.timer |= Client::CLIENT_HEADER;
-			}
 		}
 
-		if (request.processStage & Request::DONE &&
-			client.responseQueue.back()["Connection"].value == "close")
+		client.requestQueue.push_back(Request());
+		if (client.responseQueue.back()["Connection"].value == "close")
+		{
 			return ;
+		}
 	}
 }
 
@@ -362,7 +338,7 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt, std::se
 			client.responseQueue.pop_front();
 			if (!(client.timer & Client::KEEP_ALIVE) &&
 				client.message.length() == 0 &&
-				client.requestQueue.front().processStage & Request::EMPTY)
+				client.requestQueue.front().state == 0)
 			{
 				client.timer |= Client::KEEP_ALIVE;
 				client.timer &= ~Client::CLIENT_HEADER;

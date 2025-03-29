@@ -1,27 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   requestLine.cpp                                    :+:      :+:    :+:   */
+/*   RequestLineState.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/24 22:13:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/28 02:18:49 by cteoh            ###   ########.fr       */
+/*   Created: 2025/03/29 17:09:36 by cteoh             #+#    #+#             */
+/*   Updated: 2025/03/30 03:29:50 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iomanip>
+#include <cctype>
+#include <ios>
 #include <sstream>
+#include "Optional.hpp"
+#include "ErrorCode.hpp"
 #include "terminalValues.hpp"
 #include "uri.hpp"
 #include "path.hpp"
-#include "ErrorCode.hpp"
-#include "requestLine.hpp"
+#include "Client.hpp"
+#include "HeadersState.hpp"
+#include "RequestLineState.hpp"
 
-void	extractRequestLineComponents(Request &request, const String &line) {
-	std::stringstream	stream(line);
-	String				str;
-	String				method;
+RequestState	*RequestLineState::process(Request &request, Client &client) {
+	String						&message = client.message;
+	Optional<String::size_type>	terminatorPos = message.find("\r\n");
+
+	if (terminatorPos.exists == false)
+		return (this);
+
+	std::stringstream			stream(message.substr(0, terminatorPos.value));
+	String						str;
+	String						method;
 
 	String::getline(stream, str, ' ');
 	if (isToken(str) == false)
@@ -36,6 +46,7 @@ void	extractRequestLineComponents(Request &request, const String &line) {
 	Optional<String::size_type>	queryPos = str.find("?");
 	if (queryPos.exists == true) {
 		request.path = str.substr(0, queryPos.value);
+
 		request.query = Optional<String>(str.substr(queryPos.value + 1));
 		request.decodedQuery.exists = true;
 		for (String::size_type i = 0; i < request.query.value.length(); i++) {
@@ -71,6 +82,13 @@ void	extractRequestLineComponents(Request &request, const String &line) {
 	if (std::isdigit(str[0]) == 0 || str[1] != '.' || std::isdigit(str[2]) == 0)
 		throw BadRequest400();
 	std::stringstream(str) >> request.httpVersion;
+
+	message.erase(0, terminatorPos.value);
+	return (new HeadersState());
+}
+
+int	RequestLineState::getState(void) const {
+	return (RequestState::REQUEST_LINE);
 }
 
 /******************/

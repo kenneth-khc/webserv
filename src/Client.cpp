@@ -6,7 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
+<<<<<<< Updated upstream
 /*   Updated: 2025/03/28 17:17:49 by cteoh            ###   ########.fr       */
+=======
+/*   Updated: 2025/03/29 21:43:09 by cteoh            ###   ########.fr       */
+>>>>>>> Stashed changes
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +22,14 @@
 const size_t	Client::MAX_REQUEST_SIZE = 1 * 1024 * 1024;
 
 Client::Client():
+<<<<<<< Updated upstream
 server(NULL),
-messageBuffer(),
+=======
 timer(Client::CLIENT_HEADER),
+address(),
+addressLen(),
+>>>>>>> Stashed changes
+messageBuffer(),
 keepAliveTimeout(0),
 clientHeaderTimeout(0),
 clientBodyTimeout(0)

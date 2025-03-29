@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/31 13:59:28 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/25 18:27:51 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/29 21:54:49 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,11 @@
 #define LOGGER_HPP
 
 #include <netdb.h>
+<<<<<<< Updated upstream
 #include "Client.hpp"
 #include "Socket.hpp"
+=======
+>>>>>>> Stashed changes
 
 /* This class is responsible for logging interactions between the servers
  * and clients to file streams for visualization purposes */

@@ -6,19 +6,32 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
+<<<<<<< Updated upstream
 /*   Updated: 2025/03/28 20:11:55 by cteoh            ###   ########.fr       */
+=======
+/*   Updated: 2025/03/29 23:16:30 by cteoh            ###   ########.fr       */
+>>>>>>> Stashed changes
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Driver.hpp"
 #include "Server.hpp"
 #include "Configuration.hpp"
+<<<<<<< Updated upstream
 #include "contentLength.hpp"
+=======
+#include "ConfigErrors.hpp"
+#include "Directive.hpp"
+#include "Utils.hpp"
+>>>>>>> Stashed changes
 #include "connection.hpp"
 #include "ErrorCode.hpp"
 #include "Time.hpp"
 #include "Base64.hpp"
 #include "CGI.hpp"
+#include "MessageBodyState.hpp"
+#include "EmptyState.hpp"
+#include "Request.hpp"
 #include <queue>
 #include <deque>
 #include <cstddef>
@@ -26,6 +39,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+<<<<<<< Updated upstream
 #include <algorithm>
 #include <cstdio>
 
@@ -44,6 +58,35 @@ Driver::Driver(const Configuration& config):
 	listeners(),
 	establishedSockets(),
 	clients()
+=======
+#include <typeinfo>
+#include <iostream>
+
+Driver::Driver():
+name("42webserv"),
+epollTimeout(-1),
+epollFD(-1),
+maxEvents(1021),
+readyEvents(NULL),
+numReadyEvents(0),
+currEvent(0),
+MIMEMappings("mime.types"),
+rootDir("root"),
+pagesDir("pages"),
+uploadsDir("uploads"),
+miscPagesDir("misc_pages"),
+cgiDir("cgi-bin"),
+autoindex(false)
+{
+	readyEvents = new epoll_event[maxEvents];
+	cgiScript.push_back("py");
+	cgiScript.push_back("php");
+	cgiScript.push_back("bla");	// Test-specific condition
+}
+
+// TODO: refactor this crap holy
+void	Driver::configureFrom(const Configuration& config)
+>>>>>>> Stashed changes
 {
 	std::vector<Directive*>	serverBlocks = config.get("http")
 												 .getDirectives("server");
@@ -222,7 +265,8 @@ Optional<Server*>	Driver::matchServerName(const String& hostname)
 
 void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<Client *>& activeClients)
 {
-	Client&	client = clientIt->second;
+	RequestState	*requestState = 0;
+	Client&			client = clientIt->second;
 
 	while (true) {
 		Request&			request = client.requestQueue.back();
@@ -235,21 +279,21 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 				client.responseQueue.push_back(Response());
 				client.responseQueue.back().insert("Server", webServerName);
 			}
-			if (request.processStage & Request::REQUEST_LINE)
+			while (true)
 			{
-				request.parseRequestLine(client.message);
-			}
-			if (request.processStage & Request::HEADERS)
-			{
-				request.parseHeaders(client.message);
-			}
-			if (request.processStage & Request::HEAD_DONE)
-			{
-				client.timer &= ~Client::CLIENT_HEADER;
-				if (request.checkIfBodyExists())
+				requestState = request.processState(client, logger);
+				if (requestState == 0)
 				{
-					client.timer |= Client::CLIENT_BODY;
+					client.timer &= ~Client::CLIENT_BODY;
+					processReadyRequest(request, client.responseQueue.back());
+					client.requestQueue.push_back(Request());
+					if (client.message.length() > 0)
+					{
+						client.timer |= Client::CLIENT_HEADER;
+					}
+					break ;
 				}
+<<<<<<< Updated upstream
 				logger.logRequest(request, client);
 			}
 			if (request.processStage & Request::MESSAGE_BODY)
@@ -283,16 +327,22 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 			else
 			{
 				if (initialMessageLength != client.message.length())
+=======
+				else
+>>>>>>> Stashed changes
 				{
-					activeClients.insert(&client);
+					if (initialMessageLength == client.message.length())
+					{
+						activeClients.insert(&client);
+					}
+					return ;
 				}
-				return ;
 			}
-
 		}
 		catch (const ErrorCode &e)
 		{
-			request.processStage |= Request::DONE;
+			delete request.state;
+			request.state = 0;
 			client.requestQueue.push_back(Request());
 			client.responseQueue.back() = e;
 			if (client.message.length() > 0)
@@ -301,7 +351,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 			}
 		}
 
-		if (request.processStage & Request::DONE &&
+		if (request.state == 0 &&
 			client.responseQueue.back()["Connection"].value == "close")
 			return ;
 	}
@@ -362,7 +412,7 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt, std::se
 			client.responseQueue.pop_front();
 			if (!(client.timer & Client::KEEP_ALIVE) &&
 				client.message.length() == 0 &&
-				client.requestQueue.front().processStage & Request::EMPTY)
+				client.requestQueue.front().state == &RequestState::empty)
 			{
 				client.timer |= Client::KEEP_ALIVE;
 				client.timer &= ~Client::CLIENT_HEADER;

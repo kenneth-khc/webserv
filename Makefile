@@ -6,7 +6,11 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
+<<<<<<< Updated upstream
 #    Updated: 2025/03/28 20:18:46 by cteoh            ###   ########.fr        #
+=======
+#    Updated: 2025/03/29 21:42:10 by cteoh            ###   ########.fr        #
+>>>>>>> Stashed changes
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,6 +28,7 @@ dirs := $(src_dir) \
 		$(src_dir)/methods \
 		$(src_dir)/URI \
 		$(src_dir)/message \
+		$(src_dir)/message/request \
 		$(src_dir)/headers \
 		$(src_dir)/utils \
 		$(src_dir)/debug
@@ -37,6 +42,7 @@ includes := -I $(inc_dir)/ \
 			-I $(inc_dir)/config \
 			-I $(inc_dir)/URI \
 			-I $(inc_dir)/message \
+			-I $(inc_dir)/message/request \
 			-I $(inc_dir)/headers \
 			-I $(inc_dir)/utils \
 

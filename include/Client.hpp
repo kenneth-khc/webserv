@@ -6,7 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
+<<<<<<< Updated upstream
 /*   Updated: 2025/03/28 17:18:11 by cteoh            ###   ########.fr       */
+=======
+/*   Updated: 2025/03/29 21:54:04 by cteoh            ###   ########.fr       */
+>>>>>>> Stashed changes
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +41,22 @@ public:
 	ssize_t	receiveBytes();
 	ssize_t	sendBytes(String &formattedResponse);
 
+<<<<<<< Updated upstream
 	Socket*				socket;
 	const Socket*		receivedBy;
 	Server*				server;
 	String				message;
+=======
+	Socket					socket;
+	String					message;
+	char					timer;
+
+	enum Timeout {
+		KEEP_ALIVE = 0x001,
+		CLIENT_HEADER = 0x002,
+		CLIENT_BODY = 0x004
+	};
+>>>>>>> Stashed changes
 private:
 	std::vector<char>		messageBuffer;
 	static const size_t		MAX_REQUEST_SIZE;
@@ -48,16 +64,9 @@ private:
 	std::deque<Request>		requestQueue;
 	std::deque<Response>	responseQueue;
 
-	char					timer;
 	std::time_t				keepAliveTimeout;
 	std::time_t				clientHeaderTimeout;
 	std::time_t				clientBodyTimeout;
-
-	enum Timeout {
-		KEEP_ALIVE = 0x001,
-		CLIENT_HEADER = 0x002,
-		CLIENT_BODY = 0x004
-	};
 };
 
 #endif

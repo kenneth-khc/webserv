@@ -1,22 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   requestFields.hpp                                  :+:      :+:    :+:   */
+/*   HeadersState.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/26 02:00:34 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/14 22:09:44 by cteoh            ###   ########.fr       */
+/*   Created: 2025/03/29 17:06:53 by cteoh             #+#    #+#             */
+/*   Updated: 2025/03/29 22:25:51 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef REQUESTFIELDS_HPP
-# define REQUESTFIELDS_HPP
+#ifndef HEADERSSTATE_HPP
+# define HEADERSSTATE_HPP
 
-# include "String.hpp"
-# include "Request.hpp"
+# include "RequestState.hpp"
 
-void	extractFieldLineComponents(Request &request, const String &line);
+class HeadersState : public RequestState {
+	public:
+		RequestState	*process(Request &request, Client &client);
+};
+
 bool	isFieldValue(const String &line);
 bool	isFieldContent(const String &line);
 bool	isFieldVisibleCharacter(const unsigned char &character);

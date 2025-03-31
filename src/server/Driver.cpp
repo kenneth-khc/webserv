@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "Driver.hpp"
+#include "PathHandler.hpp"
 #include "Server.hpp"
 #include "Configuration.hpp"
 #include "contentLength.hpp"
@@ -34,7 +35,6 @@ std::map<int,CGI*>*	globalCgis;
 
 Driver::Driver(const Configuration& config):
 	webServerName("42webserv"),
-	pathmaker(config.get("prefix").parameters[0]),
 	http(config.get("http")),
 	epollTimeout(-1),
 	epollFD(-1),
@@ -46,6 +46,7 @@ Driver::Driver(const Configuration& config):
 	establishedSockets(),
 	clients()
 {
+	Server::pathHandler.setPrefix(config.get("prefix").parameters[0]);
 	std::vector<Directive*>	serverBlocks = config.get("http")
 												 .getDirectives("server");
 	for (size_t i = 0; i < serverBlocks.size(); ++i)
@@ -112,7 +113,8 @@ void	Driver::processReadyEvents()
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
 		currEvent = &readyEvents[i];
-		std::map<int,Socket>::iterator	it = listeners.find(currEvent->data.fd);
+		const int&	fd = currEvent->data.fd;
+		std::map<int,Socket>::iterator	it = listeners.find(fd);
 		if (it != listeners.end())
 		{
 			const Socket&	listener = it->second;
@@ -135,8 +137,8 @@ void	Driver::processReadyEvents()
 			continue ;
 		}
 
-		std::map<int, Client>::iterator	clientIt = clients.find(currEvent->data.fd);
-		std::map<int, CGI *>::iterator	cgiIt = cgis.find(currEvent->data.fd);
+		std::map<int, Client>::iterator	clientIt = clients.find(fd);
+		std::map<int, CGI *>::iterator	cgiIt = cgis.find(fd);
 
 		if (clientIt == clients.end() && cgiIt == cgis.end())
 			continue ;
@@ -189,7 +191,7 @@ void	Driver::processReadyEvents()
 		{
 			(*it)->clientHeaderTimeout = Time::getTimeSinceEpoch() + Server::clientHeaderTimeoutDuration;
 		}
-	else if ((*it)->timer & Client::KEEP_ALIVE && Server::keepAliveTimeoutDuration > 0)
+		else if ((*it)->timer & Client::KEEP_ALIVE && Server::keepAliveTimeoutDuration > 0)
 		{
 			(*it)->keepAliveTimeout = Time::getTimeSinceEpoch() + Server::keepAliveTimeoutDuration;
 		}

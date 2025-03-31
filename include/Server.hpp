@@ -20,6 +20,7 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "MediaType.hpp"
+#include "PathHandler.hpp"
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -49,6 +50,7 @@ struct	Server
 
 	static const Location		defaultLocation;
 	static const unsigned int	timeoutValue;
+	static PathHandler			pathHandler;
 
 	void						handleRequest(Request&, Response&);
 	void						processCookies(Request&, Response&);

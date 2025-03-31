@@ -15,16 +15,22 @@
 
 #include "String.hpp"
 
-struct	PathHandler
+class	PathHandler
 {
+public:
+	PathHandler();
 	PathHandler(const String&);
-	String		join(const String&, const String&) const;
+	void		setPrefix(const String&);
+
+	String		normalize(const String&) const;
+	String		resolve(const String&, const String&) const;
+	String		resolveWithPrefix(const String&) const;
 
 private:
-	const String&	prefix;
+	String	prefix;
 
-	bool			isAbsolute(const String&) const;
-	bool			isRelative(const String&) const;
+	bool		isAbsolute(const String&) const;
+	bool		isRelative(const String&) const;
 };
 
 #endif

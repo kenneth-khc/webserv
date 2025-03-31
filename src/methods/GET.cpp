@@ -181,6 +181,7 @@ static String	getUploadsReference(
 
 #define FILE_NAME_LEN 45
 #define FILE_SIZE_LEN 20
+#include <iostream>
 
 void	generateDirectoryListing(Response& response, const std::string& dirName)
 {
@@ -197,6 +198,7 @@ void	generateDirectoryListing(Response& response, const std::string& dirName)
 	if (path[path.length() - 1] != '/')
 		path += "/";
 
+	std::cout << ">>> " << path << '\n';
 	trimmedRootPath = path.substr(path.find_first_of('/'));
 	stream << "<html>\n"
 		   << 	"<head>\n"

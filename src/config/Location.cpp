@@ -12,6 +12,8 @@
 
 #include "Location.hpp"
 #include "VectorInitializer.hpp"
+#include "ErrorCode.hpp"
+#include <algorithm>
 
 Location::Location():
 	matchType(PREFIX),
@@ -24,7 +26,6 @@ Location::Location():
 
 }
 
-#include <iostream>
 Location::Location(const Directive& locationBlock):
 	matchType(PREFIX),
 	// TODO: location exact matches
@@ -66,8 +67,16 @@ Location::Location(const Directive& locationBlock):
 	uploadDirectory(locationBlock.getParameterOf("upload_directory")
 								 .value_or(""))
 {
-	// TODO: recurse instead of manually chasing the pointers lol lmao
 	errorPages = locationBlock.generateErrorPagesMapping()
 							  .value_or(std::map<int,String>());
 }
 
+void	Location::checkIfAllowedMethod(const String& method) const
+{
+	if (std::find(allowedMethods.begin(),
+				  allowedMethods.end(),
+				  method) == allowedMethods.end())
+	{
+		throw MethodNotAllowed405();
+	}
+}

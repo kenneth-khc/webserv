@@ -13,10 +13,20 @@
 #include <iostream>
 #include "PathHandler.hpp"
 
+PathHandler::PathHandler():
+	prefix()
+{
+}
+
 PathHandler::PathHandler(const String& prefix):
 	prefix(prefix)
 {
-	std::cout << this->prefix << '\n';
+	std::cout << "PathHandler set with |" << this->prefix << "|\n";
+}
+
+void	PathHandler::setPrefix(const String& prefix)
+{
+	this->prefix = prefix;
 }
 
 bool	PathHandler::isAbsolute(const String& path) const
@@ -36,14 +46,45 @@ bool	PathHandler::isRelative(const String& path) const
 	return !isAbsolute(path);
 }
 
-String	PathHandler::join(const String& lhs, const String& rhs) const
+String	PathHandler::normalize(const String& path) const
 {
-	if (isAbsolute(rhs))
+	String			normalized;
+	Optional<char>	previous;
+	for (size_t i = 0; i < path.size(); ++i)
 	{
-		return rhs;
+		if (path[i] == '/' && previous.exists && previous.value == '/')
+		{
+			continue ;
+		}
+		else
+		{
+			normalized += path[i];
+			previous = makeOptional(path[i]);
+		}
+	}
+	return normalized;
+}
+
+String	PathHandler::resolveWithPrefix(const String& path) const
+{
+	if (isAbsolute(path))
+	{
+		return path;
 	}
 	else
 	{
-		return lhs + rhs;
+		if (prefix.back() == '/')
+		{
+			return prefix + path;
+		}
+		else
+		{
+			return prefix + '/' + path;
+		}
 	}
+}
+
+String	PathHandler::resolve(const String& lhs, const String& rhs) const
+{
+	return lhs + rhs;
 }

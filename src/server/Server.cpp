@@ -32,6 +32,7 @@ const unsigned int	Server::cgiTimeoutDuration = 3;
 const unsigned int	Server::clientHeaderTimeoutDuration = 2;
 const unsigned int	Server::clientBodyTimeoutDuration = 2;
 const Location		Server::defaultLocation = Location();
+PathHandler			Server::pathHandler;
 
 Server::Server():
 	socket(),
@@ -44,7 +45,6 @@ Server::Server():
 	cgiScript.push_back("py");
 	cgiScript.push_back("php");
 }
-#include <iostream>
 
 Server::Server(const Directive& serverBlock,
 			   std::map<int,Socket>& existingSockets):
@@ -76,26 +76,8 @@ Server::Server(const Directive& serverBlock,
 							.value_or(std::map<int,String>());
 }
 
-void	Server::checkIfAllowedMethod(const Location& location, const Request& request)
-{
-	if (std::find(location.allowedMethods.begin(),
-				  location.allowedMethods.end(),
-				  request.method) == location.allowedMethods.end())
-	{
-		// TODO: should be 403 Forbidden? 405 Method Not Allowed?
-		throw MethodNotAllowed405();
-	}
-}
-
 void	Server::handleRequest(Request& request, Response& response)
 {
-	// match location
-	const Location*	location = matchURILocation(request)
-							  .value_or(&Server::defaultLocation);
-	request.resolvedPath = location->root + request.path;
-
-	checkIfAllowedMethod(*location, request);
-
 	if (!request.isSupportedVersion())
 	{
 		throw VersionNotSupported505();
@@ -103,6 +85,14 @@ void	Server::handleRequest(Request& request, Response& response)
 
 	request.parseCookieHeader();
 	processCookies(request, response);
+
+	request.path = pathHandler.normalize(request.path);
+	const Location*	location = matchURILocation(request)
+							  .value_or(&Server::defaultLocation);
+	location->checkIfAllowedMethod(request.method);
+
+	const String&	rootDir = pathHandler.resolveWithPrefix(location->root);
+	request.resolvedPath = pathHandler.resolve(rootDir, request.path);
 
 	if (request.path.starts_with(location->uri) &&
 		location->executeCGI == true &&
@@ -136,6 +126,7 @@ void	Server::handleRequest(Request& request, Response& response)
 	response.processStage |= Response::DONE;
 }
 
+// TODO: exact matches
 Optional<const Location*>	Server::matchURILocation(const Request& request)
 {
 	std::vector<Location>::iterator	longestMatch = locations.end();

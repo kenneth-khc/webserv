@@ -172,14 +172,17 @@ Directive::getParametersOf(const String& key) const
 	}
 }
 
-Optional< std::map<int,String> >	Directive::generateErrorPagesMapping() const
+typedef std::map<int,String>	ErrorPageMapping;
+Optional<ErrorPageMapping>	Directive::generateErrorPagesMapping() const
 {
-	std::map<int,String>		errorPages;
-	const std::vector<String>&	errorPage = recursivelyLookup< std::vector<String> >("error_page")
-										   .value_or(vector_of<String>());
+	typedef	std::vector<String>	StringVector;
+
+	ErrorPageMapping	errorPages;
+	const StringVector&	errorPage = recursivelyLookup<StringVector>("error_page")
+								   .value_or(StringVector());
 	if (errorPage.size() < 2)
 	{
-		return makeNone< std::map<int,String> >();
+		return makeNone<ErrorPageMapping>();
 	}
 	const String&	page = errorPage.back();
 	for (size_t i = 0; i < errorPage.size()-1; ++i)
@@ -189,7 +192,7 @@ Optional< std::map<int,String> >	Directive::generateErrorPagesMapping() const
 	}
 	if (errorPages.empty())
 	{
-		return makeNone< std::map<int,String> >();
+		return makeNone<ErrorPageMapping>();
 	}
 	else
 	{

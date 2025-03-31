@@ -44,7 +44,6 @@ struct	Driver
 	~Driver();
 
 	String					webServerName;
-	PathHandler				pathmaker;
 	struct HTTP				http;
 
 	int						epollTimeout;

@@ -56,19 +56,13 @@ struct	Location
 
 	std::map<int,String>	errorPages;
 
-	/*
-	error_page 400 404 500 error.html;
-	[0] = 400 -> error.html;
-	[1] = 404 -> error.html;
-	*/
-
-
-
 	bool					executeCGI;
 	std::vector<String>		CGIScriptFileExtensions;
 
 	bool					acceptUploads;
 	String					uploadDirectory;
+
+	void	checkIfAllowedMethod(const String&) const;
 };
 
 #endif

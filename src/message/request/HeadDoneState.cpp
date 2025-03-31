@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 18:25:17 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/31 08:12:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/31 23:32:29 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,13 @@
 #include "Optional.hpp"
 #include "contentLength.hpp"
 #include "Client.hpp"
+#include "ClientBodyState.hpp"
 #include "Request.hpp"
 #include "MessageBodyState.hpp"
 #include "DoneState.hpp"
 #include "HeadDoneState.hpp"
 
 RequestState	*HeadDoneState::process(Request &request, Client &client) {
-	client.timer &= ~Client::CLIENT_HEADER;
-
 	Optional<String>	contentLength = request["Content-Length"];
 	Optional<String>	transferEncoding = request["Transfer-Encoding"];
 
@@ -47,7 +46,7 @@ RequestState	*HeadDoneState::process(Request &request, Client &client) {
 	else
 		return (new DoneState());
 
-	client.timer |= Client::CLIENT_BODY;
+	client.timer = new ClientBodyState();
 	return (new MessageBodyState());
 }
 

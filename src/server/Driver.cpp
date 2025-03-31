@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/31 17:42:31 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 01:25:38 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include "CGI.hpp"
 #include "Request.hpp"
 #include "DoneState.hpp"
+#include "KeepAliveState.hpp"
 #include <queue>
 #include <deque>
 #include <cstddef>
@@ -135,6 +136,7 @@ void	Driver::processReadyEvents()
 			clients[fd] = newClient;
 
 			logger.logConnection(Logger::ESTABLISHED, fd, newClient);
+			activeClients.insert(&clients[fd]);
 			continue ;
 		}
 
@@ -184,18 +186,7 @@ void	Driver::processReadyEvents()
 
 	for (std::set<Client *>::iterator it = activeClients.begin(); it != activeClients.end(); it++)
 	{
-		if ((*it)->timer & Client::CLIENT_BODY && Server::clientBodyTimeoutDuration > 0)
-		{
-			(*it)->clientBodyTimeout = Time::getTimeSinceEpoch() + Server::clientBodyTimeoutDuration;
-		}
-		else if ((*it)->timer & Client::CLIENT_HEADER && Server::clientHeaderTimeoutDuration > 0)
-		{
-			(*it)->clientHeaderTimeout = Time::getTimeSinceEpoch() + Server::clientHeaderTimeoutDuration;
-		}
-		else if ((*it)->timer & Client::KEEP_ALIVE && Server::keepAliveTimeoutDuration > 0)
-		{
-			(*it)->keepAliveTimeout = Time::getTimeSinceEpoch() + Server::keepAliveTimeoutDuration;
-		}
+		(*it)->timer->update(*(*it)->server);
 	}
 }
 
@@ -336,13 +327,13 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt, std::se
 		{
 			client.requestQueue.pop_front();
 			client.responseQueue.pop_front();
-			if (!(client.timer & Client::KEEP_ALIVE) &&
-				client.message.length() == 0 &&
-				client.requestQueue.front().state == 0)
+			if (client.message.length() == 0 && client.requestQueue.front().state == 0)
 			{
-				client.timer |= Client::KEEP_ALIVE;
-				client.timer &= ~Client::CLIENT_HEADER;
-				client.timer &= ~Client::CLIENT_BODY;
+				if (client.timer == 0 || client.timer->getState() != ClientTimerState::KEEP_ALIVE)
+				{
+					delete client.timer;
+					client.timer = new KeepAliveState();
+				}
 				activeClients.insert(&client);
 			}
 		}
@@ -357,17 +348,9 @@ void	Driver::updateEpollTimeout()
 	{
 		const Client	&client = it->second;
 
-		if (client.timer & Client::CLIENT_BODY)
+		if (client.timer != 0)
 		{
-			timeoutPriority.push(client.clientBodyTimeout);
-		}
-		else if (client.timer & Client::CLIENT_HEADER)
-		{
-			timeoutPriority.push(client.clientHeaderTimeout);
-		}
-		else if (client.timer & Client::KEEP_ALIVE)
-		{
-			timeoutPriority.push(client.keepAliveTimeout);
+			timeoutPriority.push(client.timer->getTimeoutTime());
 		}
 	}
 
@@ -397,20 +380,9 @@ void	Driver::monitorConnections()
 	{
 		Client	&client = it->second;
 
-		if (client.timer & Client::CLIENT_BODY &&
-			Time::getTimeSinceEpoch() >= client.clientBodyTimeout)
+		if (client.timer->isTimeout(*client.server) == true)
 		{
-			closeConnection(it++, Logger::CLIENT_BODY_TIMEOUT);
-		}
-		else if (client.timer & Client::CLIENT_HEADER &&
-			Time::getTimeSinceEpoch() >= client.clientHeaderTimeout)
-		{
-			closeConnection(it++, Logger::CLIENT_HEADER_TIMEOUT);
-		}
-		else if (client.timer & Client::KEEP_ALIVE &&
-			Time::getTimeSinceEpoch() >= client.keepAliveTimeout)
-		{
-			closeConnection(it++, Logger::KEEP_ALIVE_TIMEOUT);
+			closeConnection(it++, client.timer->getLogState());
 		}
 		else
 		{

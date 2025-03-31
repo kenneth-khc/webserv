@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 16:43:35 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/31 08:11:52 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/31 18:29:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ class RequestState {
 		virtual RequestState	*process(Request &request, Client &client) = 0;
 		virtual int				getState(void) const = 0;
 
-		enum States {
+		enum State {
 			REQUEST_LINE,
 			HEADERS,
 			HEAD_DONE,

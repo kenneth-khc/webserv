@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/30 02:53:33 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 01:06:32 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include "Socket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include "ClientTimerState.hpp"
 
 struct	Socket;
 struct	Server;
@@ -32,7 +33,9 @@ class	Client
 public:
 	Client();
 	Client(Socket*, const Socket*);
+	~Client();
 	Client(const Client&);
+	Client	&operator=(const Client&);
 
 	ssize_t	receiveBytes();
 	ssize_t	sendBytes(String &formattedResponse);
@@ -41,23 +44,15 @@ public:
 	const Socket*		receivedBy;
 	Server*				server;
 	String				message;
-	char				timer;
+	ClientTimerState*	timer;
 
-	enum Timeout {
-		KEEP_ALIVE = 0x001,
-		CLIENT_HEADER = 0x002,
-		CLIENT_BODY = 0x004
-	};
 private:
 	std::vector<char>		messageBuffer;
-	static const size_t		MAX_REQUEST_SIZE;
 	Request					request;
 	std::deque<Request>		requestQueue;
 	std::deque<Response>	responseQueue;
+	static const size_t		MAX_REQUEST_SIZE;
 
-	std::time_t				keepAliveTimeout;
-	std::time_t				clientHeaderTimeout;
-	std::time_t				clientBodyTimeout;
 };
 
 #endif

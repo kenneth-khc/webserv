@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 18:31:58 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/31 08:13:02 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/31 23:31:30 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,11 @@ RequestState	*MessageBodyState::process(Request &request, Client &client) {
 		request.messageBody.append(message.c_str(), remainingBytes);
 		message.erase(0, remainingBytes);
 
-		if (request.messageBody.length() == contentLength.value)
+		if (request.messageBody.length() == contentLength.value) {
+			delete client.timer;
+			client.timer = 0;
 			return (new DoneState());
+		}
 		else
 			return (this);
 	}
@@ -99,6 +102,8 @@ RequestState	*MessageBodyState::process(Request &request, Client &client) {
 
 	request.insert("Content-Length", this->bodyLength);
 	request.erase("Transfer-Encoding");
+	delete client.timer;
+	client.timer = 0;
 	return (new DoneState());
 }
 

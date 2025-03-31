@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 18:01:55 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/30 03:29:41 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/31 23:29:57 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,6 +68,8 @@ RequestState	*HeadersState::process(Request &request, Client &client) {
 	if (request["Host"].exists == false)
 		throw BadRequest400();
 
+	delete client.timer;
+	client.timer = 0;
 	return (new HeadDoneState());
 }
 

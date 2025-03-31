@@ -6,40 +6,26 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/30 00:40:17 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 01:31:00 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <arpa/inet.h>
 #include "Server.hpp"
 #include "Client.hpp"
+#include "ClientTimerState.hpp"
+#include "ClientHeaderState.hpp"
 
 // TODO: limit request size based on config file. now defaulted to 1 mb
 const size_t	Client::MAX_REQUEST_SIZE = 1 * 1024 * 1024;
 
 Client::Client():
 server(NULL),
-timer(Client::CLIENT_HEADER),
-messageBuffer(),
-keepAliveTimeout(0),
-clientHeaderTimeout(0),
-clientBodyTimeout(0)
+timer(new ClientHeaderState()),
+messageBuffer()
 {
 	messageBuffer.resize(1024);
 	requestQueue.push_back(Request());
-
-	if (Server::clientHeaderTimeoutDuration > 0)
-	{
-		clientHeaderTimeout = Time::getTimeSinceEpoch() + Server::clientHeaderTimeoutDuration;
-	}
-	if (Server::clientBodyTimeoutDuration > 0)
-	{
-		clientBodyTimeout = Time::getTimeSinceEpoch() + Server::clientBodyTimeoutDuration;
-	}
-	if (Server::keepAliveTimeoutDuration > 0)
-	{
-		keepAliveTimeout = Time::getTimeSinceEpoch() + Server::keepAliveTimeoutDuration;
-	}
 }
 
 Client::Client(Socket* socket, const Socket* receivedBy):
@@ -47,27 +33,19 @@ socket(socket),
 receivedBy(receivedBy),
 server(NULL),
 message(),
-timer(Client::CLIENT_HEADER),
+timer(new ClientHeaderState()),
 messageBuffer(),
-request(),
-keepAliveTimeout(0),
-clientHeaderTimeout(0),
-clientBodyTimeout(0)
+request()
 {
 	messageBuffer.resize(1024);
 	requestQueue.push_back(Request());
+}
 
-	if (Server::clientHeaderTimeoutDuration > 0)
+Client::~Client()
+{
+	if (timer != 0)
 	{
-		clientHeaderTimeout = Time::getTimeSinceEpoch() + Server::clientHeaderTimeoutDuration;
-	}
-	if (Server::clientBodyTimeoutDuration > 0)
-	{
-		clientBodyTimeout = Time::getTimeSinceEpoch() + Server::clientBodyTimeoutDuration;
-	}
-	if (Server::keepAliveTimeoutDuration > 0)
-	{
-		keepAliveTimeout = Time::getTimeSinceEpoch() + Server::keepAliveTimeoutDuration;
+		delete timer;
 	}
 }
 
@@ -76,13 +54,44 @@ socket(rhs.socket),
 receivedBy(rhs.receivedBy),
 server(rhs.server),
 message(rhs.message),
-timer(rhs.timer),
+timer(0),
 messageBuffer(rhs.messageBuffer),
 request(rhs.request),
-keepAliveTimeout(rhs.keepAliveTimeout),
-clientHeaderTimeout(rhs.clientHeaderTimeout),
-clientBodyTimeout(rhs.clientBodyTimeout)
-{}
+requestQueue(rhs.requestQueue),
+responseQueue(rhs.responseQueue)
+{
+	if (rhs.timer != 0)
+	{
+		timer = rhs.timer->clone();
+	}
+}
+
+Client	&Client::operator=(const Client& rhs)
+{
+	if (this == &rhs)
+		return *this;
+
+	socket = rhs.socket;
+	receivedBy = rhs.receivedBy;
+	server = rhs.server;
+	message = rhs.message;
+
+	if (timer != 0)
+	{
+		delete timer;
+	}
+	timer = 0;
+	if (rhs.timer != 0)
+	{
+		timer = rhs.timer->clone();
+	}
+
+	messageBuffer = rhs.messageBuffer;
+	request = rhs.request;
+	requestQueue = rhs.requestQueue;
+	responseQueue = rhs.responseQueue;
+	return *this;
+}
 
 ssize_t	Client::receiveBytes()
 {
@@ -91,18 +100,14 @@ ssize_t	Client::receiveBytes()
 	if (bytes > 0)
 	{
 		message.append(&messageBuffer[0], bytes);
-		if (timer & Client::KEEP_ALIVE)
+		if (timer->getState() == ClientTimerState::KEEP_ALIVE)
 		{
-			timer &= ~Client::KEEP_ALIVE;
-			timer |= Client::CLIENT_HEADER;
+			delete timer;
+			timer = new ClientHeaderState();
 		}
-		if (timer & Client::CLIENT_HEADER)
+		else
 		{
-			clientHeaderTimeout = Time::getTimeSinceEpoch() + Server::clientHeaderTimeoutDuration;
-		}
-		if (timer & Client::CLIENT_BODY)
-		{
-			clientBodyTimeout = Time::getTimeSinceEpoch() + Server::clientBodyTimeoutDuration;
+			timer->update(*server);
 		}
 	}
 	return bytes;

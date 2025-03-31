@@ -6,7 +6,7 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/03/30 00:34:36 by cteoh            ###   ########.fr        #
+#    Updated: 2025/03/31 23:35:19 by cteoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,6 +21,7 @@ src_dir := src
 dirs := $(src_dir) \
 		$(src_dir)/config \
 		$(src_dir)/server \
+		$(src_dir)/client \
 		$(src_dir)/methods \
 		$(src_dir)/URI \
 		$(src_dir)/message \
@@ -36,6 +37,7 @@ inc_dir := include
 
 includes := -I $(inc_dir)/ \
 			-I $(inc_dir)/config \
+			-I $(inc_dir)/client \
 			-I $(inc_dir)/URI \
 			-I $(inc_dir)/message \
 			-I $(inc_dir)/message/request \

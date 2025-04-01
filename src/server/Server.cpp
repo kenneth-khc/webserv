@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 20:15:13 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 03:53:38 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,11 @@ void	Server::checkIfAllowedMethod(const Location& location, const Request& reque
 	}
 }
 
-void	Server::handleRequest(Request& request, Response& response)
+void	Server::handleRequest(
+	Driver& driver,
+	Client& client,
+	Request& request,
+	Response& response)
 {
 	// match location
 	const Location*	location = matchURILocation(request)
@@ -113,7 +117,7 @@ void	Server::handleRequest(Request& request, Response& response)
 		location->executeCGI == true &&
 		request.path.ends_with(".bla"))	// Test-specific condition
 	{
-		cgi(response, request);
+		cgi(driver, client, response, request);
 		return ;
 	}
 
@@ -184,14 +188,20 @@ void	Server::processCookies(Request& request, Response& response)
 	}
 }
 
-void	Server::cgi(Response &response, Request &request) const {
+void	Server::cgi(
+	Driver& driver,
+	Client& client,
+	Response &response,
+	Request &request) const
+{
 	if (request.method != "GET" && request.method != "POST")
 		throw NotImplemented501();
 
-	CGI	*cgi = new CGI(*this, *request.client, request, response);
+	CGI	*cgi = new CGI(*this, client, request, response);
 
-	cgi->generateEnv(*this);
-	cgi->execute(*this);
+	cgi->generateEnv(driver);
+	cgi->execute(driver);
+	client.cgis.push_back(cgi);
 }
 
 void	Server::assignSocket(const String& address, const String& port,

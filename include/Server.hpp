@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 03:19:07 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 22:59:27 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ struct	Server
 	static const Location		defaultLocation;
 	static const unsigned int	timeoutValue;
 
-	void						handleRequest(Request&, Response&);
+	void						handleRequest(Driver&, Client&, Request&, Response&);
 	void						processCookies(Request&, Response&);
 	Optional<const Location*>	matchURILocation(const Request&);
 
@@ -59,7 +59,7 @@ struct	Server
 	void		post(Response&, Request&) const;
 	void		delete_(Response&, Request&) const;
 
-	void		cgi(Response&, Request&) const;
+	void		cgi(Driver&, Client&, Response&, Request&) const;
 
 	friend class CGI;
 	// TODO: dumped this here just to compile, fix it

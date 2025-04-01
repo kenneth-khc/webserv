@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 20:33:24 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 23:03:02 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,13 +37,13 @@ void	Server::get(Response& response, Request& request, const Location& location)
 	// TODO: cgi dir
 	Optional<String::size_type>	pos = request.path.find(String("/") + "cgi-bin" + "/");
 
-	if (pos.exists == true && pos.value == 0)
-	{
-		cgi(response, request);
-		return ;
-	}
+	// if (pos.exists == true && pos.value == 0)
+	// {
+		// cgi(response, request);
+		// return ;
+	// }
 	// TODO: uploads dir
-	else if (request.path == (String("/") + "uploads"))
+	if (request.path == (String("/") + "uploads"))
 	{
 		if (request.method == "GET")
 		{

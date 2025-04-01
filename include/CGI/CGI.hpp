@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/28 03:12:01 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 04:44:20 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,21 +16,26 @@
 # include <vector>
 # include "Time.hpp"
 # include "String.hpp"
-# include "Driver.hpp"
-# include "Client.hpp"
 # include "Request.hpp"
+# include "CGIInput.hpp"
+# include "CGIOutput.hpp"
 
 # define NUM_OF_CGI_FIELDS 3
-# define NUM_OF_META_VARIABLES 6
+# define NUM_OF_META_VARIABLES 13
 # define NUM_OF_EXT_META_VARIABLES 1
 # define PHP_META_VARIABLES 3
 
+class Driver;
+class Client;
+class Server;
+
 class CGI {
-		static const String	cgiFields[NUM_OF_CGI_FIELDS];
 		CGI(void);
 		CGI(const CGI &obj);
 		CGI	&operator=(const CGI &obj);
 	public:
+		static const String	cgiFields[NUM_OF_CGI_FIELDS];
+
 		Client				&client;
 		Request				&request;
 		Response			&response;
@@ -41,29 +46,16 @@ class CGI {
 		std::vector<char *>	envp;
 		std::vector<char *>	argv;
 
-		int					inputFD;
-		int					outputFD;
-		int					outputPipeSize;
 		pid_t				pid;
-		String::size_type	inputLength;
-		String				output;
-		std::time_t			lastActive;
-		char				processStage;
+		CGIInput			*input;
+		CGIOutput			*output;
+		std::time_t			timer;
 
 		CGI(const Server &server, Client &client, Request &request, Response &response);
 		~CGI(void);
-		void	generateEnv(const Server &server);
-		void	execute(const Server &server);
-		void	feedInput(int epollFD);
-		void	fetchOutput(int epollFD);
-		void	parseOutput(void);
-
-		enum ProcessStage {
-			INPUT_DONE = 0x001,
-			HEADERS = 0x002,
-			MESSAGE_BODY = 0x004,
-			OUTPUT_DONE = 0x008
-		};
+		void	generateEnv(const Driver &driver);
+		void	execute(Driver &driver);
+		bool	isTimeout(const Server &server);
 };
 
 #endif

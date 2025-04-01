@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 20:15:12 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 20:14:32 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 02:51:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include "Logger.hpp"
 #include "Configuration.hpp"
 #include "Logger.hpp"
+#include "CGI.hpp"
 #include <sys/epoll.h>
 #include <sys/types.h>
 #include <set>
@@ -55,7 +56,7 @@ struct	Driver
 	std::map<int, Socket>	listeners;
 	std::map<int, Socket>	establishedSockets;
 	std::map<int, Client>	clients;
-	std::map<int, CGI *>	cgis;
+	std::map<int, CGI*>		cgis;
 
 	friend class Logger;
 	Logger	logger;
@@ -64,9 +65,9 @@ struct	Driver
 
 	void		processReadyEvents();
 	void		receiveMessage(std::map<int, Client>::iterator&);
-	void		processRequest(std::map<int, Client>::iterator&, std::set<Client *>&);
-	void		processCGI(std::map<int, CGI*>::iterator&);
-	void		generateResponse(std::map<int, Client>::iterator&, std::set<Client *>&);
+	void		processRequest(std::map<int, Client>::iterator&, std::set<Client*>&);
+	void		processCGI(std::map<int, CGI*>::iterator&, std::set<CGI*>&);
+	void		generateResponse(std::map<int, Client>::iterator&, std::set<Client*>&);
 
 	void		updateEpollTimeout();
 

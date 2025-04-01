@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/01 01:25:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 04:43:47 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 #include "ConfigErrors.hpp"
 #include "Directive.hpp"
 #include "Utils.hpp"
-#include "connection.hpp"
 #include "ErrorCode.hpp"
 #include "Time.hpp"
 #include "Base64.hpp"
@@ -33,9 +32,9 @@
 #include <dirent.h>
 #include <algorithm>
 #include <cstdio>
-
-int					globalEpollFD;
-std::map<int,CGI*>*	globalCgis;
+#include <sys/types.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 Driver::Driver(const Configuration& config):
 	webServerName("42webserv"),
@@ -61,8 +60,6 @@ Driver::Driver(const Configuration& config):
 
 	/* Epoll configuration */
 	epollFD = epoll_create(1);
-	globalEpollFD = epollFD;
-	globalCgis = &cgis;
 	if (epollFD == -1)
 	{
 		std::perror("epoll_create() failed");
@@ -111,7 +108,8 @@ int	Driver::epollWait()
 
 void	Driver::processReadyEvents()
 {
-	std::set<Client *>	activeClients;
+	std::set<Client*>	activeClients;
+	std::set<CGI*>		activeCGIs;
 
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
@@ -168,25 +166,17 @@ void	Driver::processReadyEvents()
 		}
 		else if (cgiIt != cgis.end())
 		{
-			if (currEvent->events & EPOLLIN)
-			{
-				cgiIt->second->fetchOutput(epollFD);
-			}
-			if (currEvent->events & EPOLLOUT)
-			{
-				cgiIt->second->feedInput(epollFD);
-			}
-			if (currEvent->events & EPOLLHUP)
-			{
-				cgiIt->second->fetchOutput(epollFD);
-			}
-			processCGI(cgiIt);
+			processCGI(cgiIt, activeCGIs);
 		}
 	}
 
-	for (std::set<Client *>::iterator it = activeClients.begin(); it != activeClients.end(); it++)
+	for (std::set<Client*>::iterator it = activeClients.begin(); it != activeClients.end(); it++)
 	{
 		(*it)->timer->update(*(*it)->server);
+	}
+	for (std::set<CGI*>::iterator it = activeCGIs.begin(); it != activeCGIs.end(); it++)
+	{
+		(*it)->timer = Time::getTimeSinceEpoch() + Server::cgiTimeoutDuration;
 	}
 }
 
@@ -250,13 +240,12 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 				host = host.consumeUntil(":").value;
 			}
 
-			request.client = &client;
 			// this picks the configuration block to use depending on server_name
 			// or defaulting back to first server with the matching port
 			Server*		server = matchServerName(host)
-								.value_or(request.client->server);
+								.value_or(client.server);
 
-			server->handleRequest(request, client.responseQueue.back());
+			server->handleRequest(*this, client, request, client.responseQueue.back());
 		}
 		catch (const ErrorCode &e)
 		{
@@ -274,31 +263,47 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 	}
 }
 
-void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt)
+void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt, std::set<CGI*>& activeCGIs)
 {
-	CGI	&cgi = *(cgiIt->second);
+	CGI&	cgi = *(cgiIt->second);
 
-	if (cgi.processStage & CGI::INPUT_DONE)
-	{
-		cgis.erase(cgiIt);
-		cgi.processStage &= ~CGI::INPUT_DONE;
+	try {
+		if (currEvent->events & EPOLLIN)
+		{
+			cgi.output->fetch(activeCGIs);
+			if (cgi.response.processStage & Response::DONE)
+			{
+				cgis.erase(cgiIt);
+				activeCGIs.erase(&cgi);
+				delete &cgi;
+				return ;
+			}
+		}
+		if (currEvent->events & EPOLLOUT)
+		{
+			cgi.input->feed(activeCGIs);
+		}
+		if (currEvent->events & EPOLLHUP)
+		{
+			int	stat_loc = 0;
+
+			if (waitpid(cgi.pid, &stat_loc, WNOHANG) == cgi.pid) {
+				if (stat_loc != 0)
+					throw InternalServerError500();
+			}
+		}
 	}
-	else if (cgi.processStage & CGI::OUTPUT_DONE)
-	{
-		try {
-			constructConnectionHeader(cgi.request, cgi.response);
-			cgi.response.insert("Date", Time::printHTTPDate());
-			cgi.response.processStage |= Response::DONE;
-		}
-		catch (const ErrorCode &e) {
-			cgi.response = e;
-		}
-		delete &cgi;
+	catch (const ErrorCode &e) {
+		cgi.response = e;
+		cgi.input->close();
+		cgi.output->close();
 		cgis.erase(cgiIt);
+		activeCGIs.erase(&cgi);
+		delete &cgi;
 	}
 }
 
-void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt, std::set<Client *>& activeClients)
+void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt, std::set<Client*>& activeClients)
 {
 	Client&		client = clientIt->second;
 	Request&	request = client.requestQueue.front();
@@ -369,6 +374,15 @@ void	Driver::closeConnection(std::map<int, Client>::iterator clientIt, int logFl
 	epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, 0);
 	close(fd);
 	establishedSockets.erase(establishedSockets.find(fd));
+
+	std::vector<CGI *>::iterator cgiIt = client.cgis.begin();
+	while (cgiIt != client.cgis.end())
+	{
+		kill((*cgiIt)->pid, SIGKILL);
+		delete *cgiIt;
+		cgiIt++;
+	}
+
 	clients.erase(clientIt);
 }
 
@@ -386,6 +400,15 @@ void	Driver::monitorConnections()
 		}
 		else
 		{
+			std::vector<CGI*>::iterator cgiIt = client.cgis.begin();
+			while (cgiIt != client.cgis.end())
+			{
+				if ((*cgiIt)->isTimeout(*client.server) == true)
+				{
+					delete *cgiIt;
+				}
+				cgiIt++;
+			}
 			it++;
 		}
 	}

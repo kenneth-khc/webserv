@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/01 01:06:32 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 02:47:35 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,14 @@
 
 #include <sys/socket.h>
 #include <deque>
+#include <vector>
 #include "Time.hpp"
 #include "String.hpp"
 #include "Socket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "ClientTimerState.hpp"
+#include "CGI.hpp"
 
 struct	Socket;
 struct	Server;
@@ -45,6 +47,7 @@ public:
 	Server*				server;
 	String				message;
 	ClientTimerState*	timer;
+	std::vector<CGI*>	cgis;
 
 private:
 	std::vector<char>		messageBuffer;

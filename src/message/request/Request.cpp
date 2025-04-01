@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/31 08:14:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 22:57:43 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ const float	Request::supportedVersions[NUM_OF_VERSIONS] = { 1.1 };
 
 Request::Request(void) :
 	Message(),
-	client(0),
 	method(),
 	requestTarget(),
 	path(),
@@ -46,7 +45,6 @@ Request::~Request(void) {
 
 Request::Request(const Request &obj) :
 	Message(obj),
-	client(obj.client),
 	method(obj.method),
 	requestTarget(obj.requestTarget),
 	path(obj.path),
@@ -61,7 +59,6 @@ Request	&Request::operator=(const Request &obj) {
 	if (this == &obj)
 		return (*this);
 	Message::operator=(obj);
-	this->client = obj.client;
 	this->method = obj.method;
 	this->requestTarget = obj.requestTarget;
 	this->path = obj.path;

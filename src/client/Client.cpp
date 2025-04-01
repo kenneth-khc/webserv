@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/01 01:31:00 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 22:48:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,16 @@
 const size_t	Client::MAX_REQUEST_SIZE = 1 * 1024 * 1024;
 
 Client::Client():
+socket(NULL),
+receivedBy(NULL),
 server(NULL),
+message(),
 timer(new ClientHeaderState()),
-messageBuffer()
+cgis(),
+messageBuffer(),
+request(),
+requestQueue(),
+responseQueue()
 {
 	messageBuffer.resize(1024);
 	requestQueue.push_back(Request());
@@ -34,8 +41,11 @@ receivedBy(receivedBy),
 server(NULL),
 message(),
 timer(new ClientHeaderState()),
+cgis(),
 messageBuffer(),
-request()
+request(),
+requestQueue(),
+responseQueue()
 {
 	messageBuffer.resize(1024);
 	requestQueue.push_back(Request());
@@ -55,6 +65,7 @@ receivedBy(rhs.receivedBy),
 server(rhs.server),
 message(rhs.message),
 timer(0),
+cgis(rhs.cgis),
 messageBuffer(rhs.messageBuffer),
 request(rhs.request),
 requestQueue(rhs.requestQueue),
@@ -86,6 +97,7 @@ Client	&Client::operator=(const Client& rhs)
 		timer = rhs.timer->clone();
 	}
 
+	cgis = rhs.cgis;
 	messageBuffer = rhs.messageBuffer;
 	request = rhs.request;
 	requestQueue = rhs.requestQueue;

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:09:36 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/01 16:52:20 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 20:54:02 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 #include "HeadersState.hpp"
 #include "RequestLineState.hpp"
 
-String	RequestLineState::percentDecodeString(const String &line) const {
+String	RequestLineState::percentDecodeString(const String &line) {
 	String	decodedString;
 
 	for (String::size_type i = 0; i < line.length(); i++) {
@@ -40,6 +40,43 @@ String	RequestLineState::percentDecodeString(const String &line) const {
 	}
 
 	return (decodedString);
+}
+
+String	RequestLineState::removeDotSegments(String input) {
+	String				output;
+	Optional<String>	temp;
+
+	while (input.length() > 0) {
+		if (input[0] == '/') {
+			output.push_back(input[0]);
+			input.erase(0, 1);
+			continue ;
+		}
+
+		temp = input.consumeUntil("/");
+		if (temp.exists == false) {
+			temp.value = input;
+			input = "";
+		}
+
+		if (temp.value == ".") {
+			if (temp.exists == true)
+				input.erase(0, 1);
+			else
+				continue ;
+		}
+		else if (temp.value == "..") {
+			if (output.length() > 0)
+				output.erase(output.length() - 1, 1);
+			if (output.consumeBackwardsUntil("/").exists == true)
+				output.erase(output.length() - 1, 1);
+			else
+				output = "/";
+		}
+		else
+			output.append(temp.value.c_str(), temp.value.length());
+	}
+	return (output);
 }
 
 RequestState	*RequestLineState::process(Request &request, Client &client) {
@@ -66,7 +103,6 @@ RequestState	*RequestLineState::process(Request &request, Client &client) {
 	Optional<String::size_type>	queryPos = str.find("?");
 	if (queryPos.exists == true) {
 		request.path = str.substr(0, queryPos.value);
-		request.decodedPath = RequestLineState::percentDecodeString(request.path);
 
 		request.query = Optional<String>(str.substr(queryPos.value + 1));
 		request.decodedQuery.exists = true;
@@ -79,10 +115,10 @@ RequestState	*RequestLineState::process(Request &request, Client &client) {
 			request.queryPairs.insert(std::make_pair(split[0], split[1]));
 		}
 	}
-	else {
+	else
 		request.path = str;
-		request.decodedPath = RequestLineState::percentDecodeString(str);
-	}
+	request.decodedPath = RequestLineState::percentDecodeString(request.path);
+	request.decodedPath = RequestLineState::removeDotSegments(request.decodedPath);
 
 	String::getline(stream, str, '/');
 	if (str != "HTTP")

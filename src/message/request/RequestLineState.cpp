@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:09:36 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/01 20:54:02 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 21:15:53 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,26 +21,6 @@
 #include "Client.hpp"
 #include "HeadersState.hpp"
 #include "RequestLineState.hpp"
-
-String	RequestLineState::percentDecodeString(const String &line) {
-	String	decodedString;
-
-	for (String::size_type i = 0; i < line.length(); i++) {
-		if (line[i] == '%') {
-			String::size_type	c;
-
-			std::stringstream(line.substr(i + 1, 2)) >> std::hex >> c;
-			decodedString.push_back(c);
-			i += 2;
-		}
-		else if (line[i] == '+')
-			decodedString.push_back(' ');
-		else
-			decodedString.push_back(line[i]);
-	}
-
-	return (decodedString);
-}
 
 String	RequestLineState::removeDotSegments(String input) {
 	String				output;
@@ -77,6 +57,45 @@ String	RequestLineState::removeDotSegments(String input) {
 			output.append(temp.value.c_str(), temp.value.length());
 	}
 	return (output);
+}
+
+String	RequestLineState::normalize(const String& path)
+{
+	String			normalized;
+	Optional<char>	previous;
+	for (size_t i = 0; i < path.size(); ++i)
+	{
+		if (path[i] == '/' && previous.exists && previous.value == '/')
+		{
+			continue ;
+		}
+		else
+		{
+			normalized += path[i];
+			previous = makeOptional(path[i]);
+		}
+	}
+	return normalized;
+}
+
+String	RequestLineState::percentDecodeString(const String &line) {
+	String	decodedString;
+
+	for (String::size_type i = 0; i < line.length(); i++) {
+		if (line[i] == '%') {
+			String::size_type	c;
+
+			std::stringstream(line.substr(i + 1, 2)) >> std::hex >> c;
+			decodedString.push_back(c);
+			i += 2;
+		}
+		else if (line[i] == '+')
+			decodedString.push_back(' ');
+		else
+			decodedString.push_back(line[i]);
+	}
+
+	return (decodedString);
 }
 
 RequestState	*RequestLineState::process(Request &request, Client &client) {
@@ -117,8 +136,9 @@ RequestState	*RequestLineState::process(Request &request, Client &client) {
 	}
 	else
 		request.path = str;
-	request.decodedPath = RequestLineState::percentDecodeString(request.path);
-	request.decodedPath = RequestLineState::removeDotSegments(request.decodedPath);
+	request.decodedPath = RequestLineState::removeDotSegments(request.path);
+	request.decodedPath = RequestLineState::normalize(request.decodedPath);
+	request.decodedPath = RequestLineState::percentDecodeString(request.decodedPath);
 
 	String::getline(stream, str, '/');
 	if (str != "HTTP")

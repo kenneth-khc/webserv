@@ -6,12 +6,15 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:35:41 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 18:40:30 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/01 20:19:07 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PARSER_HPP
 #define PARSER_HPP
+
+/* A Recursive Descent Parser responsible for parsing a configuration file
+ * that sets up the web server. */
 
 #include <stack>
 #include "Lexer.hpp"
@@ -20,9 +23,14 @@
 #include "Configurator.hpp"
 #include "Configuration.hpp"
 
-struct	Parser
+/* The Parser gets hooked up to a Lexer that reads from a file, and it keeps
+ * requesting Tokens from the Lexer until it is done reading the file */
+
+class	Parser
 {
+public:
 	Parser(const char* fileName);
+	~Parser();
 
 	Configurator		configurator;
 	Lexer				lexer;
@@ -43,6 +51,10 @@ struct	Parser
 
 	void				expect(Token::TokenType);
 	bool				accept(Token::TokenType);
+
+private:
+	Parser();
+	Parser(const Parser&);
 };
 
 #endif

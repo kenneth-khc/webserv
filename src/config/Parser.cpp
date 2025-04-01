@@ -23,11 +23,16 @@
 #include "ConfigErrors.hpp"
 
 Parser::Parser(const char *fileName):
-configurator(),
-lexer(fileName),
-token(Token::NONE),
-contexts()
+	configurator(),
+	lexer(fileName),
+	token(Token::NONE),
+	contexts()
 {
+}
+
+Parser::~Parser()
+{
+
 }
 
 Configuration	Parser::parseConfig()
@@ -99,7 +104,7 @@ std::vector<String>	Parser::parseParameters()
 		parameters.push_back(param);
 		accept(Token::PARAMETER);
 	}
-	lexer.lookingFor = Token::NAME;
+	lexer.lookFor(Token::NAME);
 	return parameters;
 }
 
@@ -150,7 +155,7 @@ bool	Parser::accept(Token::TokenType type)
 	{
 		if (type == Token::NAME)
 		{
-			lexer.lookingFor = Token::PARAMETER;
+			lexer.lookFor(Token::PARAMETER);
 		}
 		token = lexer.advance();
 		return true;

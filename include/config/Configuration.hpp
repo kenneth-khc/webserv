@@ -16,12 +16,20 @@
 #include "Optional.hpp"
 #include "Directive.hpp"
 
-struct	Configuration
+/* A representation of the config file in code. The layer here corresponds to
+ * the global scope of the config file itself.
+ * 
+ * A multimap holds all the directives, which in turn the directives themselves
+ * hold another multimap of directives, forming a hierarchical relationship 
+ *
+ * A Driver object takes in a Configuration and reads from it to configure
+ * specific settings related to HTTP or the web server itself. */
+
+class	Configuration
 {
+public:
 	Configuration();
 	~Configuration();
-
-	std::multimap<String, Directive*>	directives;
 
 	void				add(const Directive&);
 	void				add(Directive*);
@@ -30,6 +38,9 @@ struct	Configuration
 	/*const Directive*	get(const String&) const;*/
 	const Directive&	get(const String&) const;
 	void				assertHasDirective(const String&) const;
+
+private:
+	std::multimap<String, Directive*>	directives;
 };
 
 #endif

@@ -13,27 +13,34 @@
 #ifndef TOKEN_HPP
 #define TOKEN_HPP
 
-#include <map>
 #include "String.hpp"
 
 
 struct	Token
 {
+	static const int TOKEN_TYPES;
 	enum	TokenType
 	{
 		NONE, NAME, PARAMETER, DIGIT, ALPHA, WSP, CHAR, DQUOTE,
 		LCURLY, RCURLY, SEMICOLON, HASH, NEWLINE, END_OF_FILE
 	};
 	static const char* stringified[];
+	static String		stringify(TokenType);
 
 	TokenType	type;
 	String		lexeme;
 
+	size_t		lineNum;
+	size_t		columnNum;
+
 	Token();
 	Token(const String&);
+	Token(const String&, size_t, size_t);
 	Token(const TokenType&, const String&);
-	operator	TokenType() const;
+	Token(const TokenType&, const String&, size_t, size_t);
 
+	Token(const Token&);
+	operator	TokenType() const;
 };
 
 #endif

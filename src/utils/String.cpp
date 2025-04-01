@@ -183,6 +183,16 @@ const char&	String::at(size_type index) const
 	return str[index];
 }
 
+char&	String::front()
+{
+	return str[0];
+}
+
+const char&	String::front() const
+{
+	return str[0];
+}
+
 char&	String::back()
 {
 	return str[str.length() - 1];

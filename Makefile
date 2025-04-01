@@ -15,7 +15,7 @@
 NAME := webserv
 
 CXX := g++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98 -g3 #-fuse-ld=mold
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98 #-fuse-ld=mold
 
 src_dir := src
 dirs := $(src_dir) \

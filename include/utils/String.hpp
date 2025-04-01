@@ -76,6 +76,8 @@ public:
 	/* Wrapper to call std::string functions */
 	char&					at(size_type);
 	const char&				at(size_type) const;
+	char&					front();
+	const char&				front() const;
 	char&					back();
 	const char&				back() const;
 	size_type				size() const;

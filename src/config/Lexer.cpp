@@ -15,14 +15,18 @@
 #include <cctype>
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 
 const Predicate Lexer::isWSP(" \t\n");
 
 Lexer::Lexer(const char* fileName):
-configFile(fileName),
-input(configFile),
-currentToken(),
-lookingFor(Token::NAME)
+	configFile(fileName),
+	input(configFile),
+	lookingFor(Token::NAME),
+	columnOffset(1),
+	lineOffset(1),
+	lexemeBuffer(),
+	currentToken()
 {
 	if (!configFile.is_open())
 	{
@@ -31,30 +35,37 @@ lookingFor(Token::NAME)
 	}
 }
 
-const Token&	Lexer::peek() const
+Lexer::~Lexer()
 {
-	return currentToken;
+
 }
 
-Token&	Lexer::advance()
+void	Lexer::lookFor(Token::TokenType type)
 {
-	currentToken = getNextToken();
-	/*std::cout << Token::stringified[currentToken.type] << ": "*/
-	/*		  << currentToken.lexeme << '\n';*/
-	return currentToken;
-}
-
-void	Lexer::tryParameter()
-{
-	while (!isWSP(*input) && *input != ';' && *input != '{' && *input != '}')
+	if (type != Token::NAME && type != Token::PARAMETER)
 	{
-		lexemeBuffer += input.consume().value;
+		String	msg = "Invalid TokenType " + Token::stringify(type) + " to look for";
+		throw std::invalid_argument(msg.c_str());
 	}
+	lookingFor = type;
+}
+
+Token	Lexer::tokenizeWord()
+{
+	if (lookingFor == Token::NAME)
+	{
+		tryName();
+	}
+	else if (lookingFor == Token::PARAMETER)
+	{
+		tryParameter();
+	}
+	return tokenize(lookingFor);
 }
 
 Token	Lexer::getNextToken()
 {
-	charOffset += skipWhitespaces();
+	skipWhitespaces();
 
 	Optional<char>	c;
 	while ((c = input.consume()).exists)
@@ -62,66 +73,86 @@ Token	Lexer::getNextToken()
 		lexemeBuffer += c.value;
 		switch (c.value)
 		{
-			case '{':
-				return token(Token::LCURLY);
-			case '}':
-				return token(Token::RCURLY);
-			case ';':
-				return token(Token::SEMICOLON);
-			case '#':
-				skipComment(); break; // TODO: make this better
-			case '\n':
-				return token(Token::NEWLINE);
 			default:
-				if (lookingFor == Token::NAME)
-				{
-					tryName();
-					return token(Token::NAME);
-				}
-				else if (lookingFor == Token::PARAMETER)
-				{
-					tryParameter();
-					return token(Token::PARAMETER);
-				}
+				return tokenizeWord();
+			case '{':
+				return tokenize(Token::LCURLY);
+			case '}':
+				return tokenize(Token::RCURLY);
+			case ';':
+				return tokenize(Token::SEMICOLON);
+			case '\n':
+				return tokenize(Token::NEWLINE);
+			case '#':
+				skipComment();
 		}
 	}
 	return Token(Token::END_OF_FILE, "EOF");
 }
 
-Token	Lexer::token(Token::TokenType type)
+const Token&	Lexer::peek() const
 {
-	String	lexeme = lexemeBuffer;
-	lexemeBuffer.clear();
-	return Token(type, lexeme);
+	return currentToken;
+}
+
+Token	Lexer::advance()
+{
+	currentToken = getNextToken();
+	columnOffset += currentToken.lexeme.length();
+	/*std::cout << Token::stringified[currentToken.type] << ": "*/
+	/*		  << currentToken.lexeme << '\n';*/
+	return currentToken;
 }
 
 void	Lexer::tryName()
 {
-	while (std::isalpha(*input) || std::isdigit(*input)
-			|| *input == '_' || *input == '-')
+	for (char c = input.front();
+		 std::isalpha(c) || std::isdigit(c) || c == '_' || c == '-';
+		 c = input.front())
 	{
 		lexemeBuffer += input.consume().value;
 	}
 }
 
-size_t	Lexer::skipWhitespaces()
+void	Lexer::tryParameter()
 {
-	size_t	skipped = 0;
-	while (input.consumeIf(isWSP).exists)
+	for (char c = input.front();
+		!isWSP(c) && c != ';' && c != '{' && c != '}';
+		c = input.front())
 	{
-		++skipped;
+		lexemeBuffer += input.consume().value;
 	}
-	return skipped;
 }
 
-size_t	Lexer::skipComment()
+Token	Lexer::tokenize(Token::TokenType type)
 {
-	size_t	skipped = 0;
-	Optional<String>	consumedComment = input.consumeUntil("\n");
-	skipped += skipWhitespaces();
-	/*while (input.consume("\n").exists)*/
-	/*	++skipped;*/
-	skipped += consumedComment.value_or("").size();
+	String	lexeme = lexemeBuffer;
 	lexemeBuffer.clear();
-	return skipped;
+	return Token(type, lexeme, lineOffset, columnOffset);
+}
+
+void	Lexer::skipWhitespaces()
+{
+	for (char c = input.front();
+		 c == ' ' || c == '\t' || c == '\n';
+		 c = input.front())
+	{
+		if (c == '\n')
+		{
+			++lineOffset;
+			columnOffset = 1;
+		}
+		else
+		{
+			++columnOffset;
+		}
+		input.consume();
+	}
+}
+
+void	Lexer::skipComment()
+{
+	Optional<String>	consumedComment = input.consumeUntil("\n");
+	skipWhitespaces();
+	lexemeBuffer.clear();
 }

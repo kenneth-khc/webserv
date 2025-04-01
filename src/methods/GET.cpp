@@ -27,118 +27,158 @@
 
 #define FILE_NAME_LEN 45
 
+static
+Optional<String>
+resolveUploadGET(Response&, const Request&, const Location&);
+
+static
+Optional<String>
+resolveDirectoryGET(Response&, const Request&, const Location&);
+
+static
+void
+getFile(const String&, Response&, const Request&, const Location&);
+
 static void		generateUploadsListing(const String& uploadsDir, Response& response, const Request& request);
 static String	getUploadsReference(const String& uploadsDir, const Request &request);
-static void		getFromFileSystem(Response& response, const Request& request, const Location&);
 static void		generateDirectoryListing(Response& response, const std::string& dirName);
+static bool		fileIsDirectory(const String& filepath);
+static Optional<String>	tryIndexFiles(const Location&, const String& filepath);
 
 #include <iostream>
+
 void	Server::get(Response& response, Request& request, const Location& location) const
 {
-	// TODO: uploads dir
+	String	resolvedFilepath;
 	if (location.acceptUploads)
 	{
-		std::cout << ">>> " << location.uri << "\n";
-		if (request.path == location.uri)
+		Optional<String>	uploadedFilepath = resolveUploadGET(response, request, location);
+		if (uploadedFilepath.exists)
 		{
-			generateUploadsListing("uploads", response, request);
+			resolvedFilepath = uploadedFilepath.value;
 		}
-		response.setStatusCode(Response::OK);
-		response.insert("Content-Length", response.messageBody.length());
-		response.insert("Content-Type", "text/html");
-		return ;
-	}
-
-	getFromFileSystem(response, request, location);
-}
-
-static String	getIndexFile(const Location& location, const String& filepath)
-{
-	const String	prefix = filepath + "/";
-	size_t			i;
-	for (i = 0; i < location.indexFiles.size()-1; ++i)
-	{
-		const String&	indexFile = prefix + location.indexFiles[i];
-		if (access(indexFile.c_str(), R_OK) == 0)
+		else
 		{
-			return indexFile;
+			return;
 		}
 	}
-	return prefix + location.indexFiles[i];
-}
-
-static void		getFromFileSystem(Response& response, const Request& request,
-								  const Location& location)
-{
-	Optional<String::size_type>	uploads = request.path.find(String("/") + "uploads");
-	String						filePath = request.resolvedPath;
-	struct stat					statbuf;
-	if (uploads.exists == true && uploads.value == 0)
+	else if (request.path.back() == '/')
 	{
-		filePath = getUploadsReference("uploads", request);
+		Optional<String>	indexFilepath = resolveDirectoryGET(response, request, location);
+		if (indexFilepath.exists)
+		{
+			resolvedFilepath = indexFilepath.value;
+		}
+		else
+		{
+			return;
+		}
 	}
 	else
 	{
-		if (request.path == "/")
-		{
-			filePath = getIndexFile(location, filePath);
-			response.insert("Cache-Control", "no-store");
-		}
-		/*else if (request.path.starts_with("/directory") == true)*/
-		/*{*/
-		/*	file = request.path;*/
-		/*	file.replace(0, 10, "YoupiBanane");*/
-		/*	if (file == "YoupiBanane")*/
-		/*		file += "/youpi.bad_extension";*/
-		/*	if (file != "YoupiBanane/Yeah")*/
-		/*		autoindex = true;*/
-		/*	else*/
-		/*		autoindex = false;*/
-		/*}*/
-		else
-		{
-			filePath = request.resolvedPath;
-		}
+		resolvedFilepath = request.resolvedPath;
 	}
 
-	if (stat(filePath.c_str(), &statbuf) == 0 && access(filePath.c_str(), R_OK) == 0)
+	getFile(resolvedFilepath, response, request, location);
+}
+
+static Optional<String>	resolveUploadGET(Response& response, 
+		const Request& request, const Location& location)
+{
+	if (request.path == location.uri && fileIsDirectory(request.resolvedPath))
 	{
-		if (location.autoindex == true && S_ISDIR(statbuf.st_mode))
+		generateUploadsListing("uploads", response, request);
+		response.setStatusCode(Response::OK);
+		response.insert("Content-Length", response.messageBody.length());
+		response.insert("Content-Type", "text/html");
+		return makeNone<String>();
+	}
+	else
+	{
+		String	uploadedFilepath = getUploadsReference("uploads", request);
+		return makeOptional(uploadedFilepath);
+	}
+}
+
+static Optional<String>	resolveDirectoryGET(Response &response,
+		const Request& request, const Location& location)
+{
+	Optional<String>	indexFilepath = tryIndexFiles(location, request.resolvedPath);
+	if (!indexFilepath.exists)
+	{
+		if (location.autoindex)
 		{
-			if (request.method == "GET")
-			{
-				generateDirectoryListing(response, filePath);
-			}
+			generateDirectoryListing(response, request.resolvedPath);
 			response.setStatusCode(Response::OK);
 			response.insert("Content-Length", response.messageBody.length());
 			response.insert("Content-Type", "text/html");
+			return makeNone<String>();
 		}
-		/*else if (autoindex == false && S_ISDIR(statbuf.st_mode))*/
-		/*{*/
-		/*	throw NotFound404();	// Test-specific condition*/
-		/*}*/
-		else if (processPreconditions(request, statbuf) == false)
+		else
+		{
+			return makeOptional(location.indexFiles.back());
+		}
+	}
+	else
+	{
+		return makeOptional(indexFilepath.value);
+	}
+}
+
+static bool	fileIsDirectory(const String& filepath)
+{
+	struct stat	filestatus;
+
+	if (stat(filepath.c_str(), &filestatus) == -1)
+	{
+		// TODO: wat to do in case of errors?
+		std::cerr << "stat(" << filepath << ") failed\n";
+		return false;
+	}
+	else
+	{
+		return S_ISDIR(filestatus.st_mode);
+	}
+}
+
+static Optional<String>	tryIndexFiles(const Location& location, const String& filepath)
+{
+	size_t	i;
+	for (i = 0; i < location.indexFiles.size(); ++i)
+	{
+		const String&	indexFile = filepath + location.indexFiles[i];
+		if (access(indexFile.c_str(), R_OK) == 0)
+		{
+			return makeOptional(indexFile);
+		}
+	}
+	return makeNone<String>();
+}
+
+void	getFile(const String& filepath, Response& response,
+				const Request& request, const Location& location)
+{
+	struct stat	status;
+	if (stat(filepath.c_str(), &status) == 0 && access(filepath.c_str(), R_OK) == 0)
+	{
+		if (processPreconditions(request, status) == false)
 		{
 			response.setStatusCode(Response::NOT_MODIFIED);
 		}
 		else
 		{
 			response.setStatusCode(Response::OK);
-			if (request.method == "GET")
-			{
-				response.getFileContents(filePath);
-			}
-			response.insert("Content-Length", statbuf.st_size);
-			constructContentTypeHeader(response, filePath, location.MIMEMappings);
+			response.getFileContents(filepath);
+			response.insert("Content-Length", status.st_size);
+			constructContentTypeHeader(response, filepath, location.MIMEMappings);
 		}
-		response.insert("ETag", constructETagHeader(statbuf.st_mtim, statbuf.st_size));
-		response.insert("Last-Modified", Time::printHTTPDate(statbuf.st_mtim));
+		response.insert("ETag", constructETagHeader(status.st_mtim, status.st_size));
+		response.insert("Last-Modified", Time::printHTTPDate(status.st_mtim));
 	}
 	else
 	{
 		throw NotFound404();
 	}
-
 }
 
 static String	getUploadsReference(

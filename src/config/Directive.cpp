@@ -95,6 +95,10 @@ Context	contextify(const String& str)
 	{
 		return NONE;
 	}
+	else if (str == "CGI_script")
+	{
+		return CGI_SCRIPT;
+	}
 	else
 	{
 		throw InvalidDirective(str);
@@ -122,6 +126,10 @@ String	stringifyContext(Context ctx)
 	else if (ctx == NONE)
 	{
 		return "none";
+	}
+	else if (ctx == CGI_SCRIPT)
+	{
+		return "CGI_script";
 	}
 	else
 	{

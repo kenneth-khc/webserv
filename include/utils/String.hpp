@@ -191,6 +191,7 @@ private:
 	static std::string	toStdString(const Type& T);
 };
 
+
 /* A functor for matching characters. By constructing a Predicate with a string,
  * we can then pass the functor into an operation which can then call
  * operator() on each character, matching the character by returning true/false */

@@ -94,6 +94,7 @@ void	Server::handleRequest(Request& request, Response& response)
 	const String&	rootDir = pathHandler.resolveWithPrefix(location->root);
 	request.resolvedPath = pathHandler.resolve(rootDir, request.path);
 
+
 	if (request.path.starts_with(location->uri) &&
 		location->executeCGI == true &&
 		request.path.ends_with(".bla"))	// Test-specific condition

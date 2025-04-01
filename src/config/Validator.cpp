@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "Context.hpp"
 #include "Directive.hpp"
 #include "Validator.hpp"
 #include "String.hpp"
@@ -33,6 +34,13 @@ void	Validator::operator()(const Directive& directive,
 }
 
 void	no_op(const Directive&, const Mappings&) { }
+
+static size_t	countFrequency(const String& name, const Mappings& mappings)
+{
+	Directive::EqualRange	range = mappings.equal_range(name);
+	size_t					count = std::distance(range.first, range.second);
+	return count;
+}
 
 void	validateParameterSize(const Directive& dir, size_t expected)
 {
@@ -232,6 +240,10 @@ void	validateAutoindex(const Directive& dir, const Mappings& mappings)
 	validateEnclosingContext(dir, vector_of(HTTP)(SERVER)(LOCATION));
 	validateDuplicateDirective(dir, mappings);
 	validateBoolean(dir.parameters[0]);
+	if (countFrequency("accept_uploads", mappings) > 0)
+	{
+		throw InvalidDirective(dir.name);
+	}
 }
 
 /*
@@ -255,13 +267,13 @@ void	validateFileExtension(const String& str)
 }
 
 /*
-Syntax : CGI-script file-extension ... ;
+Syntax : CGI_script file-extension ... ;
 Default: —
-Context: location */
+Context: server */
 void	validateCGIScript(const Directive& dir, const Mappings& mappings)
 {
 	validateParameterSize(dir, 1, std::numeric_limits<size_t>::max());
-	validateEnclosingContext(dir, LOCATION);
+	validateEnclosingContext(dir, SERVER);
 	validateDuplicateDirective(dir, mappings);
 	const std::vector<String>&	parameters = dir.parameters;
 	for (size_t i = 0; i < parameters.size(); ++i)
@@ -279,7 +291,7 @@ void	validateAllowMethod(const Directive& dir, const Mappings& mappings)
 	validateParameterSize(dir, 1, 3);
 	validateParameterValues(dir.parameters,
 							vector_of<String>("GET")("POST")("DELETE")("HEAD"));
-	validateEnclosingContext(dir, LOCATION);
+	validateEnclosingContext(dir, vector_of(LOCATION)(CGI_SCRIPT));
 	validateDuplicateDirective(dir, mappings);
 }
 
@@ -332,6 +344,10 @@ void	validateAcceptUploads(const Directive& dir, const Mappings& mappings)
 	validateEnclosingContext(dir, LOCATION);
 	validateDuplicateDirective(dir, mappings);
 	validateBoolean(dir.parameters[0]);
+	if (countFrequency("autoindex", mappings) > 0)
+	{
+		throw InvalidDirective(dir.name);
+	}
 }
 
 /*
@@ -341,7 +357,7 @@ Context: location */
 void	validateUploadDirectory(const Directive& dir, const Mappings& mappings)
 {
 	validateParameterSize(dir, 1);
-	validateEnclosingContext(dir, LOCATION);
+	validateEnclosingContext(dir, vector_of(LOCATION)(CGI_SCRIPT));
 	validateDuplicateDirective(dir, mappings);
 }
 
@@ -362,3 +378,12 @@ void	validateErrorPage(const Directive& dir, const Mappings& mappings)
 	// TODO: validate file format
 }
 
+/*
+Syntax : CGI_directory directory;
+Default: —
+Context: CGI_script */
+void	validateCGIDirectory(const Directive& dir, const Mappings& mappings)
+{
+	validateParameterSize(dir, 1);
+	validateDuplicateDirective(dir, mappings);
+}

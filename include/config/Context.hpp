@@ -23,6 +23,7 @@ enum Context
 	GLOBAL,
 	HTTP,
 	SERVER,
+	CGI_SCRIPT,
 	LOCATION
 };
 

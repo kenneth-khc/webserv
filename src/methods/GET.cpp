@@ -32,20 +32,14 @@ static String	getUploadsReference(const String& uploadsDir, const Request &reque
 static void		getFromFileSystem(Response& response, const Request& request, const Location&);
 static void		generateDirectoryListing(Response& response, const std::string& dirName);
 
+#include <iostream>
 void	Server::get(Response& response, Request& request, const Location& location) const
 {
-	// TODO: cgi dir
-	Optional<String::size_type>	pos = request.path.find(String("/") + "cgi-bin" + "/");
-
-	if (pos.exists == true && pos.value == 0)
-	{
-		cgi(response, request);
-		return ;
-	}
 	// TODO: uploads dir
-	else if (request.path == (String("/") + "uploads"))
+	if (location.acceptUploads)
 	{
-		if (request.method == "GET")
+		std::cout << ">>> " << location.uri << "\n";
+		if (request.path == location.uri)
 		{
 			generateUploadsListing("uploads", response, request);
 		}

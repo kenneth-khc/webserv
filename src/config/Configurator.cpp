@@ -39,6 +39,7 @@ Configurator::Configurator()
 	support("CGI_script", validateCGIScript);
 	support("accept_uploads", validateAcceptUploads);
 	support("upload_directory", validateUploadDirectory);
+	support("CGI_directory", validateCGIDirectory);
 }
 
 void	Configurator::support(const String& name, const Validator& validator)

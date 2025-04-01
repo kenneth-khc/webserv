@@ -55,5 +55,6 @@ void	validateExecCGI(const Directive&, const Mappings&);
 void	validateCGIScript(const Directive&, const Mappings&);
 void	validateAcceptUploads(const Directive&, const Mappings&);
 void	validateUploadDirectory(const Directive&, const Mappings&);
+void	validateCGIDirectory(const Directive&, const Mappings&);
 
 #endif

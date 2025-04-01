@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/31 17:41:44 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 16:51:07 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ class Request : public Message {
 		String						method;
 		String						requestTarget;
 		String						path;
+		String						decodedPath;
 		String						resolvedPath;
 		Optional<String>			query;
 		Optional<String>			decodedQuery;

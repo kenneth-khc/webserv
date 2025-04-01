@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 16:45:20 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/30 03:30:13 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 16:53:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 # include "RequestState.hpp"
 
 class RequestLineState : public RequestState {
+		static String	
+		static String	percentDecodeString(const String &line) const;
 	public:
 		RequestState	*process(Request &request, Client &client);
 		int				getState(void) const;

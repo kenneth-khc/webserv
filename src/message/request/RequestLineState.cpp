@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:09:36 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/30 03:29:50 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 16:52:20 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,26 @@
 #include "Client.hpp"
 #include "HeadersState.hpp"
 #include "RequestLineState.hpp"
+
+String	RequestLineState::percentDecodeString(const String &line) const {
+	String	decodedString;
+
+	for (String::size_type i = 0; i < line.length(); i++) {
+		if (line[i] == '%') {
+			String::size_type	c;
+
+			std::stringstream(line.substr(i + 1, 2)) >> std::hex >> c;
+			decodedString.push_back(c);
+			i += 2;
+		}
+		else if (line[i] == '+')
+			decodedString.push_back(' ');
+		else
+			decodedString.push_back(line[i]);
+	}
+
+	return (decodedString);
+}
 
 RequestState	*RequestLineState::process(Request &request, Client &client) {
 	String						&message = client.message;
@@ -46,22 +66,11 @@ RequestState	*RequestLineState::process(Request &request, Client &client) {
 	Optional<String::size_type>	queryPos = str.find("?");
 	if (queryPos.exists == true) {
 		request.path = str.substr(0, queryPos.value);
+		request.decodedPath = RequestLineState::percentDecodeString(request.path);
 
 		request.query = Optional<String>(str.substr(queryPos.value + 1));
 		request.decodedQuery.exists = true;
-		for (String::size_type i = 0; i < request.query.value.length(); i++) {
-			if (request.query.value[i] == '%') {
-				String::size_type	c;
-
-				std::stringstream(request.query.value.substr(i + 1, 2)) >> std::hex >> c;
-				request.decodedQuery.value.push_back(c);
-				i += 2;
-			}
-			else if (request.query.value[i] == '+')
-				request.decodedQuery.value.push_back(' ');
-			else
-				request.decodedQuery.value.push_back(request.query.value[i]);
-		}
+		request.decodedQuery.value = RequestLineState::percentDecodeString(request.query.value);
 
 		const std::vector<String>	queries = request.decodedQuery.value.split("&");
 		for (std::vector<String>::const_iterator it = queries.begin(); it != queries.end(); it++) {
@@ -70,8 +79,10 @@ RequestState	*RequestLineState::process(Request &request, Client &client) {
 			request.queryPairs.insert(std::make_pair(split[0], split[1]));
 		}
 	}
-	else
+	else {
 		request.path = str;
+		request.decodedPath = RequestLineState::percentDecodeString(str);
+	}
 
 	String::getline(stream, str, '/');
 	if (str != "HTTP")

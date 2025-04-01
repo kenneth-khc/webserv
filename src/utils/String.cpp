@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 03:27:31 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 19:41:09 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -438,6 +438,21 @@ Optional<String>	String::consumeUntil(const String& expected)
 	{
 		String	consumed = str.substr(0, pos.value);
 		str = str.substr(pos.value);
+		return consumed;
+	}
+	else
+	{
+		return makeNone<String>();
+	}
+}
+
+Optional<String>	String::consumeBackwardsUntil(const String& expected)
+{
+	Optional<size_type>	pos = find_last_of(expected);
+	if (pos.exists)
+	{
+		String	consumed = str.substr(pos.value + 1, str.length() - pos.value - 1);
+		str = str.substr(0, pos.value + 1);
 		return consumed;
 	}
 	else

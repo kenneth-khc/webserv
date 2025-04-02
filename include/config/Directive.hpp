@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:32:50 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/20 06:30:48 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/03 20:59:27 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 #include "String.hpp"
 #include "Context.hpp"
 #include "Optional.hpp"
+#include "Parameter.hpp"
+#include "Diagnostic.hpp"
 #include <vector>
 #include <map>
 
@@ -27,6 +29,7 @@ struct	Directive
 {
 	Directive();
 	Directive(const String&, const std::vector<String>&, Context);
+	Directive(const String&, const std::vector<Parameter>&, Context);
 
 /* A range of all Directives with the same matching key in a multimap */
 typedef std::pair<std::multimap<String,Directive*>::const_iterator,
@@ -36,7 +39,8 @@ typedef std::pair<std::multimap<String,Directive*>::const_iterator,
 	String				name;
 
 	// Parameters of the current directive
-	std::vector<String>	parameters;
+	/*std::vector<String>	parameters;*/
+	std::vector<Parameter>	parameters;
 
 	// The enclosing block
 	Mappings			enclosing;
@@ -70,6 +74,8 @@ typedef std::pair<std::multimap<String,Directive*>::const_iterator,
 	Optional< std::map<int,String> >	generateErrorPagesMapping() const;
 
 	void					cleanUp();
+
+	Diagnostic	diagnostic;
 
 private:
 	// Functor to pass into optional.or_else() to recursively lookup a value

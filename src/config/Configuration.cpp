@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 22:23:35 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/04 20:49:00 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/03 21:02:13 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ void	print(const Directive& dir, int indent = 0, int charStart = 0, bool lastRow
 		std::cout << " = ";
 		for (size_t i = 0; i < dir.parameters.size(); ++i)
 		{
-			std::cout << dir.parameters[i];
+			std::cout << dir.parameters[i].value;
 			if (i < dir.parameters.size()-1)
 				std::cout << " ";
 		}

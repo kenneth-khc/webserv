@@ -34,6 +34,7 @@ int	main(int argc, char** argv)
 		std::exit(1);
 	}
 
+	Logger::filename = argv[1];
 	// TODO: this is just for debugging the server so that it exits
 	//		 cleanly when we CTRL-C, remove later
 	std::signal(SIGINT, sigint_exit);

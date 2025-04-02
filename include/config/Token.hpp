@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 22:02:59 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 17:14:45 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/03 21:04:35 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #define TOKEN_HPP
 
 #include "String.hpp"
+#include "Diagnostic.hpp"
 
 
 struct	Token
@@ -32,6 +33,7 @@ struct	Token
 
 	size_t		lineNum;
 	size_t		columnNum;
+	Diagnostic	diagnostic;
 
 	Token();
 	Token(const String&);

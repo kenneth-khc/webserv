@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 03:29:22 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/13 05:24:31 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/03 21:24:16 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,8 @@ Token::Token(const String& str):
 Token::Token(const String& str, size_t lineNum, size_t columnNum):
 	lexeme(str),
 	lineNum(lineNum),
-	columnNum(columnNum)
+	columnNum(columnNum),
+	diagnostic(lineNum, columnNum)
 {
 
 }
@@ -53,7 +54,8 @@ Token::Token(const TokenType& type, const String& lexeme,
 	type(type),
 	lexeme(lexeme),
 	lineNum(lineNum),
-	columnNum(columnNum)
+	columnNum(columnNum),
+	diagnostic(lineNum, columnNum)
 {
 	std::cout << "Token |" << lexeme << "| at " << lineNum << ":" << columnNum << '\n';
 }
@@ -62,7 +64,8 @@ Token::Token(const Token& other):
 	type(other.type),
 	lexeme(other.lexeme),
 	lineNum(other.lineNum),
-	columnNum(other.columnNum)
+	columnNum(other.columnNum),
+	diagnostic(other.diagnostic)
 {
 
 }

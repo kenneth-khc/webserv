@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:55:07 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/24 16:23:22 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/03 21:12:35 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,20 +59,23 @@ void	Configurator::support(const String& name, const Validator& validator)
 void	Configurator::validate(const Directive* directive,
 							   const std::multimap<String,Directive*>& mappings)
 {
-	const Validator&	validator = operator[](directive->name);
-	validator(*directive, mappings);
-}
-
-const Validator&	Configurator::operator[](const String& key) const
-{
-	try {
-		const Validator&	validator = supportedDirectives.at(key);
-		return validator;
+	try
+	{
+		const Validator&	validator = operator[](directive->name);
+		validator(*directive, mappings);
 	}
 	catch (const std::out_of_range& e)
 	{
-		throw InvalidDirective(key);
+		throw InvalidDirective(directive);
 	}
+}
+
+/* Index into the Configurator, returning a Validator,
+ * throwing a std::out_of_range if said Validator cannot be found, meaning
+ * we don't support such a directive */
+const Validator&	Configurator::operator[](const String& key) const
+{
+	return supportedDirectives.at(key);
 }
 
 void	Configurator::add(Directive* directive, Configuration& config) const

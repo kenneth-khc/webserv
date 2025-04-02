@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:57:05 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/16 01:48:08 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/03 21:00:38 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,17 +20,32 @@ Directive::Directive()
 
 }
 
+/*Directive::Directive(const String& dname,*/
+/*					 const std::vector<String>& parameters,*/
+/*					 Context context):*/
+/*	name(dname),*/
+/*	parameters(parameters),*/
+/*	enclosing(),*/
+/*	parent(),*/
+/*	enclosingContext(context),*/
+/*	diagnostic()*/
+/*{*/
+/**/
+/*}*/
+
 Directive::Directive(const String& dname,
-					 const std::vector<String>& parameters,
+					 const std::vector<Parameter>& parameters,
 					 Context context):
-name(dname),
-parameters(parameters),
-enclosing(),
-parent(),
-enclosingContext(context)
+	name(dname),
+	parameters(parameters),
+	enclosing(),
+	parent(),
+	enclosingContext(context),
+	diagnostic()
 {
 
 }
+
 
 void	Directive::addDirective(Directive* dir)
 {
@@ -67,7 +82,7 @@ void	Directive::printParameters() const
 {
 	for (size_t i = 0; i < parameters.size(); ++i)
 	{
-		std::cout << parameters[i];
+		std::cout << parameters[i].value;
 		if (i != parameters.size()-1)
 			std::cout << " ";
 	}
@@ -150,11 +165,11 @@ Directive::getParameterOf(const String& key) const
 	}
 	else
 	{
-		const std::vector<String>&	parameters = it->second->parameters;
+		const std::vector<Parameter>&	parameters = it->second->parameters;
 		String						buffer;
 		for (size_t i = 0; i < parameters.size(); ++i)
 		{
-			buffer += parameters[i];
+			buffer += parameters[i].value;
 			if (i != parameters.size() - 1)
 			{
 				buffer += ' ';
@@ -176,7 +191,12 @@ Directive::getParametersOf(const String& key) const
 	}
 	else
 	{
-		return makeOptional(it->second->parameters);
+		std::vector<String>	tmp;
+		for(size_t i = 0; i < it->second->parameters.size(); ++i)
+		{
+			tmp.push_back(it->second->parameters[i].value);
+		}
+		return makeOptional(tmp);
 	}
 }
 

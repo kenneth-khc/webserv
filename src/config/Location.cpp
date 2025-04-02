@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 22:41:03 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/22 07:30:17 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/03 21:00:48 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ Location::Location():
 Location::Location(const Directive& locationBlock):
 	matchType(PREFIX),
 	// TODO: location exact matches
-	uri(locationBlock.parameters[0]),
+	uri(locationBlock.parameters[0].value),
 
 	root(locationBlock.recursivelyLookup<String>("root")
 					  .value_or("html")),

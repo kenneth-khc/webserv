@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:45:56 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/15 22:41:24 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/03 21:22:41 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,12 +21,14 @@
 #include "Configuration.hpp"
 #include "Configurator.hpp"
 #include "ConfigErrors.hpp"
+#include "Logger.hpp"
 
 Parser::Parser(const char *fileName):
 	configurator(),
 	lexer(fileName),
 	token(Token::NONE),
-	contexts()
+	contexts(),
+	accepted()
 {
 }
 
@@ -68,9 +70,10 @@ Directive*	Parser::parseDirective()
 	const String	name = token.lexeme;
 	expect(Token::NAME);
 
+	Diagnostic	diagnostics = Diagnostic(accepted.lineNum, accepted.columnNum);
 	// TODO: is there a way to strengthen a Parameter rather than
 	//		 treating it as a vector of Strings?
-	std::vector<String>	parameters = parseParameters();
+	std::vector<Parameter>	parameters = parseParameters();
 
 	Directive*	directive;
 	if (token == Token::LCURLY)
@@ -87,6 +90,7 @@ Directive*	Parser::parseDirective()
 	{
 		throw UnexpectedToken(token);
 	}
+	directive->diagnostic = diagnostics;
 	// validate the directive in the context of its surrounding
 	configurator.validate(directive, mapStack.top());
 	std::pair<String,Directive*>	mapping = std::make_pair(directive->name, directive);
@@ -94,29 +98,29 @@ Directive*	Parser::parseDirective()
 	return directive;
 }
 
-std::vector<String>	Parser::parseParameters()
+std::vector<Parameter>	Parser::parseParameters()
 {
-	std::vector<String>	parameters;
+	std::vector<Parameter>	params;
 
 	while (token.type == Token::PARAMETER)
 	{
-		const String&	param = token.lexeme;
-		parameters.push_back(param);
+		Parameter	p = Parameter(token.lexeme, token.diagnostic);
 		accept(Token::PARAMETER);
+		params.push_back(p);
 	}
 	lexer.lookFor(Token::NAME);
-	return parameters;
+	return params;
 }
 
 Directive*	Parser::parseSimple(const String& name,
-								const std::vector<String>& params)
+								const std::vector<Parameter>& params)
 {
 	expect(Token::SEMICOLON);
 	return new Directive(name, params, contexts.top());
 }
 
 Directive*	Parser::parseBlock(const String& name,
-							   const std::vector<String>& params)
+							   const std::vector<Parameter>& params)
 {
 	expect(Token::LCURLY);
 	Directive*	block = new Directive(name, params, contexts.top());
@@ -145,6 +149,7 @@ void	Parser::expect(Token::TokenType expected)
 	}
 	else
 	{
+		throw UnexpectedToken(expected, token);
 		throw UnexpectedToken(expected, token.type);
 	}
 }
@@ -153,6 +158,7 @@ bool	Parser::accept(Token::TokenType type)
 {
 	if (token.type == type)
 	{
+		accepted = token;
 		if (type == Token::NAME)
 		{
 			lexer.lookFor(Token::PARAMETER);

@@ -133,7 +133,7 @@ void	Driver::processReadyEvents()
 
 			clients[fd] = newClient;
 
-			logger.logConnection(Logger::ESTABLISHED, fd, newClient);
+			Logger::logConnection(Logger::ESTABLISHED, fd, newClient);
 			continue ;
 		}
 
@@ -253,7 +253,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 				{
 					client.timer |= Client::CLIENT_BODY;
 				}
-				logger.logRequest(request, client);
+				Logger::logRequest(request, client);
 			}
 			if (request.processStage & Request::MESSAGE_BODY)
 			{
@@ -353,7 +353,7 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt, std::se
 
 	if (response.processStage & Response::DONE)
 	{
-		logger.logResponse(response, client);
+		Logger::logResponse(response, client);
 
 		if (response.closeConnection == true)
 		{
@@ -409,7 +409,7 @@ void	Driver::closeConnection(std::map<int, Client>::iterator clientIt, int logFl
 	const int&	fd = clientIt->first;
 	Client&		client = clientIt->second;
 
-	logger.logConnection(logFlag, fd, client);
+	Logger::logConnection(logFlag, fd, client);
 	epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, 0);
 	close(fd);
 	establishedSockets.erase(establishedSockets.find(fd));

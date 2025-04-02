@@ -18,10 +18,19 @@
 #include "Request.hpp"
 #include "Response.hpp"
 
-const char*	Logger::GREEN = "\e[0;32m";
-const char*	Logger::YELLOW = "\e[0;33m";
-const char*	Logger::RED = "\e[0;31m";
-const char*	Logger::CRESET = "\e[0m";
+namespace Logger
+{
+	namespace Colour
+	{
+		const char*	RED = "\e[0;31m";
+		const char*	GREEN = "\e[0;32m";
+		const char*	YELLOW = "\e[0;33m";
+		const char*	BOLD_WHITE = "\x1B[1;37m";
+		const char*	BOLD_BLUE = "\x1B[1;34m";
+		const char*	RESET = "\e[0m";
+	}
+}
+
 
 void	Logger::logIPPort(sockaddr* client)
 {
@@ -44,69 +53,69 @@ void	Logger::logIPPort(sockaddr* client)
 }
 
 // TODO: clean this up nicely
-void	Logger::logRequest(Request& request, Client& client) const
+void	Logger::logRequest(Request& request, Client& client) 
 {
-	std::cout << YELLOW;
+	std::cout << Colour::YELLOW;
 	std::cout << client.socket->ip << ":" << client.socket->port;
 	std::cout << " => ";
 	std::cout << client.receivedBy->ip << ":" << client.receivedBy->port
-			  << CRESET
+			  << Colour::RESET
 			  << " | ";
-	std::cout << GREEN;
+	std::cout << Colour::GREEN;
 	std::cout << request.method;
 	std::cout << ' ' << request.requestTarget << ' ' << "HTTP/" << request.httpVersion;
-	std::cout << " | " << request["User-Agent"].value << CRESET;
+	std::cout << " | " << request["User-Agent"].value << Colour::RESET;
 	std::cout << "\n";
 }
 
-void	Logger::logResponse(Response& response, Client& client) const
+void	Logger::logResponse(Response& response, Client& client)
 {
-	std::cout << YELLOW;
+	std::cout << Colour::YELLOW;
 	std::cout << client.socket->ip << ":" << client.socket->port;
 	std::cout << " <= ";
 	std::cout << client.receivedBy->ip << ":" << client.receivedBy->port
-			  << CRESET
+			  << Colour::RESET
 			  << " | ";
-	std::cout << GREEN;
+	std::cout << Colour::GREEN;
 	std::cout << "HTTP/" << response.httpVersion << " "
 			  << response.statusCode << " "
-			  << response.reasonPhrase << CRESET;
+			  << response.reasonPhrase << Colour::RESET;
 	std::cout << "\n";
 }
 
-void	Logger::logConnection(int status, int fd, Client& client) const
+void	Logger::logConnection(int status, int fd, Client& client)
 {
-	std::cout << YELLOW;
+	std::cout << Colour::YELLOW;
 	std::cout << client.socket->ip << ":" << client.socket->port;
 	std::cout << " <> ";
 	std::cout << client.receivedBy->ip << ":" << client.receivedBy->port
-			  << CRESET
+			  << Colour::RESET
 			  << " | ";
-	std::cout << RED
+	std::cout << Colour::RED
 			  << "FD " << fd << " ";
 	switch (status) {
 		case Logger::ESTABLISHED:
-			std::cout << "Established" << CRESET;
+			std::cout << "Established" << Colour::RESET;
 			break ;
 
 		case Logger::KEEP_ALIVE_TIMEOUT:
-			std::cout << "Keep Alive Timeout" << CRESET;
+			std::cout << "Keep Alive Timeout" << Colour::RESET;
 			break ;
 
 		case Logger::CLIENT_HEADER_TIMEOUT:
-			std::cout << "Client Header Timeout" << CRESET;
+			std::cout << "Client Header Timeout" << Colour::RESET;
 			break ;
 
 		case Logger::CLIENT_BODY_TIMEOUT:
-			std::cout << "Client Body Timeout" << CRESET;
+			std::cout << "Client Body Timeout" << Colour::RESET;
 			break ;
 
 		case Logger::PEER_CLOSE:
-			std::cout << "Closed by client" << CRESET;
+			std::cout << "Closed by client" << Colour::RESET;
 			break ;
 
 		case Logger::CLOSE:
-			std::cout << "Ended" << CRESET;
+			std::cout << "Ended" << Colour::RESET;
 	}
 	std::cout << "\n";
 }

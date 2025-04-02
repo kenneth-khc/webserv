@@ -58,9 +58,6 @@ struct	Driver
 	std::map<int, Client>	clients;
 	std::map<int, CGI *>	cgis;
 
-	friend class Logger;
-	Logger	logger;
-
 	int			epollWait();
 
 	void		processReadyEvents();

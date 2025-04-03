@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 02:11:50 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:37:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,6 @@ int	main(int argc, char** argv)
 		{
 			driver.processReadyEvents();
 		}
-		driver.monitorConnections();
+		driver.monitorTimers();
 	}
 }

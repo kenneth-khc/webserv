@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 21:13:25 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 03:55:21 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:24:06 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ CGIInput::~CGIInput(void) {
 		this->close();
 }
 
-void	CGIInput::feed(std::set<CGI*>& activeCGIs) {
+void	CGIInput::feed(std::set<Timer*>& activeTimers) {
 	ssize_t	bytes = 0;
 
 	if (this->inputLength < this->contentLength && cgi.request.messageBody.length() > 0) {
@@ -48,7 +48,7 @@ void	CGIInput::feed(std::set<CGI*>& activeCGIs) {
 
 		bytes = write(this->fd, cgi.request.messageBody.c_str(), bytesToWrite);
 		if (bytes > 0) {
-			activeCGIs.insert(&cgi);
+			activeTimers.insert(cgi.timer);
 			this->inputLength += bytes;
 			cgi.request.messageBody.erase(0, bytes);
 		}

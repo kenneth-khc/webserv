@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 21:11:47 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 03:46:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:23:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include <map>
 # include <set>
+# include "Timer.hpp"
 # include "String.hpp"
 # include "Request.hpp"
 
@@ -34,7 +35,7 @@ class CGIInput {
 		CGIInput(Driver &driver, CGI &cgi, int fd);
 		~CGIInput(void);
 
-		void	feed(std::set<CGI*>& activeCGIs);
+		void	feed(std::set<Timer*>& activeTimers);
 		void	close(void);
 };
 

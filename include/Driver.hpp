@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 20:15:12 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 02:51:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:34:25 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,11 @@
 #include "Configuration.hpp"
 #include "HTTP.hpp"
 #include "Client.hpp"
+#include "Timer.hpp"
 #include "Socket.hpp"
 #include "String.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
-#include "Logger.hpp"
-#include "Configuration.hpp"
 #include "Logger.hpp"
 #include "CGI.hpp"
 #include <sys/epoll.h>
@@ -34,9 +33,6 @@
 extern "C" char	**environ;
 
 class CGI;
-
-/*int						globalEpollFD;*/
-/*std::map<int, CGI*>*	globalCgis;*/
 
 struct	Driver
 {
@@ -65,13 +61,13 @@ struct	Driver
 
 	void		processReadyEvents();
 	void		receiveMessage(std::map<int, Client>::iterator&);
-	void		processRequest(std::map<int, Client>::iterator&, std::set<Client*>&);
-	void		processCGI(std::map<int, CGI*>::iterator&, std::set<CGI*>&);
-	void		generateResponse(std::map<int, Client>::iterator&, std::set<Client*>&);
+	void		processRequest(std::map<int, Client>::iterator&, std::set<Timer*>&);
+	void		processCGI(std::map<int, CGI*>::iterator&, std::set<Timer*>&);
+	void		generateResponse(std::map<int, Client>::iterator&, std::set<Timer*>&);
 
 	void		updateEpollTimeout();
 
-	void		monitorConnections();
+	void		monitorTimers();
 	void		closeConnection(std::map<int, Client>::iterator, int);
 
 private:

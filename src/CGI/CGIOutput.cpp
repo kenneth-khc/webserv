@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 21:37:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 03:56:46 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:24:34 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ CGIOutput::~CGIOutput(void) {
 		delete this->state;
 }
 
-void	CGIOutput::fetch(std::set<CGI*>& activeCGIs) {
+void	CGIOutput::fetch(std::set<Timer*>& activeTimers) {
 	ssize_t				bytes = -1;
 	std::vector<char>	buffer(this->pipeSize);
 
@@ -54,7 +54,7 @@ void	CGIOutput::fetch(std::set<CGI*>& activeCGIs) {
 	if (bytes > 0)
 		this->output.append(&buffer[0], bytes);
 	if (bytes >= 0) {
-		activeCGIs.insert(&cgi);
+		activeTimers.insert(cgi.timer);
 		this->processState(bytes);
 	}
 	if (bytes == 0) {

@@ -1,24 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ClientTimerState.cpp                               :+:      :+:    :+:   */
+/*   Timer.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/31 17:55:21 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/01 00:57:56 by cteoh            ###   ########.fr       */
+/*   Created: 2025/04/03 16:42:23 by cteoh             #+#    #+#             */
+/*   Updated: 2025/04/03 16:43:38 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ClientTimerState.hpp"
+#include "Timer.hpp"
 
-ClientTimerState::ClientTimerState(void) : timeout(Time::getTimeSinceEpoch()) {}
+Timer::Timer(void) : timeout(Time::getTimeSinceEpoch()) {}
 
-ClientTimerState::~ClientTimerState(void) {}
+Timer::~Timer(void) {}
 
-ClientTimerState::ClientTimerState(const ClientTimerState &obj) : timeout(obj.timeout) {}
+Timer::Timer(const Timer &obj) : timeout(obj.timeout) {}
 
-ClientTimerState	&ClientTimerState::operator=(const ClientTimerState &obj) {
+Timer	&Timer::operator=(const Timer &obj) {
 	if (this == &obj)
 		return (*this);
 
@@ -26,6 +26,6 @@ ClientTimerState	&ClientTimerState::operator=(const ClientTimerState &obj) {
 	return (*this);
 }
 
-const std::time_t	&ClientTimerState::getTimeoutTime(void) const {
+const std::time_t	&Timer::getTimeoutTime(void) const {
 	return (timeout);
 }

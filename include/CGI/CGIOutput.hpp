@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 21:33:38 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 02:48:49 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:23:47 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include <set>
 # include <map>
+# include "Timer.hpp"
 # include "Request.hpp"
 # include "Response.hpp"
 # include "CGIOutputState.hpp"
@@ -35,7 +36,7 @@ class CGIOutput {
 		CGIOutput(Driver &driver, CGI &cgi, int fd);
 		~CGIOutput(void);
 
-		void	fetch(std::set<CGI*>& activeCGIs);
+		void	fetch(std::set<Timer*>& activeTimers);
 		void	close(void);
 };
 

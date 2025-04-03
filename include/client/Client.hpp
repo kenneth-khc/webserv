@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:13:38 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 02:47:35 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 16:54:16 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #include "Socket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
-#include "ClientTimerState.hpp"
+#include "Timer.hpp"
 #include "CGI.hpp"
 
 struct	Socket;
@@ -46,7 +46,7 @@ public:
 	const Socket*		receivedBy;
 	Server*				server;
 	String				message;
-	ClientTimerState*	timer;
+	Timer*				timer;
 	std::vector<CGI*>	cgis;
 
 private:

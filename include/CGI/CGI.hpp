@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 04:44:20 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:26:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,11 @@
 # define CGI_HPP
 
 # include <vector>
-# include "Time.hpp"
 # include "String.hpp"
 # include "Request.hpp"
 # include "CGIInput.hpp"
 # include "CGIOutput.hpp"
+# include "CGITimer.hpp"
 
 # define NUM_OF_CGI_FIELDS 3
 # define NUM_OF_META_VARIABLES 13
@@ -49,13 +49,12 @@ class CGI {
 		pid_t				pid;
 		CGIInput			*input;
 		CGIOutput			*output;
-		std::time_t			timer;
+		CGITimer			*timer;
 
 		CGI(const Server &server, Client &client, Request &request, Response &response);
 		~CGI(void);
 		void	generateEnv(const Driver &driver);
 		void	execute(Driver &driver);
-		bool	isTimeout(const Server &server);
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 04:46:36 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:27:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,6 +102,8 @@ CGI::~CGI(void) {
 		delete this->input;
 	if (this->output != 0)
 		delete this->output;
+	if (this->timer != 0)
+		delete this->timer;
 	std::remove(this->client.cgis.begin(), this->client.cgis.end(), this);
 }
 
@@ -195,7 +197,7 @@ void	CGI::execute(Driver &driver) {
 	int	output[2];
 
 	(void)!pipe(input);
-	( void)!pipe(output);
+	(void)!pipe(output);
 
 	this->pid = fork();
 	if (this->pid == 0) {
@@ -217,14 +219,6 @@ void	CGI::execute(Driver &driver) {
 
 	this->output = new CGIOutput(driver, *this, output[0]);
 	driver.cgis.insert(std::make_pair(output[0], this));
-}
 
-bool	CGI::isTimeout(const Server &server) {
-	if (server.cgiTimeoutDuration <= 0)
-		return (false);
-
-	if (Time::getTimeSinceEpoch() >= this->timer)
-		return (true);
-	else
-		return (false);
+	this->timer = new CGITimer();
 }

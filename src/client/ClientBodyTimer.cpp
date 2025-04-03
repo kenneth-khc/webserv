@@ -1,44 +1,44 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ClientBodyState.cpp                                :+:      :+:    :+:   */
+/*   ClientBodyTimer.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 18:18:09 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/01 01:13:37 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 16:58:54 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Logger.hpp"
 #include "Server.hpp"
-#include "ClientBodyState.hpp"
+#include "ClientBodyTimer.hpp"
 
-ClientBodyState::ClientBodyState(void) : ClientTimerState() {}
+ClientBodyTimer::ClientBodyTimer(void) : Timer() {}
 
-ClientBodyState::~ClientBodyState(void) {}
+ClientBodyTimer::~ClientBodyTimer(void) {}
 
-ClientBodyState::ClientBodyState(const ClientBodyState &obj) :
-	ClientTimerState(obj)
+ClientBodyTimer::ClientBodyTimer(const ClientBodyTimer &obj) :
+	Timer(obj)
 {}
 
-ClientBodyState	&ClientBodyState::operator=(const ClientBodyState &obj) {
+ClientBodyTimer	&ClientBodyTimer::operator=(const ClientBodyTimer &obj) {
 	if (this == &obj)
 		return (*this);
 
-	ClientTimerState::operator=(obj);
+	Timer::operator=(obj);
 	return (*this);
 }
 
-void	ClientBodyState::update(const Server &server) {
-	if (server.clientBodyTimeoutDuration <= 0)
+void	ClientBodyTimer::update(void) {
+	if (Server::clientBodyTimeoutDuration <= 0)
 		return ;
 
-	this->timeout = Time::getTimeSinceEpoch() + server.clientBodyTimeoutDuration;
+	this->timeout = Time::getTimeSinceEpoch() + Server::clientBodyTimeoutDuration;
 }
 
-bool	ClientBodyState::isTimeout(const Server &server) const {
-	if (server.clientBodyTimeoutDuration <= 0)
+bool	ClientBodyTimer::isTimeout(void) const {
+	if (Server::clientBodyTimeoutDuration <= 0)
 		return (false);
 
 	if (Time::getTimeSinceEpoch() >= this->timeout)
@@ -47,16 +47,16 @@ bool	ClientBodyState::isTimeout(const Server &server) const {
 		return (false);
 }
 
-int	ClientBodyState::getState(void) const {
-	return (ClientTimerState::CLIENT_BODY);
+int	ClientBodyTimer::getType(void) const {
+	return (Timer::CLIENT_BODY);
 }
 
-int	ClientBodyState::getLogState(void) const {
+int	ClientBodyTimer::getLogType(void) const {
 	return (Logger::CLIENT_BODY_TIMEOUT);
 }
 
-ClientTimerState	*ClientBodyState::clone(void) const {
-	ClientTimerState	*copyState = new ClientBodyState(*this);
+Timer	*ClientBodyTimer::clone(void) const {
+	Timer	*copyState = new ClientBodyTimer(*this);
 
 	return (copyState);
 }

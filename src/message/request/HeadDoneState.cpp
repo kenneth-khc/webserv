@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 18:25:17 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/31 23:32:29 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:31:44 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include "Optional.hpp"
 #include "contentLength.hpp"
 #include "Client.hpp"
-#include "ClientBodyState.hpp"
+#include "ClientBodyTimer.hpp"
 #include "Request.hpp"
 #include "MessageBodyState.hpp"
 #include "DoneState.hpp"
@@ -46,7 +46,7 @@ RequestState	*HeadDoneState::process(Request &request, Client &client) {
 	else
 		return (new DoneState());
 
-	client.timer = new ClientBodyState();
+	client.timer = new ClientBodyTimer();
 	return (new MessageBodyState());
 }
 

@@ -6,15 +6,14 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/01 09:40:53 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/01 22:48:37 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:28:44 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <arpa/inet.h>
 #include "Server.hpp"
 #include "Client.hpp"
-#include "ClientTimerState.hpp"
-#include "ClientHeaderState.hpp"
+#include "ClientHeaderTimer.hpp"
 
 // TODO: limit request size based on config file. now defaulted to 1 mb
 const size_t	Client::MAX_REQUEST_SIZE = 1 * 1024 * 1024;
@@ -24,7 +23,7 @@ socket(NULL),
 receivedBy(NULL),
 server(NULL),
 message(),
-timer(new ClientHeaderState()),
+timer(new ClientHeaderTimer()),
 cgis(),
 messageBuffer(),
 request(),
@@ -40,7 +39,7 @@ socket(socket),
 receivedBy(receivedBy),
 server(NULL),
 message(),
-timer(new ClientHeaderState()),
+timer(new ClientHeaderTimer()),
 cgis(),
 messageBuffer(),
 request(),
@@ -112,14 +111,14 @@ ssize_t	Client::receiveBytes()
 	if (bytes > 0)
 	{
 		message.append(&messageBuffer[0], bytes);
-		if (timer->getState() == ClientTimerState::KEEP_ALIVE)
+		if (timer->getType() == Timer::KEEP_ALIVE)
 		{
 			delete timer;
-			timer = new ClientHeaderState();
+			timer = new ClientHeaderTimer();
 		}
 		else
 		{
-			timer->update(*server);
+			timer->update();
 		}
 	}
 	return bytes;

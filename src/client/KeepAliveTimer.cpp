@@ -1,44 +1,44 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   KeepAliveState.cpp                                 :+:      :+:    :+:   */
+/*   KeepAliveTimer.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 17:59:44 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/01 01:12:33 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:08:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Logger.hpp"
 #include "Server.hpp"
-#include "KeepAliveState.hpp"
+#include "KeepAliveTimer.hpp"
 
-KeepAliveState::KeepAliveState(void) : ClientTimerState() {}
+KeepAliveTimer::KeepAliveTimer(void) : Timer() {}
 
-KeepAliveState::~KeepAliveState(void) {}
+KeepAliveTimer::~KeepAliveTimer(void) {}
 
-KeepAliveState::KeepAliveState(const KeepAliveState &obj) :
-	ClientTimerState(obj)
+KeepAliveTimer::KeepAliveTimer(const KeepAliveTimer &obj) :
+	Timer(obj)
 {}
 
-KeepAliveState	&KeepAliveState::operator=(const KeepAliveState &obj) {
+KeepAliveTimer	&KeepAliveTimer::operator=(const KeepAliveTimer &obj) {
 	if (this == &obj)
 		return (*this);
 
-	ClientTimerState::operator=(obj);
+	Timer::operator=(obj);
 	return (*this);
 }
 
-void	KeepAliveState::update(const Server &server) {
-	if (server.keepAliveTimeoutDuration <= 0)
+void	KeepAliveTimer::update(void) {
+	if (Server::keepAliveTimeoutDuration <= 0)
 		return ;
 
-	this->timeout = Time::getTimeSinceEpoch() + server.keepAliveTimeoutDuration;
+	this->timeout = Time::getTimeSinceEpoch() + Server::keepAliveTimeoutDuration;
 }
 
-bool	KeepAliveState::isTimeout(const Server &server) const {
-	if (server.keepAliveTimeoutDuration <= 0)
+bool	KeepAliveTimer::isTimeout(void) const {
+	if (Server::keepAliveTimeoutDuration <= 0)
 		return (false);
 
 	if (Time::getTimeSinceEpoch() >= this->timeout)
@@ -47,16 +47,16 @@ bool	KeepAliveState::isTimeout(const Server &server) const {
 		return (false);
 }
 
-int	KeepAliveState::getState(void) const {
-	return (ClientTimerState::KEEP_ALIVE);
+int	KeepAliveTimer::getType(void) const {
+	return (Timer::KEEP_ALIVE);
 }
 
-int	KeepAliveState::getLogState(void) const {
+int	KeepAliveTimer::getLogType(void) const {
 	return (Logger::KEEP_ALIVE_TIMEOUT);
 }
 
-ClientTimerState	*KeepAliveState::clone(void) const {
-	ClientTimerState	*copyState = new KeepAliveState(*this);
+Timer	*KeepAliveTimer::clone(void) const {
+	Timer	*copyState = new KeepAliveTimer(*this);
 
 	return (copyState);
 }

@@ -6,7 +6,7 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/04/03 02:45:55 by cteoh            ###   ########.fr        #
+#    Updated: 2025/04/03 17:30:27 by cteoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,6 +28,7 @@ dirs := $(src_dir) \
 		$(src_dir)/message/request \
 		$(src_dir)/headers \
 		$(src_dir)/utils \
+		$(src_dir)/utils/Time \
 		$(src_dir)/CGI \
 		$(src_dir)/debug
 
@@ -44,6 +45,7 @@ includes := -I $(inc_dir)/ \
 			-I $(inc_dir)/message/request \
 			-I $(inc_dir)/headers \
 			-I $(inc_dir)/utils \
+			-I $(inc_dir)/utils/Time \
 			-I $(inc_dir)/CGI
 
 obj_dir := obj

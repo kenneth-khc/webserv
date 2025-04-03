@@ -6,23 +6,19 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 04:43:47 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 17:44:18 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Driver.hpp"
 #include "Server.hpp"
-#include "Configuration.hpp"
 #include "ConfigErrors.hpp"
 #include "Directive.hpp"
 #include "Utils.hpp"
 #include "ErrorCode.hpp"
-#include "Time.hpp"
 #include "Base64.hpp"
-#include "CGI.hpp"
-#include "Request.hpp"
 #include "DoneState.hpp"
-#include "KeepAliveState.hpp"
+#include "KeepAliveTimer.hpp"
 #include <queue>
 #include <deque>
 #include <cstddef>
@@ -108,8 +104,7 @@ int	Driver::epollWait()
 
 void	Driver::processReadyEvents()
 {
-	std::set<Client*>	activeClients;
-	std::set<CGI*>		activeCGIs;
+	std::set<Timer*>	activeTimers;
 
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
@@ -120,7 +115,6 @@ void	Driver::processReadyEvents()
 			const Socket&	listener = it->second;
 			Socket			clientSocket = listener.accept();
 			int				fd = clientSocket.fd;
-
 			establishedSockets[fd] = clientSocket;
 			addToEpoll(fd, EPOLL_EVENTS(EPOLLIN | EPOLLOUT));
 
@@ -134,7 +128,7 @@ void	Driver::processReadyEvents()
 			clients[fd] = newClient;
 
 			logger.logConnection(Logger::ESTABLISHED, fd, newClient);
-			activeClients.insert(&clients[fd]);
+			activeTimers.insert(clients[fd].timer);
 			continue ;
 		}
 
@@ -157,26 +151,22 @@ void	Driver::processReadyEvents()
 			}
 			if (currEvent->events & EPOLLOUT)
 			{
-				processRequest(clientIt, activeClients);
+				processRequest(clientIt, activeTimers);
 				if (!clientIt->second.responseQueue.empty())
 				{
-					generateResponse(clientIt, activeClients);
+					generateResponse(clientIt, activeTimers);
 				}
 			}
 		}
 		else if (cgiIt != cgis.end())
 		{
-			processCGI(cgiIt, activeCGIs);
+			processCGI(cgiIt, activeTimers);
 		}
 	}
 
-	for (std::set<Client*>::iterator it = activeClients.begin(); it != activeClients.end(); it++)
+	for (std::set<Timer*>::iterator it = activeTimers.begin(); it != activeTimers.end(); it++)
 	{
-		(*it)->timer->update(*(*it)->server);
-	}
-	for (std::set<CGI*>::iterator it = activeCGIs.begin(); it != activeCGIs.end(); it++)
-	{
-		(*it)->timer = Time::getTimeSinceEpoch() + Server::cgiTimeoutDuration;
+		(*it)->update();
 	}
 }
 
@@ -205,7 +195,7 @@ Optional<Server*>	Driver::matchServerName(const String& hostname)
 	return makeNone<Server*>();
 }
 
-void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<Client *>& activeClients)
+void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<Timer*>& activeTimers)
 {
 	Client&	client = clientIt->second;
 
@@ -224,7 +214,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 			{
 				if (initialMessageLength == client.message.length())
 				{
-					activeClients.insert(&client);
+					activeTimers.insert(client.timer);
 					return ;
 				}
 				else
@@ -263,25 +253,25 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 	}
 }
 
-void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt, std::set<CGI*>& activeCGIs)
+void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt, std::set<Timer*>& activeTimers)
 {
 	CGI&	cgi = *(cgiIt->second);
 
 	try {
 		if (currEvent->events & EPOLLIN)
 		{
-			cgi.output->fetch(activeCGIs);
+			cgi.output->fetch(activeTimers);
 			if (cgi.response.processStage & Response::DONE)
 			{
 				cgis.erase(cgiIt);
-				activeCGIs.erase(&cgi);
+				activeTimers.erase(cgi.timer);
 				delete &cgi;
 				return ;
 			}
 		}
 		if (currEvent->events & EPOLLOUT)
 		{
-			cgi.input->feed(activeCGIs);
+			cgi.input->feed(activeTimers);
 		}
 		if (currEvent->events & EPOLLHUP)
 		{
@@ -298,12 +288,12 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt, std::set<CGI*>& ac
 		cgi.input->close();
 		cgi.output->close();
 		cgis.erase(cgiIt);
-		activeCGIs.erase(&cgi);
+		activeTimers.erase(cgi.timer);
 		delete &cgi;
 	}
 }
 
-void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt, std::set<Client*>& activeClients)
+void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt, std::set<Timer*>& activeTimers)
 {
 	Client&		client = clientIt->second;
 	Request&	request = client.requestQueue.front();
@@ -334,12 +324,12 @@ void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt, std::se
 			client.responseQueue.pop_front();
 			if (client.message.length() == 0 && client.requestQueue.front().state == 0)
 			{
-				if (client.timer == 0 || client.timer->getState() != ClientTimerState::KEEP_ALIVE)
+				if (client.timer == 0 || client.timer->getType() != Timer::KEEP_ALIVE)
 				{
 					delete client.timer;
-					client.timer = new KeepAliveState();
+					client.timer = new KeepAliveTimer();
 				}
-				activeClients.insert(&client);
+				activeTimers.insert(client.timer);
 			}
 		}
 	}
@@ -349,14 +339,28 @@ void	Driver::updateEpollTimeout()
 {
 	std::priority_queue<std::time_t>	timeoutPriority;
 
-	for (std::map<int, Client>::const_iterator it = clients.begin(); it != clients.end(); it++)
+	std::map<int, Client>::const_iterator clientIt = clients.begin();
+	while (clientIt != clients.end())
 	{
-		const Client	&client = it->second;
+		const Client	&client = clientIt->second;
 
 		if (client.timer != 0)
 		{
 			timeoutPriority.push(client.timer->getTimeoutTime());
 		}
+
+		std::vector<CGI*>::const_iterator cgiIt = client.cgis.begin();
+		while (cgiIt != client.cgis.end())
+		{
+			const CGI	&cgi = *(*cgiIt);
+
+			if (cgi.timer != 0)
+			{
+				timeoutPriority.push(cgi.timer->getTimeoutTime());
+			}
+			cgiIt++;
+		}
+		clientIt++;
 	}
 
 	if (timeoutPriority.size() == 0)
@@ -386,7 +390,7 @@ void	Driver::closeConnection(std::map<int, Client>::iterator clientIt, int logFl
 	clients.erase(clientIt);
 }
 
-void	Driver::monitorConnections()
+void	Driver::monitorTimers()
 {
 	std::map<int, Client>::iterator	it = clients.begin();
 
@@ -394,17 +398,18 @@ void	Driver::monitorConnections()
 	{
 		Client	&client = it->second;
 
-		if (client.timer->isTimeout(*client.server) == true)
+		if (client.timer->isTimeout() == true)
 		{
-			closeConnection(it++, client.timer->getLogState());
+			closeConnection(it++, client.timer->getLogType());
 		}
 		else
 		{
 			std::vector<CGI*>::iterator cgiIt = client.cgis.begin();
 			while (cgiIt != client.cgis.end())
 			{
-				if ((*cgiIt)->isTimeout(*client.server) == true)
+				if ((*cgiIt)->timer->isTimeout() == true)
 				{
+					(*cgiIt)->response = InternalServerError500();
 					delete *cgiIt;
 				}
 				cgiIt++;

@@ -6,24 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 17:34:45 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/02 08:53:24 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 16:37:44 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Time.hpp"
-
-Time::Time(void) {}
-
-Time::~Time(void) {}
-
-Time::Time(const Time &obj) {
-	(void)obj;
-}
-
-Time	&Time::operator=(const Time &obj) {
-	(void)obj;
-	return (*this);
-}
 
 std::time_t Time::getTimeSinceEpoch(void) {
 	return (std::time(0));

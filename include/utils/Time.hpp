@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 17:08:47 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/19 07:29:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/03 16:37:59 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,24 +14,17 @@
 # define TIME_HPP
 
 # include <ctime>
-# include <time.h>
 # include "String.hpp"
 
 //	Handle most time-related operations
-class Time {
-		Time(const Time &obj);
-		Time	&operator=(const Time &obj);
-	public:
-		Time(void);
-		~Time(void);
-
-		static std::time_t	getTimeSinceEpoch(void);
-		static std::time_t	getTimeSinceEpoch(std::tm &time);
-		static std::time_t	convertToGMT(const std::time_t &time);
-		static String		printHTTPDate(void);
-		static String		printHTTPDate(const struct timespec &time);
-		static double		difftime(const std::time_t timeOne, const std::time_t timeTwo);
-		static String		printAutoindexDate(const struct timespec &time);
+namespace Time {
+	std::time_t	getTimeSinceEpoch(void);
+	std::time_t	getTimeSinceEpoch(std::tm &time);
+	std::time_t	convertToGMT(const std::time_t &time);
+	String		printHTTPDate(void);
+	String		printHTTPDate(const struct timespec &time);
+	double		difftime(const std::time_t timeOne, const std::time_t timeTwo);
+	String		printAutoindexDate(const struct timespec &time);
 };
 
 #endif

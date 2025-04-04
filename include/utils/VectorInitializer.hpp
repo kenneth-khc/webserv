@@ -14,7 +14,7 @@
 #define VECTORINITIALIZER_HPP
 
 /* Because C++98 doesn't support initializer lists, it gets troublesome to
- * construct an initialized vector. There are 2 options:*
+ * construct an initialized vector. There are 2 options:
  * - Default construct a vector, then push_back the elements individually.
  *   eg:
  *		std::vector<int> v;

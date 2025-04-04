@@ -32,7 +32,8 @@ namespace Logger
 		const char*	BOLD_BLUE = "\x1B[1;34m";
 		const char*	RESET = "\e[0m";
 	}
-	const char*	filename;
+	const char*			configFileName;
+	std::stringstream	ss;
 }
 
 
@@ -124,6 +125,18 @@ void	Logger::logConnection(int status, int fd, Client& client)
 	std::cout << "\n";
 }
 
+void	Logger::error(const String& errorMsg)
+{
+	ss << Colour::RED << "error: " << Colour::RESET;
+	ss << Colour::BOLD_WHITE << errorMsg << Colour::RESET << '\n';
+}
+
+void	Logger::error(const std::stringstream& errorMsg)
+{
+	ss << Colour::RED << "error: " << Colour::RESET;
+	ss << Colour::BOLD_WHITE << errorMsg.str() << Colour::RESET << '\n';
+}
+
 void	Logger::formatErrorMessage(std::stringstream& ss, const String& msg)
 {
 	using namespace Logger::Colour;
@@ -150,44 +163,51 @@ void	Logger::seekToLineNum(size_t lineNum, std::ifstream& file)
 	}
 }
 
-void	Logger::showErrorLine(std::stringstream& ss, const Token& got)
+template <typename Number>
+int	countDigits(Number number)
 {
-	using namespace Logger::Colour;
-
-	const String&	line = getLineFromFile(got.lineNum, Logger::filename);
-	ss << BOLD_BLUE
-	   << " --> " << RESET << Logger::filename << ":"
-	   << got.lineNum << ":" << got.columnNum;
-
-	ss << "\n  " << BOLD_BLUE << "|" << RESET << "\n"
-	   << BOLD_BLUE << got.lineNum << " " << "| " << RESET << line
-	   << "\n";
-
-	ss << "  " << BOLD_BLUE << "| " << RESET;
-	std::string	padding;
-	for (size_t i = 0; i < got.columnNum-1; ++i)
+	int	digits = 0;
+	if (number < 0)
 	{
-		padding += line[i];
+		digits = 1;
 	}
-	ss << padding << BOLD_RED << "^" << RESET << "\n";
+	while (number != 0)
+	{
+		number /= 10;
+		++digits;
+	}
+	return digits;
 }
 
-void	Logger::showErrorLine(std::stringstream& ss, const Diagnostic& diagnostic)
+void	Logger::showErrorLine(const Diagnostic& diagnostic)
 {
 	using namespace Logger::Colour;
 
-	const String&	line = getLineFromFile(diagnostic.lineNum, Logger::filename);
-	ss << BOLD_BLUE
-	   << " --> " << RESET << Logger::filename << ":"
-	   << diagnostic.lineNum << ":" << diagnostic.columnNum;
+	size_t	lineNum = diagnostic.lineNum;
+	size_t	columnNum = diagnostic.columnNum;
+	std::string	indent = " ";
+	std::string	arrow;
+	for (int i = 0, digits = countDigits(lineNum);
+		 i < digits;
+		 ++i)
+	{
+		indent += ' ';
+		arrow += '-';
+	}
+	arrow += "> ";
 
-	ss << "\n  " << BOLD_BLUE << "|" << RESET << "\n"
-	   << BOLD_BLUE << diagnostic.lineNum << " " << "| " << RESET << line
-	   << "\n";
+	ss << Colour::BOLD_BLUE << arrow << Colour::RESET 
+	   << configFileName << ':'
+	   << lineNum << ':' << columnNum << Colour::RESET << '\n';
 
-	ss << "  " << BOLD_BLUE << "| " << RESET;
+	const String&	line = getLineFromFile(lineNum, configFileName);
+	ss << indent << Colour::BOLD_BLUE << '|' << Colour::RESET << '\n'
+	   << Colour::BOLD_BLUE << lineNum << " | " << Colour::RESET << line
+	   << '\n';
+
+	ss << indent << BOLD_BLUE << "| " << RESET;
 	std::string	padding;
-	for (size_t i = 0; i < diagnostic.columnNum-1; ++i)
+	for (size_t i = 0; i < columnNum-1; ++i)
 	{
 		if (line[i] == '\t')
 		{
@@ -198,6 +218,11 @@ void	Logger::showErrorLine(std::stringstream& ss, const Diagnostic& diagnostic)
 			padding += ' ';
 		}
 	}
-	ss << padding << BOLD_RED << "^" << RESET << "\n";
+	ss << padding << BOLD_RED << '^' << RESET << '\n';
+}
+
+String	Logger::streamToString()
+{
+	return ss.str();
 }
 

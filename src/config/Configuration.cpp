@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 22:23:35 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 21:02:13 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/05 22:15:00 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,11 +91,6 @@ Optional<Directive>	Configuration::find(const String& key) const
 	}
 }
 
-/*const Directive*	Configuration::get(const String& key) const*/
-/*{*/
-/*	return directives.find(key)->second;*/
-/*}*/
-
 const Directive&	Configuration::get(const String& key) const
 {
 	return *directives.find(key)->second;
@@ -103,7 +98,7 @@ const Directive&	Configuration::get(const String& key) const
 
 void	Configuration::assertHasDirective(const String& key) const
 {
-	if (!find(key).exists)
+	if (directives.find(key) == directives.end())
 	{
 		throw MissingDirective(key);
 	}

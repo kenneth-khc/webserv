@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:32:50 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 20:59:27 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/04 23:39:20 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,12 @@ typedef std::multimap<String,Directive*>	Mappings;
 struct	Directive
 {
 	Directive();
-	Directive(const String&, const std::vector<String>&, Context);
+	Directive(const String& name,
+			  const std::vector<Parameter>&,
+			  const Directive* parent,
+			  const Context&,
+			  const Diagnostic&);
+
 	Directive(const String&, const std::vector<Parameter>&, Context);
 
 /* A range of all Directives with the same matching key in a multimap */
@@ -41,9 +46,6 @@ typedef std::pair<std::multimap<String,Directive*>::const_iterator,
 	// Parameters of the current directive
 	/*std::vector<String>	parameters;*/
 	std::vector<Parameter>	parameters;
-
-	// The enclosing block
-	Mappings			enclosing;
 
 	//
 	const Directive*	parent;
@@ -76,6 +78,7 @@ typedef std::pair<std::multimap<String,Directive*>::const_iterator,
 	void					cleanUp();
 
 	Diagnostic	diagnostic;
+	
 
 private:
 	// Functor to pass into optional.or_else() to recursively lookup a value

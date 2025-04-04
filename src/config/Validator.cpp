@@ -46,7 +46,7 @@ void	validateParameterSize(const Directive& dir, size_t expected)
 {
 	if (dir.parameters.size() != expected)
 	{
-		throw InvalidParameterAmount();
+		throw InvalidParameterAmount(dir, expected);
 	}
 }
 
@@ -54,20 +54,21 @@ void	validateParameterSize(const Directive& dir, size_t min, size_t max)
 {
 	if (dir.parameters.size() < min || dir.parameters.size() > max)
 	{
-		throw InvalidParameterAmount();
+		throw InvalidParameterAmount(dir, min, max);
 	}
 }
 
-void	validateParameterValues(const std::vector<Parameter>& got,
-								const std::vector<String>& expected)
+void	validateParameterValues(const Directive& directive,
+								const std::vector<Parameter>& expected)
 {
+	const std::vector<Parameter>&	got = directive.parameters;
 	for (size_t i = 0; i < got.size(); ++i)
 	{
 		if (std::find(expected.begin(),
 					  expected.end(),
 					  got[i]) == expected.end())
 		{
-			throw InvalidParameter(got[i]);
+			throw InvalidParameter(directive, got[i]);
 		}
 	}
 }
@@ -76,6 +77,7 @@ void	validateEnclosingContext(const Directive& dir, Context context)
 {
 	if (dir.enclosingContext != context)
 	{
+		throw InvalidContext(dir, context);
 		throw InvalidContext(dir.name, dir.enclosingContext);
 	}
 }
@@ -87,6 +89,7 @@ void	validateEnclosingContext(const Directive& dir,
 				  allowedContexts.end(),
 				  dir.enclosingContext) == allowedContexts.end())
 	{
+		throw InvalidContext(dir, allowedContexts[0]);
 		throw InvalidContext(dir.name, dir.enclosingContext);
 	}
 }
@@ -115,17 +118,16 @@ Syntax : prefix absolute_path;
 Default: —
 Context: global
 Count  : 1 */
-void	validatePrefix(const Directive& dir, const Mappings& mappings)
+void	validatePrefix(const Directive& directive, const Mappings& mappings)
 {
-	validateParameterSize(dir, 1);
-	validateEnclosingContext(dir, GLOBAL);
-	validateDuplicateDirective(dir, mappings);
+	validateParameterSize(directive, 1);
+	validateEnclosingContext(directive, GLOBAL);
+	validateDuplicateDirective(directive, mappings);
 
-	const String&	path = dir.parameters[0].value;
+	const Parameter&	path = directive.parameters[0];
 	if (path[0] != '/')
 	{
-		throw InvalidParameter(dir, dir.parameters[0]);
-		throw InvalidParameter(path);
+		throw InvalidParameter(directive, path);
 	}
 }
 
@@ -144,7 +146,7 @@ void	validateListen(const Directive& dir, const Mappings&)
 
 	if (portNum < 0 || portNum > 65535)
 	{
-		throw InvalidParameter(str);
+		throw InvalidParameter(dir, dir.parameters[0]);
 	}
 }
 
@@ -224,11 +226,11 @@ void	validateTypes(const Directive& dir, const Mappings& mappings)
 	validateDuplicateDirective(dir, mappings);
 }
 
-void	validateBoolean(const String& str)
+void	validateBoolean(const Directive& directive, const Parameter& parameter)
 {
-	if (str != "on" && str != "off")
+	if (parameter.value != "on" && parameter.value != "off")
 	{
-		throw InvalidParameter(str);
+		throw InvalidParameter(directive, parameter);
 	}
 }
 
@@ -241,10 +243,10 @@ void	validateAutoindex(const Directive& dir, const Mappings& mappings)
 	validateParameterSize(dir, 1);
 	validateEnclosingContext(dir, vector_of(HTTP)(SERVER)(LOCATION));
 	validateDuplicateDirective(dir, mappings);
-	validateBoolean(dir.parameters[0]);
+	validateBoolean(dir, dir.parameters[0]);
 	if (countFrequency("accept_uploads", mappings) > 0)
 	{
-		throw InvalidDirective(dir.name);
+		throw InvalidDirective(dir);
 	}
 }
 
@@ -257,14 +259,14 @@ void	validateExecCGI(const Directive& dir, const Mappings& mappings)
 	validateParameterSize(dir, 1);
 	validateEnclosingContext(dir, LOCATION);
 	validateDuplicateDirective(dir, mappings);
-	validateBoolean(dir.parameters[0]);
+	validateBoolean(dir, dir.parameters[0]);
 }
 
-void	validateFileExtension(const String& str)
+void	validateFileExtension(const Directive& directive, const Parameter& parameter)
 {
-	if (str[0] != '.')
+	if (parameter.value[0] != '.')
 	{
-		throw InvalidParameter(str);
+		throw InvalidParameter(directive, parameter);
 	}
 }
 
@@ -280,7 +282,7 @@ void	validateCGIScript(const Directive& dir, const Mappings& mappings)
 	const std::vector<Parameter>&	parameters = dir.parameters;
 	for (size_t i = 0; i < parameters.size(); ++i)
 	{
-		validateFileExtension(parameters[i]);
+		validateFileExtension(dir, parameters[i]);
 	}
 }
 
@@ -291,8 +293,8 @@ Context: location */
 void	validateAllowMethod(const Directive& dir, const Mappings& mappings)
 {
 	validateParameterSize(dir, 1, 3);
-	validateParameterValues(dir.parameters,
-							vector_of<String>("GET")("POST")("DELETE")("HEAD"));
+	validateParameterValues(dir,
+							vector_of<Parameter>("GET")("POST")("DELETE")("HEAD"));
 	validateEnclosingContext(dir, vector_of(LOCATION)(CGI_SCRIPT));
 	validateDuplicateDirective(dir, mappings);
 }
@@ -313,20 +315,20 @@ void	validateClientMaxBodySize(const Directive& dir, const Mappings& mappings)
 	{
 		if (!std::isdigit(size[i]))
 		{
-			throw InvalidParameter(size);
+			/*throw InvalidParameter(size);*/
 		}
 	}
 	if (!(std::isdigit(size.back()) ||
 		  size.back() == 'k' || size.back() == 'K' ||
 		  size.back() == 'm' || size.back() == 'M'))
 	{
-		throw InvalidParameter(size);
+		/*throw InvalidParameter(size);*/
 	}
 }
 
-void	validateErrorCode(const Parameter& code)
+void	validateErrorCode(const Directive& directive, const Parameter& code)
 {
-	static std::vector<String>	errorCodes = vector_of<String>
+	static std::vector<Parameter>	errorCodes = vector_of<Parameter>
 	("300")("301")("302")("303")("304")("305")("306")("307")("308")
 	("400")("401")("402")("403")("404")("405")("406")("407")("408")("409")("410")
 	("411")("412")("413")("414")("415")("416")("417")("418")("421")("422")("423")
@@ -336,7 +338,7 @@ void	validateErrorCode(const Parameter& code)
 	if (std::find(errorCodes.begin(),
 				  errorCodes.end(), code) == errorCodes.end())
 	{
-		throw InvalidParameter(code);
+		throw InvalidParameter(directive, code);
 	}
 }
 
@@ -345,10 +347,10 @@ void	validateAcceptUploads(const Directive& dir, const Mappings& mappings)
 	validateParameterSize(dir, 1);
 	validateEnclosingContext(dir, LOCATION);
 	validateDuplicateDirective(dir, mappings);
-	validateBoolean(dir.parameters[0].value);
+	validateBoolean(dir, dir.parameters[0].value);
 	if (countFrequency("autoindex", mappings) > 0)
 	{
-		throw InvalidDirective(dir.name);
+		throw InvalidDirective(dir);
 	}
 }
 
@@ -369,13 +371,14 @@ Default: —
 Context: server */
 void	validateErrorPage(const Directive& dir, const Mappings& mappings)
 {
+	validateParameterSize(dir, 2, std::numeric_limits<size_t>::max());
 	validateEnclosingContext(dir, vector_of(HTTP)(SERVER)(LOCATION));
 	validateDuplicateDirective(dir, mappings);
 
 	const std::vector<Parameter>&	parameters = dir.parameters;
 	for (size_t i = 0; i < parameters.size()-1; ++i)
 	{
-		validateErrorCode(parameters[i]);
+		validateErrorCode(dir, parameters[i]);
 	}
 	// TODO: validate file format
 }

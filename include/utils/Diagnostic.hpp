@@ -13,6 +13,12 @@
 #ifndef DIAGNOSTIC_HPP
 #define DIAGNOSTIC_HPP
 
+/* An object providing information for diagnostics when something goes wrong.
+ *
+ * Encoded into a Token, Directive and its Parameters, so that when a
+ * configuration option goes wrong we can immediately get the line and column
+ * number and print around the error. */
+
 #include <cstddef>
 
 struct	Diagnostic

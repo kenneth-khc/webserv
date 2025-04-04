@@ -17,6 +17,7 @@
 #include "Client.hpp"
 #include "Token.hpp"
 #include "Diagnostic.hpp"
+#include "sstream"
 
 /* This class is responsible for logging interactions between the servers
  * and clients to file streams for visualization purposes */
@@ -49,14 +50,17 @@ namespace	Logger
 		extern const char*	RESET;
 	}
 
-	extern const char*	filename;
+	extern const char*			configFileName;
+	extern std::stringstream	ss;
 
 	void	logIPPort(sockaddr*);
 
 	/* Logging configuration errors */
+	void	error(const String&);
+	void	error(const std::stringstream&);
+	String	streamToString();
 	void	formatErrorMessage(std::stringstream&, const String&);
-	void	showErrorLine(std::stringstream&, const Token&);
-	void	showErrorLine(std::stringstream&, const Diagnostic&);
+	void	showErrorLine(const Diagnostic&);
 	String	getLineFromFile(size_t lineNum, const char*);
 	void	seekToLineNum(size_t lineNum, std::ifstream&);
 

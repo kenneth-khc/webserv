@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/16 15:57:59 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 21:13:06 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/04 22:45:01 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,38 +31,31 @@ ConfigError::~ConfigError() throw() { }
  * Unexpected Token *
  *******************/
 
-UnexpectedToken::UnexpectedToken(Token::TokenType got)
+UnexpectedToken::UnexpectedToken(const Token& got,
+								 const std::vector<Token>& expectedTokens)
 {
-	std::stringstream	ss;
-
-	ss << "Unexpected token " << Token::stringified[got];
-	msg = ss.str();
+	std::stringstream	errMsg;
+	errMsg << "unexpected token `" << got.lexeme << "`, ";
+	errMsg << "expected one of ";
+	for (size_t i = 0; i < expectedTokens.size(); ++i)
+	{
+		errMsg << '`' << expectedTokens[i].lexeme << '`';
+		if (i < expectedTokens.size()-1)
+		{
+			errMsg << " or ";
+		}
+	}
+	Logger::error(errMsg);
+	Logger::showErrorLine(got.diagnostic);
+	msg = Logger::streamToString();
 }
 
-UnexpectedToken::UnexpectedToken(Token::TokenType expected, Token::TokenType got)
+UnexpectedToken::UnexpectedToken(const Token& got, const Token& expected)
 {
-	std::stringstream	ss;
-
-	ss << "Expected token " << Token::stringified[expected]
-	   << ", got " << Token::stringified[got] << " instead...";
-	msg = ss.str();
-}
-
-UnexpectedToken::UnexpectedToken(Token::TokenType expected, const Token& got)
-{
-	using namespace Logger::Colour;
-
-	std::stringstream	ss;
-	Logger::formatErrorMessage(ss,
-							   "unexpected token: " +
-							   Token::stringify(got.type) +
-							   ", expected token: " + Token::stringify(expected));
-	/*ss << RED << "error: " << RESET;*/
-	/*ss << BOLD_WHITE << "unexpected token: " << Token::stringify(got.type)*/
-	/*   << ", expected token: " << Token::stringify(expected) << RESET << '\n';*/
-
-	Logger::showErrorLine(ss, got);
-	msg = ss.str();
+	Logger::error("unexpected token `" + got.lexeme + "`, "
+				  "expected token `" + expected.lexeme + "`");
+	Logger::showErrorLine(got.diagnostic);
+	msg = Logger::streamToString();
 }
 
 UnexpectedToken::~UnexpectedToken() throw() { }
@@ -71,21 +64,19 @@ UnexpectedToken::~UnexpectedToken() throw() { }
  * Invalid Directive *
  ********************/
 
-InvalidDirective::InvalidDirective(const String& directive)
+InvalidDirective::InvalidDirective(const Directive& directive)
 {
-	std::stringstream	ss;
-	
-	ss << directive << " is an invalid directive you bozo";
-	msg = ss.str();
+	Logger::error("invalid directive `" + directive.name + "`");
+	Logger::showErrorLine(directive.diagnostic);
+	msg = Logger::streamToString();
 }
+
 
 InvalidDirective::InvalidDirective(const Directive* directive)
 {
-	std::stringstream	ss;
-	Logger::formatErrorMessage(ss,
-			"invalid directive: " + directive->name);
-	Logger::showErrorLine(ss, directive->diagnostic);
-	msg = ss.str();
+	Logger::error("invalid directive `" + directive->name + "`");
+	Logger::showErrorLine(directive->diagnostic);
+	msg = Logger::streamToString();
 }
 
 InvalidDirective::~InvalidDirective() throw() { }
@@ -94,12 +85,29 @@ InvalidDirective::~InvalidDirective() throw() { }
  * Invalid Parameter Amount *
  ***************************/
 
-InvalidParameterAmount::InvalidParameterAmount()
+InvalidParameterAmount::InvalidParameterAmount(const Directive& directive,
+											   size_t expectedAmount)
 {
-	std::stringstream	ss;
-	
-	ss << "invalid amount of parameters you bozo";
-	msg = ss.str();
+	std::stringstream	errMsg;
+	errMsg << "invalid amount of parameters: got " << directive.parameters.size()
+		   << ", expected " << expectedAmount
+		   << " for directive `" << directive.name << '`';
+	Logger::error(errMsg);
+	Logger::showErrorLine(directive.diagnostic);
+	msg = Logger::streamToString();
+}
+
+InvalidParameterAmount::InvalidParameterAmount(const Directive& directive,
+											   size_t expectedMin,
+											   size_t)
+{
+	std::stringstream	errMsg;
+	errMsg << "invalid amount of parameters: got " << directive.parameters.size()
+		   << ", expected at least " << expectedMin
+		   << " for directive `" << directive.name << '`';
+	Logger::error(errMsg);
+	Logger::showErrorLine(directive.diagnostic);
+	msg = Logger::streamToString();
 }
 
 InvalidParameterAmount::~InvalidParameterAmount() throw() { }
@@ -109,23 +117,13 @@ InvalidParameterAmount::~InvalidParameterAmount() throw() { }
  ********************/
 
 InvalidParameter::InvalidParameter() { }
-InvalidParameter::InvalidParameter(const String& parameter)
-{
-	using namespace Logger::Colour;
-	std::stringstream	ss;
-	
-	/*ss << parameter << " is an invalid parameter you bozo";*/
-	ss << RED << "invalid parameter: " << parameter << RESET;
-	msg = ss.str();
-}
 
-InvalidParameter::InvalidParameter(const Directive& dir, const Parameter& param)
+InvalidParameter::InvalidParameter(const Directive& directive, const Parameter& param)
 {
-	std::stringstream	ss;
-	Logger::formatErrorMessage(ss,
-			"invalid parameter: " + param.value + ", at directive " + dir.name);
-	Logger::showErrorLine(ss, param.diagnostic);
-	msg = ss.str();
+	Logger::error("invalid parameter `" + param.value + "`, "
+				  "at directive `" + directive.name + "`");
+	Logger::showErrorLine(param.diagnostic);
+	msg = Logger::streamToString();
 }
 
 InvalidParameter::~InvalidParameter() throw() { }
@@ -133,6 +131,17 @@ InvalidParameter::~InvalidParameter() throw() { }
 /*******************
  * Invalid Context *
  ******************/
+InvalidContext::InvalidContext(const Directive& directive, Context )
+{
+	Logger::error("invalid context " + stringifyContext(directive.enclosingContext) +
+				  " for parameter `" + directive.name + "`");
+	if (directive.parent)
+	{
+		Logger::showErrorLine(directive.parent->diagnostic);
+	}
+	Logger::showErrorLine(directive.diagnostic);
+	msg = Logger::streamToString();
+}
 
 InvalidContext::InvalidContext(const String& directive, Context context)
 {

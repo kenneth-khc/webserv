@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:35:41 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 21:12:47 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/05 21:46:06 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,7 @@ public:
 	Configurator		configurator;
 	Lexer				lexer;
 	Token				token;
-	std::stack<Context>	contexts;
-	std::stack< std::multimap<String,Directive*> >	mapStack;
+	/*std::stack<Context>	contexts;*/
 
 	// TODO: wtf am i doing
 	std::stack<Directive*>	parents;
@@ -48,9 +47,11 @@ public:
 	Directive*				parseDirective();
 	std::vector<Parameter>	parseParameters();
 	Directive*				parseSimple(const String&,
-										const std::vector<Parameter>&);
+										const std::vector<Parameter>&,
+										const Diagnostic&);
 	Directive*				parseBlock(const String&,
-										const std::vector<Parameter>&);
+									   const std::vector<Parameter>&,
+									   const Diagnostic&);
 
 	void					expect(Token::TokenType);
 	bool					accept(Token::TokenType);
@@ -58,6 +59,8 @@ public:
 private:
 	Parser();
 	Parser(const Parser&);
+
+	Diagnostic	generateDiagnostics() const;
 };
 
 #endif

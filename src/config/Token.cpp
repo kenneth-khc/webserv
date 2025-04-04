@@ -23,7 +23,7 @@ Token::Token():
 
 }
 
-const int Token::TOKEN_TYPES = 13;
+const int Token::TOKEN_TYPES = 14;
 
 
 Token::Token(const String& str):
@@ -76,7 +76,7 @@ Token::operator TokenType() const
 }
 
 const char*	Token::stringified[] = {
-	"None", "Name", "Parameter", "Digit", "Alpha", "Whitespace", "Char",
+	"None", "Name", "Parameter",
 	"DoubleQuote", "LeftCurly", "RightCurly", "Semicolon", "Hash", "Newline",
 	"EndOfFile"
 };

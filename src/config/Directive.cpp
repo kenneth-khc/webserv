@@ -20,25 +20,27 @@ Directive::Directive()
 
 }
 
-/*Directive::Directive(const String& dname,*/
-/*					 const std::vector<String>& parameters,*/
-/*					 Context context):*/
-/*	name(dname),*/
-/*	parameters(parameters),*/
-/*	enclosing(),*/
-/*	parent(),*/
-/*	enclosingContext(context),*/
-/*	diagnostic()*/
-/*{*/
-/**/
-/*}*/
+Directive::Directive(const String& name,
+					 const std::vector<Parameter>& parameters,
+					 const Directive* parent,
+					 const Context& context,
+					 const Diagnostic& diagnostic):
+	name(name),
+	parameters(parameters),
+	parent(parent),
+	enclosingContext(context),
+	directives(),
+	diagnostic(diagnostic)
+{
+
+}
+
 
 Directive::Directive(const String& dname,
 					 const std::vector<Parameter>& parameters,
 					 Context context):
 	name(dname),
 	parameters(parameters),
-	enclosing(),
 	parent(),
 	enclosingContext(context),
 	diagnostic()
@@ -116,7 +118,8 @@ Context	contextify(const String& str)
 	}
 	else
 	{
-		throw InvalidDirective(str);
+		// TODO: look at this function
+		throw std::exception();
 	}
 }
 

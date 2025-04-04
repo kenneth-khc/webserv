@@ -87,7 +87,7 @@ Token	Lexer::getNextToken()
 				skipComment();
 		}
 	}
-	return Token(Token::END_OF_FILE, "EOF");
+	return tokenize(Token::END_OF_FILE);
 }
 
 const Token&	Lexer::peek() const
@@ -99,8 +99,6 @@ Token	Lexer::advance()
 {
 	currentToken = getNextToken();
 	columnOffset += currentToken.lexeme.length();
-	/*std::cout << Token::stringified[currentToken.type] << ": "*/
-	/*		  << currentToken.lexeme << '\n';*/
 	return currentToken;
 }
 

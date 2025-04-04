@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/16 05:10:59 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 20:47:33 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/04 22:38:29 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,16 +39,16 @@ protected:
 class	UnexpectedToken : public ConfigError
 {
 public:
-	UnexpectedToken(Token::TokenType got);
-	UnexpectedToken(Token::TokenType expected, Token::TokenType got);
-	UnexpectedToken(Token::TokenType expected, const Token& got);
+	UnexpectedToken(const Token& got, const std::vector<Token>& expected);
+	UnexpectedToken(const Token& got, const Token& expected);
 	~UnexpectedToken() throw();
 };
 
 class	InvalidParameterAmount : public ConfigError
 {
 public:
-	InvalidParameterAmount();
+	InvalidParameterAmount(const Directive&, size_t expectedAmount);
+	InvalidParameterAmount(const Directive&, size_t min, size_t max);
 	~InvalidParameterAmount() throw();
 };
 
@@ -56,7 +56,6 @@ class	InvalidParameter : public ConfigError
 {
 public:
 	InvalidParameter();
-	InvalidParameter(const String& str);
 	InvalidParameter(const Directive&, const Parameter&);
 	~InvalidParameter() throw();
 };
@@ -65,6 +64,7 @@ class	InvalidDirective : public ConfigError
 {
 public:
 	InvalidDirective(const String& directive);
+	InvalidDirective(const Directive&);
 	InvalidDirective(const Directive*);
 	~InvalidDirective() throw();
 };
@@ -73,6 +73,7 @@ class	InvalidContext : public ConfigError
 {
 public:
 	InvalidContext(const String& directive, Context context);
+	InvalidContext(const Directive&, Context);
 	~InvalidContext() throw();
 };
 

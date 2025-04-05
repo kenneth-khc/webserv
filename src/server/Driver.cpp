@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/05 10:28:26 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 15:53:18 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,7 +154,7 @@ void	Driver::processReadyEvents()
 				processRequest(clientIt, activeTimers);
 				if (!clientIt->second.responseQueue.empty())
 				{
-					generateResponse(clientIt, activeTimers);
+					sendResponse(clientIt, activeTimers);
 				}
 			}
 		}
@@ -262,13 +262,6 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt, std::set<Timer*>& 
 		if (currEvent->events & EPOLLIN)
 		{
 			cgi.output->fetch(activeTimers);
-			if (cgi.response.processStage & Response::DONE)
-			{
-				activeTimers.erase(cgi.timer);
-				client.cgis.erase(std::find(client.cgis.begin(), client.cgis.end(), &cgi));
-				delete &cgi;
-				return ;
-			}
 		}
 		if (currEvent->events & EPOLLOUT)
 		{
@@ -302,7 +295,7 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt, std::set<Timer*>& 
 	}
 }
 
-void	Driver::generateResponse(std::map<int, Client>::iterator& clientIt, std::set<Timer*>& activeTimers)
+void	Driver::sendResponse(std::map<int, Client>::iterator& clientIt, std::set<Timer*>& activeTimers)
 {
 	Client&		client = clientIt->second;
 	Request&	request = client.requestQueue.front();

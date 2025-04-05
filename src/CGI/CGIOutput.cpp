@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 21:37:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 17:24:34 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 10:24:09 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,9 @@ int fd) :
 	epollFD(driver.epollFD),
 	cgis(driver.cgis),
 	fd(fd),
-	pipeSize(fcntl(fd, F_GETPIPE_SZ))
+	pipeSize(fcntl(fd, F_GETPIPE_SZ)),
+	output(),
+	state(0)
 {
 	epoll_event	ev;
 	ev.events = EPOLLIN;

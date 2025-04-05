@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 17:27:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 10:23:45 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,15 +61,16 @@ CGI::CGI(
 	while (it != server.cgiScript.end()) {
 		if (this->extension == ("." + *it)) {
 			if (pathInfoPos.exists == true) {
-				this->execPath = request.path.substr(1, pathInfoPos.value - 1);
+				this->scriptName = request.path.substr(1, pathInfoPos.value - 1);
 				pathInfo = request.path.substr(pathInfoPos.value);
 			}
 			else
-				this->execPath = request.path.substr(1);
+				this->scriptName = request.path.substr(1);
 			break ;
 		}
 		it++;
 	}
+	this->execPath = this->scriptName;
 	if (this->execPath.ends_with(".bla") == true)	// Test-specific condition
 		this->execPath = "subject/ubuntu_cgi_tester";
 
@@ -126,7 +127,7 @@ void	CGI::generateEnv(const Driver &driver) {
 		"REMOTE_ADDR=" + this->client.socket->ip,
 		"REMOTE_HOST=" + String(host).consumeUntil(":").value_or(host),
 		"REQUEST_METHOD=" + this->request.method,
-		"SCRIPT_NAME=/" + this->execPath,
+		"SCRIPT_NAME=",
 		"SERVER_NAME=" + String(host).consumeUntil(":").value_or(host),
 		"SERVER_PORT=" + serverPort.str(),
 		"SERVER_PROTOCOL=HTTP/" + serverProtocol.str(),

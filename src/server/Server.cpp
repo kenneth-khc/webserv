@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 03:53:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 10:28:58 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,7 +213,7 @@ void	Server::assignSocket(const String& address, const String& port,
 	{
 		Socket	listener = Socket::spawn(address, port);
 		listener.bind();
-		listener.listen(1);
+		listener.listen(1024);
 		existingSockets[listener.fd] = listener;
 		socket = &existingSockets[listener.fd];
 	}

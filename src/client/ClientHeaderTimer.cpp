@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 18:16:29 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 16:55:36 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 10:25:03 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,9 @@
 #include "Server.hpp"
 #include "ClientHeaderTimer.hpp"
 
-ClientHeaderTimer::ClientHeaderTimer(void) : Timer() {}
+ClientHeaderTimer::ClientHeaderTimer(void) : Timer() {
+	this->update();
+}
 
 ClientHeaderTimer::~ClientHeaderTimer(void) {}
 

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 17:44:18 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 10:28:26 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,6 +256,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt, std::set<Timer*>& activeTimers)
 {
 	CGI&	cgi = *(cgiIt->second);
+	Client&	client = cgi.client;
 
 	try {
 		if (currEvent->events & EPOLLIN)
@@ -263,8 +264,8 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt, std::set<Timer*>& 
 			cgi.output->fetch(activeTimers);
 			if (cgi.response.processStage & Response::DONE)
 			{
-				cgis.erase(cgiIt);
 				activeTimers.erase(cgi.timer);
+				client.cgis.erase(std::find(client.cgis.begin(), client.cgis.end(), &cgi));
 				delete &cgi;
 				return ;
 			}
@@ -281,14 +282,22 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt, std::set<Timer*>& 
 				if (stat_loc != 0)
 					throw InternalServerError500();
 			}
+			cgi.output->fetch(activeTimers);
+			if (cgi.response.processStage & Response::DONE)
+			{
+				activeTimers.erase(cgi.timer);
+				client.cgis.erase(std::find(client.cgis.begin(), client.cgis.end(), &cgi));
+				delete &cgi;
+				return ;
+			}
 		}
 	}
 	catch (const ErrorCode &e) {
 		cgi.response = e;
 		cgi.input->close();
 		cgi.output->close();
-		cgis.erase(cgiIt);
 		activeTimers.erase(cgi.timer);
+		client.cgis.erase(std::find(client.cgis.begin(), client.cgis.end(), &cgi));
 		delete &cgi;
 	}
 }
@@ -398,7 +407,7 @@ void	Driver::monitorTimers()
 	{
 		Client	&client = it->second;
 
-		if (client.timer->isTimeout() == true)
+		if (client.timer != 0 && client.timer->isTimeout() == true)
 		{
 			closeConnection(it++, client.timer->getLogType());
 		}
@@ -411,8 +420,12 @@ void	Driver::monitorTimers()
 				{
 					(*cgiIt)->response = InternalServerError500();
 					delete *cgiIt;
+					cgiIt = client.cgis.erase(cgiIt);
 				}
-				cgiIt++;
+				else
+				{
+					cgiIt++;
+				}
 			}
 			it++;
 		}

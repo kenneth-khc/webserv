@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 17:11:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 17:16:08 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 10:24:30 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,9 @@
 #include "Server.hpp"
 #include "CGITimer.hpp"
 
-CGITimer::CGITimer(void) : Timer() {}
+CGITimer::CGITimer(void) : Timer() {
+	this->update();
+}
 
 CGITimer::~CGITimer(void) {}
 

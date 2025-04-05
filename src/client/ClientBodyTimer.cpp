@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 18:18:09 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 16:58:54 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 10:24:49 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,9 @@
 #include "Server.hpp"
 #include "ClientBodyTimer.hpp"
 
-ClientBodyTimer::ClientBodyTimer(void) : Timer() {}
+ClientBodyTimer::ClientBodyTimer(void) : Timer() {
+	this->update();
+}
 
 ClientBodyTimer::~ClientBodyTimer(void) {}
 

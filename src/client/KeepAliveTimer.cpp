@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 17:59:44 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 17:08:28 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 10:24:41 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,9 @@
 #include "Server.hpp"
 #include "KeepAliveTimer.hpp"
 
-KeepAliveTimer::KeepAliveTimer(void) : Timer() {}
+KeepAliveTimer::KeepAliveTimer(void) : Timer() {
+	this->update();
+}
 
 KeepAliveTimer::~KeepAliveTimer(void) {}
 

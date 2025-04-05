@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 17:26:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 10:22:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ class CGI {
 
 		String				execPath;
 		String				extension;
+		String				scriptName;
 		String				pathInfo;
 		std::vector<char *>	envp;
 		std::vector<char *>	argv;

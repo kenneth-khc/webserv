@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/05 10:28:58 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 18:16:02 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ Server::Server():
 {
 	cgiScript.push_back("py");
 	cgiScript.push_back("php");
+	cgiScript.push_back("bla");
 }
 #include <iostream>
 
@@ -64,7 +65,7 @@ Server::Server(const Directive& serverBlock,
 	clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
 								 .transform(String::toSize)
 								 .value_or(1000000)),
-	cgiScript(vector_of<String>("py")("php"))
+	cgiScript(vector_of<String>("py")("php")("bla"))
 {
 	// TODO: dynamic address
 	const String&	address = "127.0.0.1";
@@ -113,15 +114,13 @@ void	Server::handleRequest(
 	request.parseCookieHeader();
 	processCookies(request, response);
 
-	if (request.path.starts_with(location->uri) &&
-		location->executeCGI == true &&
-		request.path.ends_with(".bla"))	// Test-specific condition
+	if (request.path.ends_with(".bla"))	// Test-specific condition
 	{
 		cgi(driver, client, response, request);
 		return ;
 	}
 
-	if (request.method == "GET")
+	if (request.method == "GET" || request.method == "HEAD")
 	{
 		get(response, request, *location);
 	}

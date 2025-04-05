@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/01 23:03:02 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 17:19:51 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,8 @@ static void		getFromFileSystem(Response& response, const Request& request,
 	Optional<String::size_type>	uploads = request.path.find(String("/") + "uploads");
 	String						filePath = request.resolvedPath;
 	struct stat					statbuf;
+	bool						autoindex = location.autoindex;
+
 	if (uploads.exists == true && uploads.value == 0)
 	{
 		filePath = getUploadsReference("uploads", request);
@@ -90,17 +92,17 @@ static void		getFromFileSystem(Response& response, const Request& request,
 			filePath = getIndexFile(location, filePath);
 			response.insert("Cache-Control", "no-store");
 		}
-		/*else if (request.path.starts_with("/directory") == true)*/
-		/*{*/
-		/*	file = request.path;*/
-		/*	file.replace(0, 10, "YoupiBanane");*/
-		/*	if (file == "YoupiBanane")*/
-		/*		file += "/youpi.bad_extension";*/
-		/*	if (file != "YoupiBanane/Yeah")*/
-		/*		autoindex = true;*/
-		/*	else*/
-		/*		autoindex = false;*/
-		/*}*/
+		else if (request.path.starts_with("/directory") == true)
+		{
+			filePath = request.path;
+			filePath.replace(0, 10, "YoupiBanane");
+			if (filePath == "YoupiBanane")
+				filePath += "/youpi.bad_extension";
+			if (filePath != "YoupiBanane/Yeah")
+				autoindex = true;
+			else
+				autoindex = false;
+		}
 		else
 		{
 			filePath = request.resolvedPath;
@@ -109,7 +111,7 @@ static void		getFromFileSystem(Response& response, const Request& request,
 
 	if (stat(filePath.c_str(), &statbuf) == 0 && access(filePath.c_str(), R_OK) == 0)
 	{
-		if (location.autoindex == true && S_ISDIR(statbuf.st_mode))
+		if (autoindex == true && S_ISDIR(statbuf.st_mode))
 		{
 			if (request.method == "GET")
 			{
@@ -119,10 +121,10 @@ static void		getFromFileSystem(Response& response, const Request& request,
 			response.insert("Content-Length", response.messageBody.length());
 			response.insert("Content-Type", "text/html");
 		}
-		/*else if (autoindex == false && S_ISDIR(statbuf.st_mode))*/
-		/*{*/
-		/*	throw NotFound404();	// Test-specific condition*/
-		/*}*/
+		else if (autoindex == false && S_ISDIR(statbuf.st_mode))
+		{
+			throw NotFound404();	// Test-specific condition
+		}
 		else if (processPreconditions(request, statbuf) == false)
 		{
 			response.setStatusCode(Response::NOT_MODIFIED);

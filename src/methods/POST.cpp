@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 02:22:45 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/05 17:20:24 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void	Server::post(Response& response, Request& request) const
 	POSTBody					msgBody(request);
 	Optional<String::size_type>	pos = request.requestTarget.find(String("/") + "cgi-bin" + "/");
 
-	if (pos.exists == true && pos.value == 0)
+	if ((pos.exists == true && pos.value == 0) || request.path == "/")
 	{
 		throw MethodNotAllowed405();
 	}
@@ -120,7 +120,6 @@ static void	uploadFiles(const POSTBody& body, const String& uploadsDir, const St
 {
 	String		uploadDest;
 	ofstream	outfile;
-
 
 	for (vector<POSTBodyPart>::const_iterator it = body.parts.begin();
 		 it != body.parts.end(); ++it)

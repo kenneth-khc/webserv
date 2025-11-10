@@ -10,11 +10,11 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef VECTORINITIALIZER_HPP
-#define VECTORINITIALIZER_HPP
+#ifndef VECTOR_INITIALIZER_HPP
+#define VECTOR_INITIALIZER_HPP
 
 /* Because C++98 doesn't support initializer lists, it gets troublesome to
- * construct an initialized vector. There are 2 options:*
+ * construct an initialized vector. There are 2 options:
  * - Default construct a vector, then push_back the elements individually.
  *   eg:
  *		std::vector<int> v;
@@ -38,49 +38,52 @@
 
 #include <vector>
 
-template <typename ElementType>
+template <typename E>
 class	VectorInitializer
 {
 public:
 	VectorInitializer();
 
-	VectorInitializer<ElementType>&
-	operator()(const ElementType&);
+	/* accepts an element in () and pushes back into the vector */
+	VectorInitializer<E>&	operator()(const E&);
 
-	operator std::vector<ElementType>() const;
+	/* implicitly convert into a vector<E> */
+	operator std::vector<E>() const;
 
 private:
-	std::vector<ElementType>	vector;
+	std::vector<E>	vector;
 };
 
-template <typename ElementType>
-VectorInitializer<ElementType>::VectorInitializer():
+template <typename E>
+VectorInitializer<E>::VectorInitializer():
 	vector() { }
 
-template <typename ElementType>
-VectorInitializer<ElementType>	vector_of(const ElementType& first)
+/* initializes a vector with the first element within the (),
+   then continues chaining the rest of the ()s */
+template <typename E>
+VectorInitializer<E>	vector_of(const E& first)
 {
-	VectorInitializer<ElementType>	initializer;
+	VectorInitializer<E>	initializer;
 	initializer.operator()(first);
 	return initializer;
 }
 
-template <typename ElementType>
-VectorInitializer<ElementType>	vector_of()
+template <typename E>
+VectorInitializer<E>	vector_of()
 {
-	return VectorInitializer<ElementType>();
+	return VectorInitializer<E>();
 }
 
-template <typename ElementType>
-VectorInitializer<ElementType>&
-VectorInitializer<ElementType>::operator()(const ElementType& element)
+template <typename E>
+VectorInitializer<E>&
+VectorInitializer<E>::operator()(const E& element)
 {
 	vector.push_back(element);
 	return *this;
 }
 
-template <typename ElementType>
-VectorInitializer<ElementType>::operator std::vector<ElementType>() const
+template <typename E>
+VectorInitializer<E>::operator std::vector<E>() const
 {
 	return vector;
 }

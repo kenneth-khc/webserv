@@ -7,13 +7,9 @@
 
 using namespace Colour;
 
-bool	cmp(const Diagnostic& lhs, const Diagnostic& rhs)
+bool	cmpLineNum(const Diagnostic& lhs, const Diagnostic& rhs)
 {
-	if (lhs.lineNum > rhs.lineNum)
-	{
-		return true;
-	}
-	return false;
+	return lhs.lineNum < rhs.lineNum;
 }
 
 Fmt::Fmt(const String& filename):
@@ -38,7 +34,7 @@ diagnostics(diagnostics),
 diagnosticsDone(0)
 {
 	const std::vector<Diagnostic>::const_iterator iter =
-		std::max_element(diagnostics.begin(), diagnostics.end(), cmp);
+		std::max_element(diagnostics.begin(), diagnostics.end(), cmpLineNum);
 	gutterSize = countDigits(iter->lineNum) + 2;
 }
 
@@ -94,7 +90,8 @@ String	Fmt::formatDiagnostic(const String& message)
 
 	buf << lineInfo(lineNum, colNum)
 		<< gutterLine()
-		<< diagnosis(message, lineNum, colNum);
+		<< diagnosis(message, lineNum, colNum)
+		<< '\n';
 	++diagnosticsDone;
 
 	return buf.str();

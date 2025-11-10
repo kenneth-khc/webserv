@@ -21,10 +21,10 @@ const char*	MissingDirective::what() const throw()
 
 String	MissingDirective::format() const
 {
-	Fmt					fmt(1);
+	Fmt					fmt = Fmt(filename);
 	std::stringstream	buf;
 
-	buf << fmt.filename(filename)
-		<< fmt.error("missing directive `" + directiveKey + '`');
+	buf << fmt.formatFilename()
+		<< fmt.formatError("missing directive `" + directiveKey + '`');
 	return buf.str();
 }

@@ -13,15 +13,28 @@
 #ifndef DIAGNOSTIC_HPP
 #define DIAGNOSTIC_HPP
 
+/* An object providing information for diagnostics when something goes wrong.
+ *
+ * Encoded into a Token, Directive and its Parameters, so that when a
+ * configuration option goes wrong we can immediately get the line and column
+ * number and print around the error. */
+
+#include "String.hpp"
 #include <cstddef>
 
 struct	Diagnostic
 {
-	std::size_t	lineNum;
-	std::size_t	columnNum;
+	/* NOTE: cannot be const as the Lexer holds a copy of the current token
+	         so this has to be copied over each time */
+	String	filename;
+	size_t	lineNum;
+	size_t	columnNum;
 
 	Diagnostic();
-	Diagnostic(std::size_t, std::size_t);
+	Diagnostic(const Diagnostic&);
+	Diagnostic(const String&, size_t, size_t);
+
+	Diagnostic	operator=(const Diagnostic&);
 };
 
 #endif

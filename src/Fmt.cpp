@@ -1,4 +1,5 @@
 #include "Fmt.hpp"
+#include "Context.hpp"
 #include "String.hpp"
 #include "Colour.hpp"
 #include "Utils.hpp"
@@ -246,5 +247,43 @@ String	Fmt::gutterLine() const
 		buf << ' ';
 	}
 	buf << BOLD_BLUE << " | " << RESET << '\n';
+	return buf.str();
+}
+
+String	Fmt::formatList(const std::vector<Token>& tokens)
+{
+	std::stringstream	buf;
+
+	for (size_t i = 0; i < tokens.size(); ++i)
+	{
+		buf << '`' << tokens[i].lexeme << '`';
+		if (i == tokens.size() - 2)
+		{
+			buf << " or ";
+		}
+		else if (i != tokens.size() - 1)
+		{
+			buf << ", ";
+		}
+	}
+	return buf.str();
+}
+
+String	Fmt::formatList(const std::vector<Context>& contexts)
+{
+	std::stringstream	buf;
+
+	for (size_t i = 0; i < contexts.size(); ++i)
+	{
+		buf << '`' << stringifyContext(contexts[i]) << '`';
+		if (i == contexts.size() - 2)
+		{
+			buf << " or ";
+		}
+		else if (i != contexts.size() - 1)
+		{
+			buf << ", ";
+		}
+	}
 	return buf.str();
 }

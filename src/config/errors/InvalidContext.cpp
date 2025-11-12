@@ -78,19 +78,7 @@ String	InvalidContext::format() const
 	else
 	{
 		helpMsg << "place `" << directive.name << "` within ";
-		for (size_t i = 0; i < expectedContexts.size(); ++i)
-		{
-			helpMsg << '`' << stringifyContext(expectedContexts[i]) << '`';
-			if (i == expectedContexts.size() - 2)
-			{
-				helpMsg << " or ";
-			}
-			else if (i != expectedContexts.size() - 1)
-			{
-				helpMsg << ", ";
-			}
-		}
-		helpMsg << " block";
+		helpMsg << Fmt::formatList(expectedContexts) << " block";
 	}
 	buf << fmt.formatHelp(helpMsg.str());
 	return buf.str();

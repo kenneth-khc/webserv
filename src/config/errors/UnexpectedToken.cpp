@@ -84,7 +84,7 @@ String	UnexpectedToken::format() const
 			}
 			else
 			{
-				helpMsg << "expected one of " << fmt.formatReadable(expected);
+				helpMsg << "expected one of " << Fmt::formatList(expected);
 			}
 		}
 		buf << fmt.formatError(errMsg.str())

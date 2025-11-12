@@ -3,6 +3,8 @@
 
 #include "String.hpp"
 #include "Diagnostic.hpp"
+#include "Token.hpp"
+#include "Context.hpp"
 #include <cstddef>
 #include <vector>
 
@@ -22,6 +24,9 @@ public:
 	String	formatDiagnostic(const String& message);
 	String	formatHelp(const String& helpMessage) const;
 
+	static String	formatList(const std::vector<Token>& tokens);
+	static String	formatList(const std::vector<Context>& contexts);
+
 private:
 	size_t					gutterSize;
 	String					filename;
@@ -37,6 +42,7 @@ private:
 	String	lineInfo(size_t lineNum, size_t colNum) const;
 	String	diagnosis(const String& msg, size_t lineNum, size_t colNum) const;
 	String	gutterLine() const;
+
 };
 
 #endif

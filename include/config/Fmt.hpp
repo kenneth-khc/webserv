@@ -9,13 +9,18 @@
 class	Fmt
 {
 public:
+	Fmt();
 	Fmt(const String& filename);
 	Fmt(const Diagnostic&);
+	Fmt(const String& filename, const Diagnostic&);
 	Fmt(const String& filename, const std::vector<Diagnostic>&);
 
+	bool	hasDiagnostics() const;
 	String	formatFilename() const;
 	String	formatError(const String& message) const;
+	String	formatDiagnostic();
 	String	formatDiagnostic(const String& message);
+	String	formatHelp(const String& helpMessage) const;
 
 private:
 	size_t					gutterSize;
@@ -25,6 +30,7 @@ private:
 	size_t					diagnosticsDone;
 
 	String	pad(const String& line, size_t columnNum) const;
+	String	pad(const String& line, size_t startColNum, size_t endColNum) const;
 	String	gutter(size_t size) const;
 	String	gutter(size_t size, size_t lineNum) const;
 

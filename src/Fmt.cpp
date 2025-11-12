@@ -3,6 +3,7 @@
 #include "Colour.hpp"
 #include "Utils.hpp"
 #include <algorithm>
+#include <sstream>
 #include <stdexcept>
 
 using namespace Colour;
@@ -10,6 +11,14 @@ using namespace Colour;
 bool	cmpLineNum(const Diagnostic& lhs, const Diagnostic& rhs)
 {
 	return lhs.lineNum < rhs.lineNum;
+}
+
+Fmt::Fmt():
+gutterSize(0),
+filename(""),
+diagnostics(),
+diagnosticsDone(0)
+{
 }
 
 Fmt::Fmt(const String& filename):
@@ -22,6 +31,14 @@ diagnosticsDone(0)
 
 Fmt::Fmt(const Diagnostic& diagnostic):
 filename(diagnostic.filename),
+diagnosticsDone(0)
+{
+	diagnostics.push_back(diagnostic);
+	gutterSize = countDigits(diagnostic.lineNum) + 2;
+}
+
+Fmt::Fmt(const String& filename, const Diagnostic& diagnostic):
+filename(filename),
 diagnosticsDone(0)
 {
 	diagnostics.push_back(diagnostic);
@@ -76,11 +93,69 @@ String	Fmt::lineInfo(size_t lineNum, size_t colNum) const
 	return buf.str();
 }
 
+
+bool	Fmt::hasDiagnostics() const
+{
+	return diagnosticsDone < diagnostics.size();
+}
+
+String	Fmt::pad(const String& line, size_t startColNum, size_t endColNum) const
+{
+	String	padding;
+	for (size_t i = startColNum; i < endColNum - 1; ++i)
+	{
+		if (line[i] == '\t')
+		{
+			padding += '\t';
+		}
+		else
+		{
+			padding += ' ';
+		}
+	}
+	return padding;
+}
+
+String	Fmt::formatDiagnostic()
+{
+	if (diagnosticsDone >= diagnostics.size())
+	{
+		throw std::out_of_range("No diagnostics left to be formatted");
+	}
+
+	std::stringstream	buf;
+	const Diagnostic&	diagnostic = diagnostics[diagnosticsDone];
+	const size_t		lineNum = diagnostic.lineNum;
+	const size_t		colNum = diagnostic.columnNum;
+	const String		line = getLineFromFile(filename, lineNum);
+
+	buf << lineInfo(lineNum, colNum)
+		<< gutterLine()
+		<< gutter(gutterSize, lineNum) << line << '\n'
+		<< gutter(gutterSize);
+
+	size_t	startCol = 0;
+	// TODO(kecheong): this loop looks disgusting. maybe refactor
+	for (; diagnosticsDone < diagnostics.size() &&
+		   diagnostics[diagnosticsDone].lineNum == lineNum;
+		 ++diagnosticsDone)
+	{
+		const Diagnostic&	diagnostic = diagnostics[diagnosticsDone];
+		const size_t		endCol = diagnostic.columnNum;
+
+		buf << pad(line, startCol, endCol);
+		buf << BOLD_RED << '^' << RESET;
+		startCol = endCol;
+	}
+	buf << '\n';
+	return buf.str();
+}
+
 String	Fmt::formatDiagnostic(const String& message)
 {
 	if (diagnosticsDone >= diagnostics.size())
 	{
-		throw std::out_of_range("No more diagnostics left to be formatted");
+		throw std::out_of_range("No diagnostics left to be formatted");
 	}
 
 	std::stringstream	buf;
@@ -94,6 +169,14 @@ String	Fmt::formatDiagnostic(const String& message)
 		<< '\n';
 	++diagnosticsDone;
 
+	return buf.str();
+}
+
+String	Fmt::formatHelp(const String& helpMessage) const
+{
+	std::stringstream	buf;
+
+	buf << GREEN << "help:" << RESET << ' ' << helpMessage << RESET << '\n';
 	return buf.str();
 }
 

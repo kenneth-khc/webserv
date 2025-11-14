@@ -22,10 +22,19 @@ public:
 	String		value;
 	Diagnostic	diagnostic;
 
+	Parameter(const char*);
+	Parameter(const String&);
 	Parameter(const String&, const Diagnostic&);
+
+	bool		operator==(const Parameter&) const;
+	char&		operator[](size_t index);
+	const char&	operator[](size_t index) const;
 
 	operator	String();
 	operator	const String() const;
+
+private:
+	Parameter	operator=(const Parameter&);
 };
 
 #endif

@@ -11,12 +11,39 @@
 /* ************************************************************************** */
 
 #include "Parameter.hpp"
+#include "Diagnostic.hpp"
+
+Parameter::Parameter(const char* value):
+	value(value),
+	diagnostic()
+{
+}
+
+Parameter::Parameter(const String& value):
+	value(value),
+	diagnostic()
+{
+}
 
 Parameter::Parameter(const String& value, const Diagnostic& diagnostic):
 	value(value),
 	diagnostic(diagnostic)
 {
+}
 
+bool	Parameter::operator==(const Parameter& rhs) const
+{
+	return this->value == rhs.value;
+}
+
+char&	Parameter::operator[](size_t index)
+{
+	return value[index];
+}
+
+const char&	Parameter::operator[](size_t index) const
+{
+	return value[index];
 }
 
 Parameter::operator String()

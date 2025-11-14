@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:35:41 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 21:12:47 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/05 21:46:06 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,31 +33,31 @@ public:
 	Parser(const char* fileName);
 	~Parser();
 
-	Configurator		configurator;
-	Lexer				lexer;
-	Token				token;
-	std::stack<Context>	contexts;
-	std::stack< std::multimap<String,Directive*> >	mapStack;
+	Configuration	parseConfig();
 
-	// TODO: wtf am i doing
+	Configuration			config;
+	Configurator			configurator;
+	Lexer					lexer;
+	Token					token;
+	Token					accepted;
 	std::stack<Directive*>	parents;
-
-	Token				accepted;
-
-	Configuration			parseConfig();
-	Directive*				parseDirective();
-	std::vector<Parameter>	parseParameters();
-	Directive*				parseSimple(const String&,
-										const std::vector<Parameter>&);
-	Directive*				parseBlock(const String&,
-										const std::vector<Parameter>&);
-
-	void					expect(Token::TokenType);
-	bool					accept(Token::TokenType);
 
 private:
 	Parser();
 	Parser(const Parser&);
+
+	Directive*				parseDirective();
+	std::vector<Parameter>	parseParameters();
+	Directive*				parseSimple(const String&,
+										const std::vector<Parameter>&,
+										const Diagnostic&);
+	Directive*				parseBlock(const String&,
+									   const std::vector<Parameter>&,
+									   const Diagnostic&);
+	void					expect(Token::TokenType);
+	bool					accept(Token::TokenType);
+
+	const String filename;
 };
 
 #endif

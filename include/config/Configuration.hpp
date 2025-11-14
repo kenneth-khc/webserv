@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/19 22:10:19 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/04 22:40:23 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/05 22:15:03 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,16 +31,22 @@ public:
 	Configuration();
 	~Configuration();
 
-	void				add(const Directive&);
-	void				add(Directive*);
-	Optional<Directive>	find(const String&) const;
-	void				display() const;
-	/*const Directive*	get(const String&) const;*/
-	const Directive&	get(const String&) const;
-	void				assertHasDirective(const String&) const;
+	typedef std::multimap<String, Directive*>	DirectiveMappings;
+	typedef DirectiveMappings::iterator			DirectiveMappingsIter;
+	typedef DirectiveMappings::const_iterator	DirectiveMappingsConstIter;
+
+	void					add(Directive*);
+	const Directive&		get(const String&) const;
+	Optional<Directive*>	getDirective(const String&) const;
+	void					display() const;
+
+	DirectiveMappings	directives;
 
 private:
-	std::multimap<String, Directive*>	directives;
+	void	print(const Directive&,
+				  int indent = 0,
+				  int charStart = 0,
+				  bool lastRow = false) const;
 };
 
 #endif

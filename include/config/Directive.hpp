@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:32:50 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 20:59:27 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/04 23:39:20 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,65 +21,107 @@
 #include <vector>
 #include <map>
 
-struct	Directive;
-
-typedef std::multimap<String,Directive*>	Mappings;
-
 struct	Directive
 {
-	Directive();
-	Directive(const String&, const std::vector<String>&, Context);
-	Directive(const String&, const std::vector<Parameter>&, Context);
+public:
 
-/* A range of all Directives with the same matching key in a multimap */
-typedef std::pair<std::multimap<String,Directive*>::const_iterator,
-				  std::multimap<String,Directive*>::const_iterator> EqualRange;
+/** A key-value mapping of DirectiveName -> Directive */
+typedef std::multimap<String,Directive*>	Map;
 
-	// Name of the current directive
-	String				name;
+/** Iterator for traversing the Name->Directive mappings */
+typedef Map::iterator	MapIter;
 
-	// Parameters of the current directive
-	/*std::vector<String>	parameters;*/
-	std::vector<Parameter>	parameters;
+/** Const iterator for traversing the Name->Directive mappings */
+typedef Map::const_iterator	MapConstIter;
 
-	// The enclosing block
-	Mappings			enclosing;
+/** A range of all Directives with the same matching key in a multimap */
+typedef std::pair<MapConstIter, MapConstIter>	EqualRange;
 
-	//
-	const Directive*	parent;
+	/** Constructs a Directive with the given name, parameters, parent
+		and diagnostic information.
+		The Directive is not guaranteed to be a valid one until it gets
+		passed into a Validator to be checked. */
+	Directive(const String& name,
+			  const std::vector<Parameter>& parameters,
+			  const Directive* parent,
+			  const Diagnostic&);
 
-	// The context this directive is in
-	Context				enclosingContext;
+	/** Add a child Directive within this Directive block */
+	void
+	addDirective(Directive*);
 
-	// The directives within the directive
-	std::multimap<String,Directive*>	directives;
+	/** Returns a Directive matching the given key */
+	const Directive*
+	getDirective(const String& key) const;
 
-	void					addDirective(Directive*);
+	/** Returns a vector of all Directives matching the given key */
+	std::vector<Directive*>
+	getDirectives(const String& key) const;
 
-	const Directive*		getDirective(const String&) const;
-	std::vector<Directive*>	getDirectives(const String& key) const;
+	/** Returns all the Directives within this block */
+	const std::multimap<String, Directive*>&
+	getDirectives() const;
 
-	bool					hasParameters() const;
-
+	/** Returns the Parameter of a Directive within this block
+		reduced into a single String,
+		or None if the Directive is not found */
 	Optional<String>
 	getParameterOf(const String& key) const;
 
+	/** Returns all the Parameters of a Directive within this block,
+		or None if the Directive is not found */
 	Optional< std::vector<String> >
 	getParametersOf(const String& key) const;
 
+
+	/** Looks up a the Parameters of a Directive within this block.
+		If not found, recursively look up from the enclosing blocks,
+		until it is found or there are no enclosing blocks left.
+		This is how we "inherit" Directives from outer blocks.
+
+		Returns None if the Directive cannot be found.  */
 	template <typename ReturnType>
-	Optional<ReturnType>	recursivelyLookup(const String&) const;
+	Optional<ReturnType>
+	recursivelyLookup(const String&) const;
 
-	void					printParameters() const;
-	Optional< std::map<int,String> >	generateErrorPagesMapping() const;
+	Optional< std::map<int,String> >
+	generateErrorPagesMapping() const;
 
-	void					cleanUp();
+	/** Get the context of this Directive by transforming
+		the parent's name into a Context */
+	Context::Context	getContext() const;
 
-	Diagnostic	diagnostic;
+	/** Get the diagnostic information for this Directive */
+	const Diagnostic&	getDiagnostic() const;
+
+	/** Cleans up the children Directives before cleaning up this Directive */
+	void	cleanUp();
+
+	/** Name of the current Directive */
+	String	name;
+
+	/** Parameters of the current Directive */
+	std::vector<Parameter>	parameters;
+
+	/** The parent Directive block enclosing this Directive,
+		or NULL if this Directive is declared globally */
+	const Directive*	parent;
+
 
 private:
-	// Functor to pass into optional.or_else() to recursively lookup a value
-	// if not found in current scope
+	/** Not expected to construct a bare Directive */
+	Directive();
+	/** Not expected to copy a Directive */
+	Directive(const Directive&);
+
+	/** The child directives within this block */
+	std::multimap<String,Directive*>	directives;
+
+	/** Diagnostic information for this Directive */
+	Diagnostic	diagnostic;
+
+	/** Functor to pass into optional.or_else() to recursively lookup a value
+		if not found in the current scope */
 	template <typename ReturnType>
 	struct	LookupEnclosing
 	{
@@ -96,12 +138,18 @@ private:
 	};
 };
 
+/** Creates a functor storing the current Directive and the key to lookup,
+	to be invoked by .or_else() when the Directive is not found within
+	the current scope */
 template <typename ReturnType>
 Directive::LookupEnclosing<ReturnType>
 ::LookupEnclosing(const Directive* directive, const String& key):
 	directive(directive),
 	key(key) {}
 
+/** Get the enclosing block and look up the key within it.
+	If there is no enclosing block we are in the outermost block
+	and the Directive cannot be found, returning None */
 template <typename ReturnType>
 Optional<ReturnType>
 Directive::LookupEnclosing<ReturnType>::operator()() const
@@ -117,6 +165,8 @@ Directive::LookupEnclosing<ReturnType>::operator()() const
 	}
 }
 
+/** Recursively lookup the Parameters of a Directive, specialized
+	to return the found Parameters as a single String */
 template <>
 inline Optional<String>
 Directive::recursivelyLookup<String>(const String& key) const
@@ -125,6 +175,8 @@ Directive::recursivelyLookup<String>(const String& key) const
 		  .or_else(LookupEnclosing<String>(this, key));
 }
 
+/** Recursively lookup the Parameters of a Directive, specialized
+	to return the Parameters as a vector of Strings*/
 template <>
 inline Optional< std::vector<String> >
 Directive::recursivelyLookup< std::vector<String> >(const String& key) const

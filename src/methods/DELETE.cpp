@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:14:43 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/05 23:59:59 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/28 02:19:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,18 +19,17 @@
 #include "Server.hpp"
 #include "Driver.hpp"
 
-// TODO: use cookies for authorization? user can only delete what is theirs
 // TODO: consider other status codes. 200 OK? 202 Accepted? 403 Forbidden?
-void	Driver::delete_(Response& response, Request& request) const
+void	Server::delete_(Response& response, Request& request) const
 {
-	DIR*	dir = opendir(uploadsDir.c_str());
+	DIR*	dir = opendir("uploads");
 
 	if (!dir)
 	{
 		throw NotFound404();
 	}
 
-	Optional<String::size_type>	uploads = request.requestTarget.find("/" + uploadsDir);
+	Optional<String::size_type>	uploads = request.requestTarget.find(String("/") + "uploads");
 
 	if (uploads.exists == false || uploads.value != 0)
 	{
@@ -48,7 +47,7 @@ void	Driver::delete_(Response& response, Request& request) const
 
 		if (d_name.find(sid).exists == true && d_name.find(fileName).exists == true)
 		{
-			std::remove((uploadsDir + "/" + d_name).c_str());
+			std::remove((String("uploads") + "/" + d_name).c_str());
 			break ;
 		}
 		entry = readdir(dir);
@@ -58,10 +57,7 @@ void	Driver::delete_(Response& response, Request& request) const
 		throw NotFound404();
 	}
 
-	std::ifstream	ifs((miscPagesDir + "/delete_success.html").c_str());
-
 	response.setStatusCode(Response::OK);
-	String::getline(ifs, response.messageBody, '\0');
 	response.insert("Content-Type", "text/html");
-	response.insert("Content-Length", response.messageBody.length());
+	response.insert("Content-Length", 0);
 }

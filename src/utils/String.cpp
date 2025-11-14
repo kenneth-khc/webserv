@@ -6,13 +6,14 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:28:11 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/07 16:29:34 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 19:41:09 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sstream>
 #include <fstream>
 #include <stdexcept>
+#include <cstring>
 #include "String.hpp"
 #include "Optional.hpp"
 
@@ -172,6 +173,16 @@ const char&	String::at(size_type index) const
 	return str[index];
 }
 
+char&	String::back()
+{
+	return str[str.length() - 1];
+}
+
+const char&	String::back() const
+{
+	return str[str.length() - 1];
+}
+
 String::size_type	String::size() const
 {
 	return str.size();
@@ -274,6 +285,12 @@ String&	String::replace(size_type pos, size_type count, const String& toReplace)
 	return *this;
 }
 
+String&	String::replace(String::iterator first, String::iterator last, const String& toReplace)
+{
+	str.replace(first, last, toReplace);
+	return *this;
+}
+
 String::iterator	String::begin()
 {
 	return str.begin();
@@ -292,6 +309,32 @@ String::iterator	String::end()
 String::const_iterator	String::end() const
 {
 	return str.end();
+}
+
+String::reverse_iterator	String::rbegin()
+{
+	return str.rbegin();
+}
+
+String::const_reverse_iterator	String::rbegin() const
+{
+	return str.rbegin();
+}
+
+String::reverse_iterator	String::rend()
+{
+	return str.rend();
+}
+
+String::const_reverse_iterator	String::rend() const
+{
+	return str.rend();
+}
+
+String&	String::erase(String::size_type index, String::size_type count)
+{
+	str.erase(index, count);
+	return *this;
 }
 
 String::iterator	String::erase(String::iterator first, String::iterator last)
@@ -395,6 +438,21 @@ Optional<String>	String::consumeUntil(const String& expected)
 	{
 		String	consumed = str.substr(0, pos.value);
 		str = str.substr(pos.value);
+		return consumed;
+	}
+	else
+	{
+		return makeNone<String>();
+	}
+}
+
+Optional<String>	String::consumeBackwardsUntil(const String& expected)
+{
+	Optional<size_type>	pos = find_last_of(expected);
+	if (pos.exists)
+	{
+		String	consumed = str.substr(pos.value + 1, str.length() - pos.value - 1);
+		str = str.substr(0, pos.value + 1);
 		return consumed;
 	}
 	else
@@ -520,11 +578,141 @@ String	String::trim(const String& set) const
 	return str.substr(start, len);
 }
 
+bool	String::starts_with(const String& prefix) const
+{
+	return std::strncmp(c_str(), prefix.c_str(), prefix.size()) == 0;
+}
+
 int	String::toInt() const
 {
 	int	num;
 	std::istringstream(str) >> num;
 	return num;
+}
+
+bool	String::ends_with(const String& suffix) const
+{
+	if (suffix.str.length() > str.length())
+	{
+		return false;
+	}
+
+	String::const_reverse_iterator	it = str.rbegin();
+	String::const_reverse_iterator	suffixIt = suffix.str.rbegin();
+	while (suffixIt != suffix.str.rend())
+	{
+		if (*it != *suffixIt)
+		{
+			return false;
+		}
+		it++;
+		suffixIt++;
+	}
+	return true;
+}
+
+String	String::lower() const
+{
+	String	lowercase;
+
+	for (String::size_type i = 0; i < str.length(); i++)
+	{
+		lowercase.push_back(std::tolower(str[i]));
+	}
+	return lowercase;
+}
+
+String	String::upper() const
+{
+	String	uppercase;
+
+	for (String::size_type i = 0; i < str.length(); i++)
+	{
+		uppercase.push_back(std::toupper(str[i]));
+	}
+	return uppercase;
+}
+
+String	String::title() const
+{
+	String	titlecase;
+	bool	toUpper = true;
+
+	for (String::size_type i = 0; i < str.length(); i++)
+	{
+		if (toUpper && std::isalpha(str[i]) != 0)
+		{
+			titlecase.push_back(std::toupper(str[i]));
+			toUpper = false;
+		}
+		else
+		{
+			titlecase.push_back(std::tolower(str[i]));
+		}
+		if (std::isalpha(str[i]) == 0)
+		{
+			toUpper = true;
+		}
+	}
+	return titlecase;
+}
+
+std::size_t String::toSizeType() const
+{
+	std::size_t	num;
+	std::istringstream(str) >> num;
+	return num;
+}
+
+std::size_t String::toSizeType(const String& str)
+{
+	std::size_t	num;
+	std::istringstream(str) >> num;
+	return num;
+}
+
+bool	String::toBool() const
+{
+	return String::toBool(*this);
+}
+
+bool	String::toBool(const String& str)
+{
+	if (str == "on")
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+std::size_t String::toSize() const
+{
+	return String::toSize(*this);
+}
+
+std::size_t String::toSize(const String& str)
+{
+	std::size_t	bytes;
+	int			multiplier = 1;
+	if (std::isdigit(str.back()))
+	{
+		bytes = str.toSizeType() * multiplier;
+		return bytes;
+	}
+	else if (str.back() == 'k' || str.back() == 'K')
+	{
+		multiplier = 1000;
+	}
+	else if (str.back() == 'm' || str.back() == 'M')
+	{
+		multiplier = 1000000;
+	}
+	String	numberPart = str.substr(0, str.length() - 1);
+	bytes = numberPart.toSizeType() * multiplier;
+	return bytes;
 }
 
 template <typename Type>

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 18:09:22 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/03 06:36:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/19 23:54:02 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,15 +54,13 @@ bool	isEntityTagCharacter(const String &line) {
 
 String	constructETagHeader(const struct timespec &lastModified, Optional<int> contentLength) {
 	std::stringstream	stream;
-	String				etag;
 
 	stream << '"';
 	stream << std::hex << Time::convertToGMT(lastModified.tv_sec);
 	stream << '-';
 	stream << std::hex << contentLength.value;
 	stream << '"';
-	String::getline(stream, etag, '\0');
-	return (etag);
+	return (stream.str());
 }
 
 bool	compareETagStrong(const String &etagOne, const String &etagTwo) {

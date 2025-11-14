@@ -6,17 +6,17 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 21:41:12 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/06 00:21:09 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/14 22:06:25 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <sstream>
 #include <vector>
 #include "terminalValues.hpp"
 #include "Response.hpp"
 #include "Cookie.hpp"
 
 Cookie::Cookie(void) :
-	maxAge(0),
 	secure(false),
 	httpOnly(false)
 {}
@@ -24,7 +24,6 @@ Cookie::Cookie(void) :
 Cookie::Cookie(const String &name, const String &value) :
 	name(name),
 	value(value),
-	maxAge(0),
 	secure(false),
 	httpOnly(false)
 {}
@@ -45,8 +44,7 @@ Cookie::Cookie(const Cookie &obj) :
 Cookie	&Cookie::operator=(const Cookie &obj) {
 	if (this == &obj)
 		return (*this);
-	if (this->name != obj.name)
-		return (*this);
+	this->name = obj.name;
 	this->value = obj.value;
 	this->expires = obj.expires;
 	this->maxAge = obj.maxAge;
@@ -61,14 +59,37 @@ void	Cookie::operator=(const String &value) {
 	this->value = value;
 }
 
-bool	Cookie::operator==(const Cookie &obj) {
+bool	Cookie::operator==(const Cookie &obj) const {
 	if (this->name == obj.name)
 		return (true);
 	else
 		return (false);
 }
 
-bool	isCookieString(const String &line, std::map<String, Cookie> &cookies) {
+String	Cookie::constructSetCookieHeader(void) const {
+	String	setCookieHeader;
+
+	setCookieHeader = this->name + "=" + this->value;
+	if (this->expires.exists == true)
+		setCookieHeader += "; Expires=" + this->expires.value;
+	if (this->maxAge.exists == true) {
+		std::stringstream	stream;
+
+		stream << this->maxAge.value;
+		setCookieHeader += "; Max-Age=" + stream.str();
+	}
+	if (this->domain.exists == true)
+		setCookieHeader += "; Domain=" + this->domain.value;
+	if (this->path.exists == true)
+		setCookieHeader += "; Path=" + this->path.value;
+	if (this->secure == true)
+		setCookieHeader += "; Secure";
+	if (this->httpOnly == true)
+		setCookieHeader += "; HttpOnly";
+	return (setCookieHeader);
+}
+
+bool	isCookieString(std::map<String, Cookie> &cookies, const String &line) {
 	std::vector<String>			values = line.split("; ");
 	std::map<String, Cookie>	validCookies;
 
@@ -113,14 +134,4 @@ bool	isCookieOctet(const unsigned &character) {
 	if (values.find(character).exists == true)
 		return (false);
 	return (true);
-}
-
-void	constructSetCookieHeader(Response &response, const std::vector<Cookie> &cookies) {
-	String	setCookieHeader;
-
-	for (std::vector<Cookie>::const_iterator it = cookies.begin(); it != cookies.end(); it++) {
-		setCookieHeader = it->name + "=" + it->value;
-		//	Append cookie attributes here
-		response.insert("Set-Cookie", setCookieHeader);
-	}
 }

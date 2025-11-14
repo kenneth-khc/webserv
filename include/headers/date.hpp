@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/04 03:55:57 by cteoh             #+#    #+#             */
-/*   Updated: 2025/02/11 22:35:16 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/14 22:06:54 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,22 +20,22 @@
 # define NUM_OF_MONTHS 12
 
 bool	isDateHeader(const String &date);
-bool	isHTTPDate(const String &date, std::tm &time);
-bool	isIMFFixDate(const String &date, std::tm &time);
-bool	isDayName(const String &day, std::tm &time);
-bool	isDateOne(const String &date, std::tm &time);
-bool	isDay(const String &day, std::tm &time);
-bool	isMonth(const String &month, std::tm &time);
-bool	isYear(const String &year, std::tm &time);
-bool	isTimeOfDay(const String &timeOfDay, std::tm &time);
-bool	isHour(const String &hour, std::tm &time);
-bool	isMinute(const String &minute, std::tm &time);
-bool	isSecond(const String &second, std::tm &time);
-bool	isObsoleteDate(const String &date, std::tm &time);
-bool	isRFC850Date(const String &date, std::tm &time);
-bool	isDayNameOne(const String &day, std::tm &time);
-bool	isDateTwo(const String &date, std::tm &time);
-bool	isASCTimeDate(const String &date, std::tm &time);
-bool	isDateThree(const String &date, std::tm &time);
+bool	isHTTPDate(std::tm &time, const String &date);
+bool	isIMFFixDate(std::tm &time, const String &date);
+bool	isDayName(std::tm &time, const String &day);
+bool	isDateOne(std::tm &time, const String &date);
+bool	isDay(std::tm &time, const String &day);
+bool	isMonth(std::tm &time, const String &month);
+bool	isYear(std::tm &time, const String &year);
+bool	isTimeOfDay(std::tm &time, const String &timeOfDay);
+bool	isHour(std::tm &time, const String &hour);
+bool	isMinute(std::tm &time, const String &minute);
+bool	isSecond(std::tm &time, const String &second);
+bool	isObsoleteDate(std::tm &time, const String &date);
+bool	isRFC850Date(std::tm &time, const String &date);
+bool	isDayNameOne(std::tm &time, const String &day);
+bool	isDateTwo(std::tm &time, const String &date);
+bool	isASCTimeDate(std::tm &time, const String &date);
+bool	isDateThree(std::tm &time, const String &date);
 
 #endif

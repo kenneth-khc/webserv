@@ -6,10 +6,12 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/05 17:23:24 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/26 16:54:15 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <ios>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include "ErrorCode.hpp"
@@ -17,7 +19,7 @@
 
 Response::Response(void) :
 	Message(),
-	flags(0)
+	closeConnection(false)
 {
 	this->httpVersion = 1.1;
 }
@@ -28,7 +30,7 @@ Response::Response(const Response &obj) :
 	Message(obj),
 	statusCode(obj.statusCode),
 	reasonPhrase(obj.reasonPhrase),
-	flags(obj.flags)
+	closeConnection(obj.closeConnection)
 {}
 
 Response&	Response::operator=(const Response& other)
@@ -38,7 +40,7 @@ Response&	Response::operator=(const Response& other)
 	Message::operator=(other);
 	this->statusCode = other.statusCode;
 	this->reasonPhrase = other.reasonPhrase;
-	this->flags = other.flags;
+	this->closeConnection = other.closeConnection;
 	return *this;
 }
 
@@ -53,7 +55,8 @@ Response&	Response::operator=(const ErrorCode& obj)
 	Message::operator=(obj);
 	this->statusCode = obj.statusCode;
 	this->reasonPhrase = obj.reasonPhrase;
-	this->flags = obj.flags;
+	this->closeConnection = obj.closeConnection;
+	this->insert("Server", serverName);
 
 	std::stringstream	stream;
 	stream << "<html>\n"
@@ -79,12 +82,25 @@ Response&	Response::operator=(const ErrorCode& obj)
 
 //	Turns the information stored in the Response instance into a complete
 //	HTTP response message
-const String	Response::toString(void) const {
+bool	Response::isReady(void) {
+	if (this->messageBody.length() == 0 && !(this->processStage & Response::DONE))
+		return (false);
+
+	if ((*this)["Content-Length"].exists == false) {
+		Optional<String>	transferEncoding = (*this)["Transfer-Encoding"];
+
+		if (transferEncoding.exists == true) {
+			if (transferEncoding.value.find("chunked").exists == false)
+				this->headers.find("Transfer-Encoding")->second += ", chunked";
+		}
+		else
+			this->insert("Transfer-Encoding", "chunked");
+	}
+
 	std::stringstream	stream;
-	String				str;
 	String				temp;
 
-	stream << "HTTP/" << this->httpVersion << ' ';
+	stream << "HTTP/" << std::setprecision(2) << this->httpVersion << ' ';
 	stream << this->statusCode << ' ';
 	stream << this->reasonPhrase << "\r\n";
 
@@ -94,14 +110,32 @@ const String	Response::toString(void) const {
 	}
 	stream << "\r\n";
 
-	if (this->messageBody.length() != 0)
-		stream << this->messageBody;
+	this->formatted.append(stream.str().c_str(), stream.str().length());
+	this->processStage |= Response::SEND_READY;
+	return (true);
+}
 
-	while (String::getline(stream, temp)) {
-		str += temp;
-		str += "\n";
-	};
-	return (str);
+void	Response::appendMessageBody(void) {
+	if (!(this->processStage & Response::DONE) && this->messageBody.length() == 0)
+		return ;
+
+	if ((*this)["Content-Length"].exists == true) {
+		this->formatted.append(this->messageBody.c_str(), this->messageBody.length());
+		this->messageBody.erase(0, this->messageBody.length());
+		return ;
+	}
+
+	std::stringstream	chunkSize;
+
+	chunkSize << std::hex << std::uppercase << this->messageBody.length();
+	this->formatted.append(chunkSize.str().c_str(), chunkSize.str().length());
+	this->formatted.append("\r\n", 2);
+	this->formatted.append(this->messageBody.c_str(), this->messageBody.length());
+	this->formatted.append("\r\n", 2);
+	this->messageBody.erase(0, this->messageBody.length());
+
+	if (this->processStage & Response::DONE && chunkSize.str() != "0" && this->messageBody.length() == 0)
+		this->formatted.append("0\r\n\r\n", 5);
 }
 
 void	Response::setStatusCode(int statusCode) {
@@ -139,13 +173,14 @@ void	Response::setStatusCode(int statusCode) {
 void	Response::getFileContents(const String& file)
 {
 	std::ifstream	filestream(file.c_str());
-	String			fileContents;
-	String			str;
+	char			buffer[1024];
 
-	while (String::getline(filestream, str))
+	while (true)
 	{
-		fileContents += str;
-		fileContents += "\n";
+		std::streamsize	bytes = filestream.readsome(buffer, 1024);
+
+		if (bytes == 0)
+			return ;
+		messageBody.append(buffer, bytes);
 	}
-	messageBody = fileContents;
 }

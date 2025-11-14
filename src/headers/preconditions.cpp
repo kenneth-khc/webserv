@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 21:22:47 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/05 22:20:19 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/14 22:09:02 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ bool	processIfNoneMatchHeader(const String &value, const String &etag) {
 bool	processIfModifiedHeader(const String &dateSince, const struct timespec &lastModified) {
 	std::tm		timeStruct = {};
 
-	if (isHTTPDate(dateSince, timeStruct) == false)
+	if (isHTTPDate(timeStruct, dateSince) == false)
 		return (true);
 
 	std::time_t	dateSinceTime = Time::getTimeSinceEpoch(timeStruct);

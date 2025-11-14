@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 17:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/04 18:42:38 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/03 17:37:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,21 +41,20 @@ int	main(int argc, char** argv)
 	Parser			parser(argv[1]);
 	Configuration	config = parser.parseConfig();
 	config.display();
-	std::cout << "--------------------------------\n";
 
-	Driver	driver;
-	driver.configureFrom(config);
+	/* with all the configuration values successfully validated, we can now
+	 * start setting up what is necessary to run our webserver */
+
+	Driver	driver(config);
 
 	std::cout << "Server is running...\n";
 	while (1)
 	{
+		driver.updateEpollTimeout();
 		if (driver.epollWait() != 0)
 		{
 			driver.processReadyEvents();
-			driver.processMessages();
-			driver.processReadyRequests();
-			driver.generateResponses();
 		}
-		driver.monitorConnections();
+		driver.monitorTimers();
 	}
 }

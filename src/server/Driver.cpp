@@ -3,498 +3,438 @@
 /*                                                        :::      ::::::::   */
 /*   Driver.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/08 19:52:33 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/05 15:53:18 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Driver.hpp"
 #include "Server.hpp"
-#include "Configuration.hpp"
 #include "ConfigErrors.hpp"
-#include "contentLength.hpp"
 #include "Directive.hpp"
 #include "Utils.hpp"
-#include "connection.hpp"
 #include "ErrorCode.hpp"
-#include "Time.hpp"
 #include "Base64.hpp"
+#include "DoneState.hpp"
+#include "KeepAliveTimer.hpp"
+#include <queue>
+#include <deque>
 #include <cstddef>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <sys/epoll.h>
+#include <string>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
-#include <iostream>
+#include <algorithm>
+#include <cstdio>
+#include <sys/types.h>
+#include <signal.h>
+#include <sys/wait.h>
 
-const unsigned int	Driver::timeoutValue = 5;
-
-Driver::Driver():
-name("42webserv"),
-epollFD(-1),
-maxEvents(1),
-readyEvents(NULL),
-numReadyEvents(0),
-MIMEMappings("mime.types"),
-rootDir("root"),
-pagesDir("pages"),
-uploadsDir("uploads"),
-miscPagesDir("misc_pages"),
-cgiDir("cgi-bin"),
-autoindex(true)
+Driver::Driver(const Configuration& config):
+	webServerName("42webserv"),
+	http(config.get("http")),
+	epollTimeout(-1),
+	epollFD(-1),
+	maxEvents(1021),
+	readyEvents(new epoll_event[maxEvents]),
+	numReadyEvents(0),
+	/* Sockets and Clients */
+	listeners(),
+	establishedSockets(),
+	clients()
 {
-	readyEvents = new epoll_event[maxEvents];
-	cgiScript.push_back("py");
-	cgiScript.push_back("php");
-}
-
-// TODO: refactor this crap holy
-void	Driver::configureFrom(const Configuration& config)
-{
-	epollFD = epoll_create(1);
-	if (epollFD == -1){
-		// TODO: error handling 
-	}
-
-	const Directive&		http = config.get("http");
-	std::vector<Directive>	serverDirectives = http.getDirectives("server");
-	for (size_t i = 0; i < serverDirectives.size(); ++i)
+	std::vector<Directive*>	serverBlocks = config.get("http")
+												 .getDirectives("server");
+	for (size_t i = 0; i < serverBlocks.size(); ++i)
 	{
-		const Directive&	serverDirective = serverDirectives[i];
-		try
-		{
-			configNewServer(serverDirective);
-		}
-		catch (const ConfigError& e)
-		{
-			std::cout << e.what() << '\n';
-		}
+		const Directive&	serverBlock = *serverBlocks[i];
+		const Server&		httpServer = Server(serverBlock, listeners);
+		http.addServer(httpServer);
 	}
-	epoll_event event = {};
-	event.events |= EPOLLIN;
 
+	/* Epoll configuration */
+	epollFD = epoll_create(1);
+	if (epollFD == -1)
+	{
+		std::perror("epoll_create() failed");
+		std::exit(1);
+	}
 	for (std::map<int, Socket>::const_iterator it = listeners.begin();
 		 it != listeners.end(); ++it)
 	{
-		event.data.fd = it->second.fd;
-		int	retval = epoll_ctl(epollFD, EPOLL_CTL_ADD, event.data.fd, &event);
-		if (retval == -1)
-		{ //TODO: error handling
-		}
+		addToEpoll(it->second.fd, EPOLLIN);
 	}
 }
 
-void	Driver::configNewServer(const Directive& directive)
+Driver::~Driver()
 {
-	String	listenTo = directive.getParams<String>("listen").value_or("8000");
-	int		portNum = to<int>(listenTo);
-	Socket*	socket = NULL;
-	if (listeners.find(portNum) == listeners.end())
+	delete[] readyEvents;
+	close(epollFD);
+	for (std::map<int,Socket>::iterator	it = listeners.begin();
+		 it != listeners.end(); ++it)
 	{
-		Socket	s = Socket(portNum);
-		listeners[s.fd] = s;
-		listeners[s.fd].bind();
-		listeners[s.fd].listen(1);
-		// WARN: something sussy here with the socket pointer
-		// what happens if I have a listen in another server
-		// trying to point to an existing socket
-		socket = &listeners[s.fd];
+		close(it->first);
 	}
-	std::vector<String>	domainNames = directive.getParams< std::vector<String> >("server_name")
-									  .value_or(std::vector<String>());
-	Server	newServer(domainNames, portNum, socket);
-	newServer.root = directive.getParams<String>("root").value_or("html");
-	servers.push_back(newServer);
+	for (std::map<int,Socket>::iterator	it = establishedSockets.begin();
+		 it != establishedSockets.end(); ++it)
+	{
+		close(it->first);
+	}
 }
 
 int	Driver::epollWait()
 {
-	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, 1000);
-	std::cout << "epoll_wait() returned with " << numReadyEvents
-			  << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
+	if (epollTimeout != -1)
+	{
+		epollTimeout *= 1000;
+	}
+
+	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, epollTimeout);
+	// std::cout << "epoll_wait() returned with " << numReadyEvents
+			//   << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
 
 	if (numReadyEvents == -1)
 	{
 		//TODO: error handling
-	}
-	else if (numReadyEvents > 0 && (readyEvents[0].events & EPOLLRDHUP))
-	{
-		//	Closes socket in cases where client-side closes the connection on their end.
-		logger.logConnection(Logger::CLOSE, readyEvents[0].data.fd,
-			clients[readyEvents[0].data.fd]);
-		close(readyEvents[0].data.fd);
-		epoll_ctl(epollFD, EPOLL_CTL_DEL, readyEvents[0].data.fd, 0);
-		clients.erase(clients.find(readyEvents[0].data.fd));
-		numReadyEvents = 0;
 	}
 	return numReadyEvents;
 }
 
 void	Driver::processReadyEvents()
 {
+	std::set<Timer*>	activeTimers;
+
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
-		const epoll_event&	ev = readyEvents[i];
-
-		if (listeners.find(ev.data.fd) != listeners.end())
+		currEvent = &readyEvents[i];
+		std::map<int,Socket>::iterator	it = listeners.find(currEvent->data.fd);
+		if (it != listeners.end())
 		{
-			const Socket&	socket = listeners.find(ev.data.fd)->second;
-			acceptNewClient(socket);
+			const Socket&	listener = it->second;
+			Socket			clientSocket = listener.accept();
+			int				fd = clientSocket.fd;
+			establishedSockets[fd] = clientSocket;
+			addToEpoll(fd, EPOLL_EVENTS(EPOLLIN | EPOLLOUT));
+
+			Client	newClient(&establishedSockets[fd], &listener);
+			std::vector<Server>::iterator	serverIt =
+			std::find_if(http.servers.begin(),
+						 http.servers.end(),
+						 isDefaultListener(&listener));
+			newClient.server = &(*serverIt);
+
+			clients[fd] = newClient;
+
+			logger.logConnection(Logger::ESTABLISHED, fd, newClient);
+			activeTimers.insert(clients[fd].timer);
+			continue ;
 		}
-		else if (ev.events & EPOLLIN)
+
+		std::map<int, Client>::iterator	clientIt = clients.find(currEvent->data.fd);
+		std::map<int, CGI *>::iterator	cgiIt = cgis.find(currEvent->data.fd);
+
+		if (clientIt == clients.end() && cgiIt == cgis.end())
+			continue ;
+
+		if (clientIt != clients.end())
 		{
-			Client&	client = clients[ev.data.fd];
-			client.updateLastActive();
-			receiveBytes(client);
-		}
-	}
-}
-
-void	Driver::processMessages()
-{
-	// TODO: get all ready clients instead of just the first one
-	Client&		client = clients[readyEvents[0].data.fd];
-	Request&	request = client.request;
-
-	try
-	{
-		if (!request.requestLineFound && client.endOfRequestLineFound())
-		{
-			request.parseRequestLine(client.message);
-			request.requestLineFound = true;
-		}
-		if (request.requestLineFound &&
-			!request.headersFound &&
-			client.endOfHeaderFound())
-		{
-			request.parseHeaders(client.message);
-			request.headersFound = true;
-
-			Optional<String>	contentLength = request["Content-Length"];
-			Optional<String>	transferEncoding = request["Transfer-Encoding"];
-
-			if (contentLength.exists && transferEncoding.exists)
+			if (currEvent->events & EPOLLHUP)
 			{
-				request.headers.erase(Request::stringToLower("Content-Length"));
+				closeConnection(clientIt, Logger::PEER_CLOSE);
+				continue ;
 			}
-			else if (!contentLength.exists && !transferEncoding.exists)
+			if (currEvent->events & EPOLLIN)
 			{
-				request.insert(Request::stringToLower("Content-Length"), 0);
+				receiveMessage(clientIt);
 			}
-			else if (contentLength.exists && !transferEncoding.exists)
+			if (currEvent->events & EPOLLOUT)
 			{
-				if (isContentLengthHeader(contentLength.value) == false)
-					throw BadRequest400();
-			}
-			else if (!contentLength.exists && transferEncoding.exists)
-			{
-				transferEncoding.value = Request::stringToLower(transferEncoding.value);
-				if (transferEncoding.value.find("chunked").exists == false)
-					throw BadRequest400();
+				processRequest(clientIt, activeTimers);
+				if (!clientIt->second.responseQueue.empty())
+				{
+					sendResponse(clientIt, activeTimers);
+				}
 			}
 		}
-		if (request.requestLineFound &&
-			request.headersFound &&
-			!request.messageBodyFound)
+		else if (cgiIt != cgis.end())
 		{
-			request.parseMessageBody(client.message);
-		}
-		if (request.messageBodyFound)
-		{
-			readyRequests.push(request);
-			logger.logRequest(request, client);
+			processCGI(cgiIt, activeTimers);
 		}
 	}
-	catch (const ErrorCode &e)
+
+	for (std::set<Timer*>::iterator it = activeTimers.begin(); it != activeTimers.end(); it++)
 	{
-		Response	response;
-		response.insert("Server", name);
-		response = e;
-		readyResponses.push(response);
+		(*it)->update();
 	}
 }
 
-void	Driver::processReadyRequests()
+void	Driver::receiveMessage(std::map<int, Client>::iterator& clientIt)
 {
-	while (!readyRequests.empty())
-	{
-		Request&	request = readyRequests.front();
-		Response	response = handleRequest(request);
+	Client&	client = clientIt->second;
 
-		readyResponses.push(response);
-		readyRequests.pop();
+	client.receiveBytes();
+}
+
+// TODO: this should probably also check that the port matches
+Optional<Server*>	Driver::matchServerName(const String& hostname)
+{
+	for (std::vector<Server>::iterator it = http.servers.begin();
+		 it != http.servers.end();
+		 ++it)
+	{
+		const std::vector<String>&	serverNames = it->domainNames;
+		if (std::find(serverNames.begin(),
+					  serverNames.end(), hostname) != serverNames.end())
+		{
+			Server*	server = &(*it);
+			return makeOptional(server);
+		}
+	}
+	return makeNone<Server*>();
+}
+
+void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<Timer*>& activeTimers)
+{
+	Client&	client = clientIt->second;
+
+	while (client.message.length() > 0) {
+		Request&			request = client.requestQueue.back();
+		String::size_type	initialMessageLength = client.message.length();
+
+		try
+		{
+			if (client.responseQueue.size() != client.requestQueue.size())
+			{
+				client.responseQueue.push_back(Response());
+				client.responseQueue.back().insert("Server", webServerName);
+			}
+			while (request.processState(client, logger)->getState() != RequestState::DONE)
+			{
+				if (initialMessageLength == client.message.length())
+				{
+					activeTimers.insert(client.timer);
+					return ;
+				}
+				else
+				{
+					initialMessageLength = client.message.length();
+				}
+			}
+
+			String				host = request.find< Optional<String> >("Host")
+											  .value_or("");
+			if (host.find(':'))
+			{
+				host = host.consumeUntil(":").value;
+			}
+
+			// this picks the configuration block to use depending on server_name
+			// or defaulting back to first server with the matching port
+			Server*		server = matchServerName(host)
+								.value_or(client.server);
+
+			server->handleRequest(*this, client, request, client.responseQueue.back());
+		}
+		catch (const ErrorCode &e)
+		{
+			delete request.state;
+			request.state = new DoneState();
+			request.processState(client, logger);
+			client.responseQueue.back() = e;
+		}
+
+		client.requestQueue.push_back(Request());
+		if (client.responseQueue.back()["Connection"].value == "close")
+		{
+			return ;
+		}
 	}
 }
 
-void	Driver::processCookies(Request& request, Response& response)
+void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt, std::set<Timer*>& activeTimers)
 {
-	std::map<String, Cookie>&	cookies = request.cookies;
+	CGI&	cgi = *(cgiIt->second);
+	Client&	client = cgi.client;
 
-	if (cookies.find("sid") == cookies.end())
-	{
-		String	sid = Base64::encode(Time::printHTTPDate());
-		cookies.insert(std::make_pair("sid", Cookie("sid", sid)));
-		response.insert("Set-Cookie", "sid=" + sid);
+	try {
+		if (currEvent->events & EPOLLIN)
+		{
+			cgi.output->fetch(activeTimers);
+		}
+		if (currEvent->events & EPOLLOUT)
+		{
+			cgi.input->feed(activeTimers);
+		}
+		if (currEvent->events & EPOLLHUP)
+		{
+			int	stat_loc = 0;
+
+			if (waitpid(cgi.pid, &stat_loc, WNOHANG) == cgi.pid) {
+				if (stat_loc != 0)
+					throw InternalServerError500();
+			}
+			cgi.output->fetch(activeTimers);
+			if (cgi.response.processStage & Response::DONE)
+			{
+				activeTimers.erase(cgi.timer);
+				client.cgis.erase(std::find(client.cgis.begin(), client.cgis.end(), &cgi));
+				delete &cgi;
+				return ;
+			}
+		}
 	}
-	if (cookies.find("lang") == cookies.end())
-	{
-		cookies.insert(std::make_pair("lang", Cookie("lang", "en")));
-		response.insert("Set-Cookie", "lang=en");
+	catch (const ErrorCode &e) {
+		cgi.response = e;
+		cgi.input->close();
+		cgi.output->close();
+		activeTimers.erase(cgi.timer);
+		client.cgis.erase(std::find(client.cgis.begin(), client.cgis.end(), &cgi));
+		delete &cgi;
 	}
 }
 
-Response	Driver::handleRequest(Request& request)
+void	Driver::sendResponse(std::map<int, Client>::iterator& clientIt, std::set<Timer*>& activeTimers)
 {
-	Response	response;
+	Client&		client = clientIt->second;
+	Request&	request = client.requestQueue.front();
+	Response&	response = client.responseQueue.front();
 
-	response.insert("Server", name);
-	request.parseCookieHeader();
-	processCookies(request, response);
-	try
+	if (!(response.processStage & Response::SEND_READY) && response.isReady() == false)
 	{
-		if (request.method == "GET" || request.method == "HEAD")
-		{
-			get(response, request);
-		}
-		else if (request.method == "POST")
-		{
-			post(response, request);
-		}
-		else if (request.method == "DELETE")
-		{
-			delete_(response, request);
-		}
+		return ;
 	}
-	catch (const ErrorCode& e)
+
+	if (request.method != "HEAD")
 	{
-		response = e;
+		response.appendMessageBody();
 	}
-	constructConnectionHeader(request, response);
-	response.insert("Date", Time::printHTTPDate());
-	return response;
-}
+	client.sendBytes(response.formatted);
 
-void	Driver::generateResponses()
-{
-	while (!readyResponses.empty())
+	if (response.processStage & Response::DONE)
 	{
-		Client&		client = clients[readyEvents[0].data.fd];
-		Response&	response = readyResponses.front();
-		std::string	formattedResponse = response.toString();
-
-		send(client.socket.fd, formattedResponse.c_str(), formattedResponse.size(), 0);
 		logger.logResponse(response, client);
 
-		if (response.flags & Response::CONNECTION_CLOSE)
+		if (response.closeConnection == true)
 		{
-			close(client.socket.fd);
-			epoll_ctl(epollFD, EPOLL_CTL_DEL, client.socket.fd, 0);
-			clients.erase(clients.find(client.socket.fd));
+			closeConnection(clientIt, Logger::CLOSE);
 		}
 		else
 		{
-			client.request = Request();
+			client.requestQueue.pop_front();
+			client.responseQueue.pop_front();
+			if (client.message.length() == 0 && client.requestQueue.front().state == 0)
+			{
+				if (client.timer == 0 || client.timer->getType() != Timer::KEEP_ALIVE)
+				{
+					delete client.timer;
+					client.timer = new KeepAliveTimer();
+				}
+				activeTimers.insert(client.timer);
+			}
 		}
-		readyResponses.pop();
 	}
 }
 
-void	Driver::monitorConnections()
+void	Driver::updateEpollTimeout()
+{
+	std::priority_queue<std::time_t>	timeoutPriority;
+
+	std::map<int, Client>::const_iterator clientIt = clients.begin();
+	while (clientIt != clients.end())
+	{
+		const Client	&client = clientIt->second;
+
+		if (client.timer != 0)
+		{
+			timeoutPriority.push(client.timer->getTimeoutTime());
+		}
+
+		std::vector<CGI*>::const_iterator cgiIt = client.cgis.begin();
+		while (cgiIt != client.cgis.end())
+		{
+			const CGI	&cgi = *(*cgiIt);
+
+			if (cgi.timer != 0)
+			{
+				timeoutPriority.push(cgi.timer->getTimeoutTime());
+			}
+			cgiIt++;
+		}
+		clientIt++;
+	}
+
+	if (timeoutPriority.size() == 0)
+		epollTimeout = -1;
+	else
+		epollTimeout = timeoutPriority.top() - Time::getTimeSinceEpoch();
+}
+
+void	Driver::closeConnection(std::map<int, Client>::iterator clientIt, int logFlag)
+{
+	const int&	fd = clientIt->first;
+	Client&		client = clientIt->second;
+
+	logger.logConnection(logFlag, fd, client);
+	epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, 0);
+	close(fd);
+	establishedSockets.erase(establishedSockets.find(fd));
+
+	std::vector<CGI *>::iterator cgiIt = client.cgis.begin();
+	while (cgiIt != client.cgis.end())
+	{
+		kill((*cgiIt)->pid, SIGKILL);
+		delete *cgiIt;
+		cgiIt++;
+	}
+
+	clients.erase(clientIt);
+}
+
+void	Driver::monitorTimers()
 {
 	std::map<int, Client>::iterator	it = clients.begin();
 
 	while (it != clients.end())
 	{
-		if (it->second.firstDataRecv == true && it->second.isTimeout() == true)
+		Client	&client = it->second;
+
+		if (client.timer != 0 && client.timer->isTimeout() == true)
 		{
-			logger.logConnection(Logger::TIMEOUT, it->first, it->second);
-			close(it->first);
-			epoll_ctl(epollFD, EPOLL_CTL_DEL, it->first, 0);
-			clients.erase(it++);
+			closeConnection(it++, client.timer->getLogType());
 		}
 		else
+		{
+			std::vector<CGI*>::iterator cgiIt = client.cgis.begin();
+			while (cgiIt != client.cgis.end())
+			{
+				if ((*cgiIt)->timer->isTimeout() == true)
+				{
+					(*cgiIt)->response = InternalServerError500();
+					delete *cgiIt;
+					cgiIt = client.cgis.erase(cgiIt);
+				}
+				else
+				{
+					cgiIt++;
+				}
+			}
 			it++;
+		}
 	}
 }
 
-void	Driver::acceptNewClient(const Socket& socket)
+void	Driver::addToEpoll(int fd, EPOLL_EVENTS events)
 {
-	Client	client;
+	epoll_event	ep = epoll_event();
+	ep.events = events;
+	ep.data.fd = fd;
 
-	client.addressLen = static_cast<socklen_t>(sizeof client.address);
-	Socket	clientSocket;
-	clientSocket.fd = accept(socket.fd, (sockaddr*)&client.address,
-							 &client.addressLen);
-	std::cout << ">> " << client.socket.fd << '\n';
-	fcntl(client.socket.fd, F_SETFL, O_NONBLOCK);
-	//++numClients;
-	
-	//	SO_LINGER prevents close() from returning when there's still data in
-	//	the socket buffer. This avoids the "TCP reset problem" and allows
-	//	graceful closure.
-	linger	linger = {.l_onoff = 1, .l_linger = 5};
-	setsockopt(client.socket.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
-
-	epoll_event	event = epoll_event();
-	event.events = EPOLLIN | EPOLLRDHUP;
-	event.data.fd = clientSocket.fd;
-	client.socket = clientSocket;
-	epoll_ctl(epollFD, EPOLL_CTL_ADD, client.socket.fd, &event);
-	clients.insert(std::make_pair(client.socket.fd, client));
-	logger.logConnection(Logger::ESTABLISHED, client.socket.fd, client);
-}
-
-ssize_t	Driver::receiveBytes(Client& client)
-{
-	ssize_t	bytes = recv(client.socket.fd,
-						 &client.messageBuffer[0],
-						 client.messageBuffer.size(), 0);
-
-	if (bytes > 0)
+	int	retval = epoll_ctl(epollFD, EPOLL_CTL_ADD, fd, &ep);
+	if (retval == -1)
 	{
-		for (ssize_t i = 0; i < bytes; ++i)
-		{
-			client.message += client.messageBuffer[i];
-		}
-		if (client.firstDataRecv == false)
-		{
-			client.firstDataRecv = true;
-		}
+		std::perror("epoll_ctl(ADD) failed");
+		std::exit(1);
 	}
-	return bytes;
-}
-
-#include <iomanip>
-#include <algorithm>
-#include <sys/stat.h>
-
-#define FILE_NAME_LEN 45
-#define FILE_SIZE_LEN 20
-
-void	Driver::generateDirectoryListing(Response& response, const std::string& dirName) const
-{
-	DIR*	dir = opendir(dirName.c_str());
-
-	if (!dir)
-		throw NotFound404();
-
-	struct stat			statbuf;
-	std::string			path = dirName;
-	std::string			trimmedRootPath;
-	std::stringstream	stream;
-
-	if (path[path.length() - 1] != '/')
-		path += "/";
-
-	trimmedRootPath = path.substr(path.find_first_of('/'));
-	stream << "<html>\n"
-		   << 	"<head>\n"
-		   << 		"<title>Index of " + trimmedRootPath + "</title>\n"
-		   << 		"<style>\n\t"
-		   << 			"html { font-family: 'Comic Sans MS' }\n\t"
-		   << 			"body { background-color: #f4dde7 }\n\t"
-		   << 			"p { display: inline }\n"
-		   << 		"</style>\n"
-		   << 	"</head>\n"
-		   << 	"<body>\n"
-		   << 		"<h1>Index of " + trimmedRootPath + "</h1>\n"
-		   << 		"<hr><pre>\n";
-
-	response.messageBody += stream.str();
-
-	std::string					parentDir;
-	std::vector<std::string>	directories;
-	std::vector<std::string>	regularFiles;
-
-	for (dirent* entry = readdir(dir); entry != 0; entry = readdir(dir))
-	{
-		std::string	d_name(entry->d_name);
-		std::string	str;
-		std::string	truncate;
-
-		if (d_name == ".")
-		{
-			continue ;
-		}
-
-		stream.str("");
-		// File/Directory Name
-		truncate = (entry->d_type == DT_DIR) ? d_name + "/" : d_name;
-		if (truncate.length() > FILE_NAME_LEN)
-		{
-			truncate.resize(FILE_NAME_LEN);
-			if (entry->d_type == DT_DIR)
-			{
-				truncate.replace(FILE_NAME_LEN - 4, 4, ".../");
-			}
-			else
-			{
-				truncate.replace(FILE_NAME_LEN - 3, 3, "...");
-			}
-		}
-
-		stream << "<a href=\""
-			   << ((entry->d_type == DT_DIR) ? trimmedRootPath + d_name + "/" : trimmedRootPath + d_name)
-			   << "\">"
-			   << std::left
-			   << std::setw(FILE_NAME_LEN + 5)
-			   << truncate + "</a> ";
-
-		str += stream.str();
-		if (d_name == "..")
-		{
-			parentDir = str + "\n";
-			continue ;
-		}
-
-		// Last Modified Date and File Size in Bytes
-		std::stringstream	streamTwo;
-
-		stream.str("");
-		stat(path.c_str(), &statbuf);
-		stream << "<p>";
-		if (entry->d_type == DT_DIR)
-		{
-			streamTwo << "-";
-		}
-		else
-		{
-			streamTwo << statbuf.st_size;
-		}
-		stream << Time::printAutoindexDate(statbuf.st_mtim)
-			   << " "
-			   << std::right
-			   << std::setw(FILE_SIZE_LEN)
-			   << streamTwo.str()
-			   << "</p>\n";
-
-		str += stream.str();
-		if (entry->d_type == DT_DIR)
-			directories.push_back(str);
-		else
-			regularFiles.push_back(str);
-	}
-
-	std::sort(directories.begin(), directories.end());
-	std::sort(regularFiles.begin(), regularFiles.end());
-
-	response.messageBody += parentDir;
-	for (std::vector<std::string>::const_iterator it = directories.begin(); it != directories.end(); it++)
-	{
-		response.messageBody += *it;
-	}
-	for (std::vector<std::string>::const_iterator it = regularFiles.begin(); it != regularFiles.end(); it++)
-	{
-		response.messageBody += *it;
-	}
-
-	stream.str("");
-	stream << 		"</pre><hr>\n"
-		   << 	"</body>\n"
-		   << "</html>";
-	response.messageBody += stream.str();
-	closedir(dir);
 }

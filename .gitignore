@@ -1,8 +1,6 @@
 webserv
 *.o
 *.json
-ubuntu_tester
-ubuntu_cgi_tester
 nginx.conf
 .cache/
 .vscode/

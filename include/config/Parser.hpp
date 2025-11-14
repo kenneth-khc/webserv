@@ -28,14 +28,17 @@ struct	Parser
 	Lexer				lexer;
 	Token				token;
 	std::stack<Context>	contexts;
-	std::stack< std::multimap<String,Directive> >	mapStack;
+	std::stack< std::multimap<String,Directive*> >	mapStack;
+
+	// TODO: wtf am i doing
+	std::stack<Directive*>	parents;
 
 	Configuration		parseConfig();
-	Directive			parseDirective();
+	Directive*			parseDirective();
 	std::vector<String>	parseParameters();
-	Directive			parseSimple(const String&,
+	Directive*			parseSimple(const String&,
 									const std::vector<String>&);
-	Directive			parseBlock(const String&,
+	Directive*			parseBlock(const String&,
 								   const std::vector<String>&);
 
 	void				expect(Token::TokenType);

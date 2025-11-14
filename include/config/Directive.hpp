@@ -6,90 +6,125 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:32:50 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 22:33:22 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/20 06:30:48 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef DIRECTIVE_HPP
 #define DIRECTIVE_HPP
 
-#include <vector>
-#include <map>
 #include "String.hpp"
 #include "Context.hpp"
+#include "Optional.hpp"
+#include <vector>
+#include <map>
 
 struct	Directive;
 
-typedef std::multimap<String,Directive>	Mappings;
+typedef std::multimap<String,Directive*>	Mappings;
 
 struct	Directive
 {
-	// Name of the current directive
-	String				name;
-	// Parameters of the current directive
-	std::vector<String>	parameters;
-	// The context this directive is in
-	Context				enclosingContext;
-	// The directives within the directive
-	Mappings			directives;
-
 	Directive();
 	Directive(const String&, const std::vector<String>&, Context);
 
-	void					addDirective(const Directive&);
-	const Directive&		getDirective(const String&);
-	std::vector<Directive>	getDirectives(const String& key) const;
-	Optional<Directive>		find(const String& key) const;
+/* A range of all Directives with the same matching key in a multimap */
+typedef std::pair<std::multimap<String,Directive*>::const_iterator,
+				  std::multimap<String,Directive*>::const_iterator> EqualRange;
+
+	// Name of the current directive
+	String				name;
+
+	// Parameters of the current directive
+	std::vector<String>	parameters;
+
+	// The enclosing block
+	Mappings			enclosing;
+
+	//
+	const Directive*	parent;
+
+	// The context this directive is in
+	Context				enclosingContext;
+
+	// The directives within the directive
+	std::multimap<String,Directive*>	directives;
+
+	void					addDirective(Directive*);
+
+	const Directive*		getDirective(const String&) const;
+	std::vector<Directive*>	getDirectives(const String& key) const;
 
 	bool					hasParameters() const;
-	template <typename ReturnType>
-	Optional<ReturnType>	getParams(const String& key) const;
-	void					printParameters() const;
 
+	Optional<String>
+	getParameterOf(const String& key) const;
+
+	Optional< std::vector<String> >
+	getParametersOf(const String& key) const;
+
+	template <typename ReturnType>
+	Optional<ReturnType>	recursivelyLookup(const String&) const;
+
+	void					printParameters() const;
+	Optional< std::map<int,String> >	generateErrorPagesMapping() const;
+
+	void					cleanUp();
+
+private:
+	// Functor to pass into optional.or_else() to recursively lookup a value
+	// if not found in current scope
+	template <typename ReturnType>
+	struct	LookupEnclosing
+	{
+		const Directive*	directive;
+		const String&		key;
+
+		LookupEnclosing(const Directive*, const String&);
+		Optional<ReturnType>	operator()() const;
+
+	private:
+		LookupEnclosing();
+		LookupEnclosing(const LookupEnclosing&);
+		LookupEnclosing&	operator=(const LookupEnclosing&);
+	};
 };
 
-typedef std::pair<std::multimap<String,Directive>::const_iterator,
-				  std::multimap<String,Directive>::const_iterator> DirectiveRange;
+template <typename ReturnType>
+Directive::LookupEnclosing<ReturnType>
+::LookupEnclosing(const Directive* directive, const String& key):
+	directive(directive),
+	key(key) {}
 
-template <>
-inline Optional<String>
-Directive::getParams<String>(const String& key) const
+template <typename ReturnType>
+Optional<ReturnType>
+Directive::LookupEnclosing<ReturnType>::operator()() const
 {
-	std::multimap<String,Directive>::const_iterator it = directives.find(key);
-	if (it == directives.end())
+	const Directive*	enclosing = directive->parent;
+	if (enclosing == NULL)
 	{
-		return makeNone<String>();
+		return makeNone<ReturnType>();
 	}
 	else
 	{
-		const Directive&	dir = it->second;
-		String				params;
-		for (size_t i = 0; i < dir.parameters.size(); ++i)
-		{
-			params += dir.parameters[i];
-			if (i != dir.parameters.size()-1)
-			{
-				params += ' ';
-			}
-		}
-		return makeOptional(params);
+		return enclosing->recursivelyLookup<ReturnType>(key);
 	}
 }
 
 template <>
-inline Optional< std::vector<String> >
-Directive::getParams< std::vector<String> >(const String& key) const
+inline Optional<String>
+Directive::recursivelyLookup<String>(const String& key) const
 {
-	std::multimap<String,Directive>::const_iterator it = directives.find(key);
-	if (it == directives.end())
-	{
-		return makeNone< std::vector<String> >();
-	}
-	else
-	{
-		const Directive&	dir = it->second;
-		return makeOptional(dir.parameters);
-	}
+	return getParameterOf(key)
+		  .or_else(LookupEnclosing<String>(this, key));
+}
+
+template <>
+inline Optional< std::vector<String> >
+Directive::recursivelyLookup< std::vector<String> >(const String& key) const
+{
+	return getParametersOf(key)
+		  .or_else(LookupEnclosing< std::vector<String> >(this, key));
 }
 
 #endif

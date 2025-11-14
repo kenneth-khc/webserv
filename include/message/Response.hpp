@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/05 17:20:58 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/03/27 02:51:23 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,10 @@ class ErrorCode;
 
 class Response : public Message {
 	public:
-		int		statusCode;
-		String	reasonPhrase;
-		int		flags;
+		int					statusCode;
+		String				reasonPhrase;
+		bool				closeConnection;
+		String				formatted;
 
 		Response(void);
 		~Response(void);
@@ -31,12 +32,14 @@ class Response : public Message {
 		Response	&operator=(const Response &obj);
 		Response	&operator=(const ErrorCode &obj);
 
-		const String	toString(void) const;
-		void			setStatusCode(int statusCode);
-		void			getFileContents(const String &file);
+		bool	isReady(void);
+		void	appendMessageBody(void);
+		void	setStatusCode(int statusCode);
+		void	getFileContents(const String &file);
 
-		enum HeaderFlags {
-			CONNECTION_CLOSE = 1
+		enum ProcessStage {
+			SEND_READY = 0x001,
+			DONE = 0x002
 		};
 
 		enum StatusCodes {

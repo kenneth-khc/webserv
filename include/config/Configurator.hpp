@@ -27,13 +27,15 @@ struct	Configurator
 	void	validate(const Directive&,
 					 const std::multimap<String,Directive>&);
 
+	void	validate(const Directive*,
+					 const std::multimap<String,Directive*>&);
+
 	/* Returns the Validator for the given Directive */
 	const Validator&	operator[](const String&) const;
 
 	std::map<String,Validator>	supportedDirectives;
 
-	void	add(const Directive&);
-	void	add(const Directive&, Configuration&) const;
+	void	add(Directive*, Configuration&) const;
 };
 
 #endif

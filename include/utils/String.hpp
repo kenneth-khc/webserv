@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/07 16:29:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 19:38:46 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,9 +32,11 @@ struct	Predicate;
 class	String
 {
 public:
-	typedef string::size_type		size_type;
-	typedef string::iterator		iterator;
-	typedef string::const_iterator	const_iterator;
+	typedef string::size_type				size_type;
+	typedef string::iterator				iterator;
+	typedef string::const_iterator			const_iterator;
+	typedef string::reverse_iterator		reverse_iterator;
+	typedef string::const_reverse_iterator	const_reverse_iterator;
 
 	const static size_type	npos = std::string::npos;
 
@@ -70,26 +72,37 @@ public:
 	operator	std::string() const;
 
 	/* Wrapper to call std::string functions */
-
-	char&				at(size_type);
-	const char&			at(size_type) const;
-	size_type			size() const;
-	size_type			length() const;
-	bool				empty() const;
-	Optional<size_type>	find(char, size_type searchFrom = 0) const;
-	Optional<size_type>	find(const String&, size_type searchFrom = 0) const;
-	String				substr(size_type pos = 0, size_type len = npos) const;
-	void				clear();
-	const char*			c_str() const;
-	Optional<size_type>	find_last_of(char, size_type searchFrom = npos) const;
-	Optional<size_type>	find_last_of(const String&, size_type searchFrom = npos) const;
-	void				resize(size_type);
-	String&				replace(size_type, size_type, const String&);
-	iterator			begin();
-	const_iterator		begin() const;
-	iterator			end();
-	const_iterator		end() const;
-	iterator			erase(iterator, iterator);
+	char&					at(size_type);
+	const char&				at(size_type) const;
+	char&					back();
+	const char&				back() const;
+	size_type				size() const;
+	size_type				length() const;
+	bool					empty() const;
+	Optional<size_type>		find(char, size_type searchFrom = 0) const;
+	Optional<size_type>		find(const String&, size_type searchFrom = 0) const;
+	String					substr(size_type pos = 0, size_type len = npos) const;
+	void					clear();
+	const char*				c_str() const;
+	Optional<size_type>		find_last_of(char, size_type searchFrom = npos) const;
+	Optional<size_type>		find_last_of(const String&, size_type searchFrom = npos) const;
+	void					resize(size_type);
+	String&					replace(size_type, size_type, const String&);
+	String&					replace(iterator, iterator, const String&);
+	iterator				begin();
+	const_iterator			begin() const;
+	iterator				end();
+	const_iterator			end() const;
+	reverse_iterator		rbegin();
+	const_reverse_iterator	rbegin() const;
+	reverse_iterator		rend();
+	const_reverse_iterator	rend() const;
+	String&					erase(size_type index = 0, size_type count = npos);
+	iterator				erase(iterator, iterator);
+	template<typename CharT>
+	String&					append(const CharT*, size_type);
+	template<typename CharT>
+	void					push_back(CharT);
 
 	/* Custom additions to a String */
 
@@ -117,6 +130,9 @@ public:
 
 	Optional<String>	consumeUntilNot(const Predicate&);
 
+	// Consume characters from the back until a substring, returning the string consumed
+	Optional<String>	consumeBackwardsUntil(const String&);
+
 	// Consume characters up until a substring, assuming they all match the
 	// Predicate, throwing on unexpected characters
 	String				consumeIfUntil(const Predicate&, const String&);
@@ -132,6 +148,27 @@ public:
 	String				trim(const String& set) const;
 
 	int					toInt() const;
+	bool				toBool() const;
+	static bool			toBool(const String&);
+	std::size_t			toSizeType() const;
+	static std::size_t	toSizeType(const String&);
+	std::size_t			toSize() const;
+	static std::size_t	toSize(const String&);
+
+	// Checks if the string starts with the given prefix
+	bool				starts_with(const String&) const;
+
+	// Checks if the string ends with the given suffix
+	bool				ends_with(const String&) const;
+
+	// Returns a new String with alphabetical characters in lowercase
+	String				lower() const;
+
+	// Returns a new String with alphabetical characters in uppercase
+	String				upper() const;
+
+	// Makes the first letter in each word uppercase
+	String				title() const;
 
 	template <typename Type>
 	static String	from(const Type& t)
@@ -140,6 +177,7 @@ public:
 		ss << t;
 		return String(ss.str());
 	}
+
 	// std::getline() "overload" for String class
 	template<typename CharT, typename Traits>
 	static basic_istream<CharT, Traits>&	getline(basic_istream<CharT, Traits>& input, String& str, CharT delim);
@@ -166,6 +204,19 @@ public:
 private:
 	String	match;
 };
+
+template<typename CharT>
+String&	String::append(const CharT* s, size_type count)
+{
+	str.append(s, count);
+	return *this;
+}
+
+template<typename CharT>
+void	String::push_back(CharT ch)
+{
+	str.push_back(ch);
+}
 
 // getline() overload template definitions
 template<typename CharT, typename Traits>

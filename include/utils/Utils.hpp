@@ -6,7 +6,7 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 13:04:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/05 13:22:47 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/03/22 07:30:15 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,5 @@ ToType	to(const String& str)
 	ss >> converted;
 	return converted;
 }
-
 
 #endif

@@ -20,6 +20,7 @@
 const Predicate Lexer::isWSP(" \t\n");
 
 Lexer::Lexer(const char* fileName):
+	filename(fileName),
 	configFile(fileName),
 	input(configFile),
 	lookingFor(Token::NAME),
@@ -87,7 +88,7 @@ Token	Lexer::getNextToken()
 				skipComment();
 		}
 	}
-	return Token(Token::END_OF_FILE, "EOF");
+	return tokenize(Token::END_OF_FILE);
 }
 
 const Token&	Lexer::peek() const
@@ -99,8 +100,6 @@ Token	Lexer::advance()
 {
 	currentToken = getNextToken();
 	columnOffset += currentToken.lexeme.length();
-	/*std::cout << Token::stringified[currentToken.type] << ": "*/
-	/*		  << currentToken.lexeme << '\n';*/
 	return currentToken;
 }
 
@@ -126,9 +125,11 @@ void	Lexer::tryParameter()
 
 Token	Lexer::tokenize(Token::TokenType type)
 {
-	String	lexeme = lexemeBuffer;
+	String		lexeme = lexemeBuffer;
+	Diagnostic	diagnostic = Diagnostic(filename, lineOffset, columnOffset);
+
 	lexemeBuffer.clear();
-	return Token(type, lexeme, lineOffset, columnOffset);
+	return Token(type, lexeme, diagnostic);
 }
 
 void	Lexer::skipWhitespaces()

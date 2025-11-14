@@ -32,7 +32,7 @@ Parser::Parser(const char *filename):
 	config(),
 	configurator(),
 	lexer(filename),
-	token(Token::NONE),
+	token(),
 	accepted(),
 	filename(filename)
 {

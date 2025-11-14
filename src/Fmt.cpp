@@ -127,7 +127,7 @@ String	Fmt::formatDiagnostic()
 	std::stringstream	buf;
 	const Diagnostic&	diagnostic = diagnostics[diagnosticsDone];
 	const size_t		lineNum = diagnostic.lineNum;
-	const size_t		colNum = diagnostic.columnNum;
+	const size_t		colNum = diagnostic.colNum;
 	const String		line = getLineFromFile(filename, lineNum);
 
 	buf << lineInfo(lineNum, colNum)
@@ -142,7 +142,7 @@ String	Fmt::formatDiagnostic()
 		 ++diagnosticsDone)
 	{
 		const Diagnostic&	diagnostic = diagnostics[diagnosticsDone];
-		const size_t		endCol = diagnostic.columnNum;
+		const size_t		endCol = diagnostic.colNum;
 
 		buf << pad(line, startCol, endCol);
 		buf << BOLD_RED << '^' << RESET;
@@ -162,7 +162,7 @@ String	Fmt::formatDiagnostic(const String& message)
 	std::stringstream	buf;
 	const Diagnostic&	diagnostic = diagnostics[diagnosticsDone];
 	const size_t		lineNum = diagnostic.lineNum;
-	const size_t		colNum = diagnostic.columnNum;
+	const size_t		colNum = diagnostic.colNum;
 
 	buf << lineInfo(lineNum, colNum)
 		<< gutterLine()

@@ -89,7 +89,7 @@ String	InvalidParameterAmount::format() const
 			word = parameters.back().value;
 			missingParam = parameters.back().diagnostic;
 		}
-		missingParam.columnNum += word.size() + 1;
+		missingParam.colNum += word.size() + 1;
 		Fmt fmt = Fmt(filename, missingParam);
 		buf << fmt.formatError(errmsg.str());
 		buf << fmt.formatDiagnostic("expected parameter");

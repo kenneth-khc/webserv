@@ -1,4 +1,7 @@
 webserv
+webserv_debug
+webserv_fsan
+webserv_release
 *.o
 *.json
 nginx.conf
@@ -10,3 +13,5 @@ uploads/
 a.out
 *.a
 .clangd
+.direnv
+.envrc

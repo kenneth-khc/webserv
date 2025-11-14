@@ -25,7 +25,7 @@ public:
 	String	formatHelp(const String& helpMessage) const;
 
 	static String	formatList(const std::vector<Token>& tokens);
-	static String	formatList(const std::vector<Context>& contexts);
+	static String	formatList(const std::vector<Context::Context>& contexts);
 
 private:
 	size_t					gutterSize;

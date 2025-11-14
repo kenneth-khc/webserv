@@ -269,13 +269,13 @@ String	Fmt::formatList(const std::vector<Token>& tokens)
 	return buf.str();
 }
 
-String	Fmt::formatList(const std::vector<Context>& contexts)
+String	Fmt::formatList(const std::vector<Context::Context>& contexts)
 {
 	std::stringstream	buf;
 
 	for (size_t i = 0; i < contexts.size(); ++i)
 	{
-		buf << '`' << stringifyContext(contexts[i]) << '`';
+		buf << '`' << Context::toString(contexts[i]) << '`';
 		if (i == contexts.size() - 2)
 		{
 			buf << " or ";

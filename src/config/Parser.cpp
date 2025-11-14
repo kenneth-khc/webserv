@@ -128,17 +128,13 @@ Directive*	Parser::parseSimple(const String& name,
 	Directive*	parent = parents.empty() ?
 						 NULL :
 						 parents.top();
-	Context		enclosingContext = parents.empty() ?
-								   GLOBAL :
-								   contextify(parent->name);
 	Directive*	directive = new Directive(name,
 										  parameters,
 										  parent,
-										  enclosingContext,
 										  diagnostic);
 	configurator.validate(directive,
 						  directive->parent ?
-						  directive->parent->directives :
+						  directive->parent->getDirectives() :
 						  config.directives);
 
 	return directive;
@@ -150,44 +146,28 @@ Directive*	Parser::parseBlock(const String& name,
 {
 	expect(Token::LCURLY);
 
-	Directive*	parent;
-	Context		enclosingContext;
+	Directive*	parent = parents.size() == 0 ? NULL : parents.top();
+	Directive*	block;
 
-	if (parents.size() == 0)
+	try
 	{
-		parent = NULL;
-		enclosingContext = GLOBAL;
+		block = new Directive(name,
+							  params,
+							  parent,
+							  diagnostic);
 	}
-	else
+	catch (const std::invalid_argument& e)
 	{
-		parent = parents.top();
-		try
-		{
-			enclosingContext = contextify(parent->name);
-		}
-		catch (const std::invalid_argument& e)
-		{
-			Directive* block = new Directive(name,
-											 params,
-											 parent,
-											 NONE,
-											 diagnostic);
 
-			/* TODO(kecheong):
-			   there needs to be a way to get the intended blocks
-			   for the directive here */
-			throw InvalidContext(*block);
-		}
+		/* TODO(kecheong):
+		   there needs to be a way to get the intended blocks
+		   for the directive here */
+		throw InvalidContext(*block);
 	}
 
-	Directive*	block = new Directive(name,
-									  params,
-									  parent,
-									  enclosingContext,
-									  diagnostic);
 	configurator.validate(block,
 						  block->parent ?
-						  block->parent->directives :
+						  block->parent->getDirectives() :
 						  config.directives);
 	parents.push(block);
 	while (token != Token::RCURLY)

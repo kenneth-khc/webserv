@@ -3,14 +3,14 @@
 #include "Fmt.hpp"
 
 InvalidDirective::InvalidDirective(const Directive& directive):
-ConfigError(directive.diagnostic.filename),
+ConfigError(directive.getDiagnostic().filename),
 directive(directive)
 {
 }
 
 
 InvalidDirective::InvalidDirective(const Directive* directive):
-ConfigError(directive->diagnostic.filename),
+ConfigError(directive->getDiagnostic().filename),
 directive(*directive)
 {
 }
@@ -25,7 +25,7 @@ const char*	InvalidDirective::what() const throw()
 String	InvalidDirective::format() const
 {
 	std::stringstream	buf;
-	Fmt					fmt = Fmt(directive.diagnostic);
+	Fmt					fmt = Fmt(directive.getDiagnostic());
 
 	buf << fmt.formatError("invalid directive `" + directive.name + '`')
 		<< fmt.formatDiagnostic("declared here");

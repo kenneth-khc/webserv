@@ -1,20 +1,19 @@
 #include "InvalidContext.hpp"
 #include "ConfigError.hpp"
 #include "Context.hpp"
-#include "Formatter.hpp"
 #include "Fmt.hpp"
 #include "VectorInitializer.hpp"
 
 InvalidContext::InvalidContext(const Directive& directive):
-ConfigError(directive.diagnostic.filename),
+ConfigError(directive.getDiagnostic().filename),
 directive(directive),
 parent(directive.parent),
 expectedContexts()
 {
 }
 
-InvalidContext::InvalidContext(const Directive& directive, Context context):
-ConfigError(directive.diagnostic.filename),
+InvalidContext::InvalidContext(const Directive& directive, Context::Context context):
+ConfigError(directive.getDiagnostic().filename),
 directive(directive),
 parent(directive.parent),
 expectedContexts()
@@ -23,8 +22,8 @@ expectedContexts()
 }
 
 InvalidContext::InvalidContext(const Directive& directive,
-							   const std::vector<Context>& contexts):
-ConfigError(directive.diagnostic.filename),
+							   const std::vector<Context::Context>& contexts):
+ConfigError(directive.getDiagnostic().filename),
 directive(directive),
 parent(directive.parent),
 expectedContexts(contexts)
@@ -47,14 +46,15 @@ String	InvalidContext::format() const
 	Fmt	fmt;
 	if (parent == NULL)
 	{
-		fmt = Fmt(filename, vector_of(directive.diagnostic));
+		fmt = Fmt(filename, vector_of(directive.getDiagnostic()));
 		errMsg << '`' << directive.name << "` not allowed globally";
 		buf << fmt.formatError(errMsg.str())
 			<< fmt.formatDiagnostic("declared globally here");
 	}
 	else
 	{
-		fmt = Fmt(filename, vector_of(parent->diagnostic)(directive.diagnostic));
+		fmt = Fmt(filename, vector_of(parent->getDiagnostic())
+									 (directive.getDiagnostic()));
 		errMsg << '`' << directive.name << "` not allowed within `"  << parent->name << "` block";
 		buf << fmt.formatError(errMsg.str())
 			<< fmt.formatDiagnostic("block declared here")
@@ -70,10 +70,10 @@ String	InvalidContext::format() const
 	}
 	else if (expectedContexts.size() == 1)
 	{
-		const Context&	ctx = expectedContexts.back();
+		const Context::Context&	ctx = expectedContexts.back();
 		helpMsg << "place `" << directive.name << "` within "
-				<< (ctx == GLOBAL ? "the " : "a ")
-				<< stringifyContext(ctx) << " block";
+				<< (ctx == Context::GLOBAL ? "the " : "a ")
+				<< Context::toString(ctx) << " block";
 	}
 	else
 	{

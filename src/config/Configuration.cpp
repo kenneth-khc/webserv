@@ -23,11 +23,11 @@ directives()
 
 Configuration::~Configuration()
 {
-	for (Mappings::iterator it = directives.begin();
-		 it != directives.end();
-		 ++it)
+	for (Directive::MapIter	iter = directives.begin();
+		 iter != directives.end();
+		 ++iter)
 	{
-		Directive*	directive = it->second;
+		Directive*	directive = iter->second;
 		directive->cleanUp();
 		delete directive;
 	}
@@ -108,15 +108,17 @@ void	Configuration::print(const Directive& directive,
 				std::cout << " ";
 		}
 	}
-		std::cout << '\n';
-	const std::multimap<String,Directive*>&	children = directive.directives;
-	for (std::multimap<String,Directive*>::const_iterator it = children.begin();
-		 it != children.end(); ++it)
+	std::cout << '\n';
+
+	const Directive::Map&	children = directive.getDirectives();
+
+	for (Directive::MapConstIter iter = children.begin();
+		 iter != children.end(); ++iter)
 	{
 		// WARN: I don't know where this charStart number came from
-		if (it != --children.end())
-			print(*it->second, indent + 1, charStart + indent + 2, false);
+		if (iter != --children.end())
+			print(*iter->second, indent + 1, charStart + indent + 2, false);
 		else
-			print(*it->second, indent + 1, charStart + indent + 2, true);
+			print(*iter->second, indent + 1, charStart + indent + 2, true);
 	}
 }

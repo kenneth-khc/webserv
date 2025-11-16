@@ -34,6 +34,9 @@ private:
 	std::vector<Diagnostic>	diagnostics;
 	size_t					diagnosticsDone;
 
+	String	getLineFromFile(const String& filename, size_t lineNum) const;
+	int		countDigits(size_t) const;
+
 	String	pad(const String& line, size_t columnNum) const;
 	String	pad(const String& line, size_t startColNum, size_t endColNum) const;
 	String	gutter(size_t size) const;

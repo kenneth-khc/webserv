@@ -2,9 +2,10 @@
 #include "Context.hpp"
 #include "String.hpp"
 #include "Colour.hpp"
-#include "Utils.hpp"
 #include <algorithm>
 #include <sstream>
+#include <fstream>
+#include <limits>
 #include <stdexcept>
 
 using namespace Colour;
@@ -286,4 +287,34 @@ String	Fmt::formatList(const std::vector<Context::Context>& contexts)
 		}
 	}
 	return buf.str();
+}
+
+String	Fmt::getLineFromFile(const String& filename, size_t lineNum) const
+{
+	std::ifstream	file(filename.c_str());
+
+	file.seekg(std::ios::beg);
+	for (size_t i = 0; i < lineNum - 1; ++i)
+	{
+		file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	}
+	std::string	line;
+	std::getline(file, line);
+
+	return line;
+}
+
+int	Fmt::countDigits(size_t num) const {
+	
+	int	digits = 0;
+	if (num == 0)
+	{
+		digits = 1;
+	}
+	while (num != 0)
+	{
+		num /= 10;
+		++digits;
+	}
+	return digits;
 }

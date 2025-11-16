@@ -2,9 +2,10 @@
 #include "Context.hpp"
 #include "String.hpp"
 #include "Colour.hpp"
-#include "Utils.hpp"
 #include <algorithm>
 #include <sstream>
+#include <fstream>
+#include <limits>
 #include <stdexcept>
 
 using namespace Colour;
@@ -127,7 +128,7 @@ String	Fmt::formatDiagnostic()
 	std::stringstream	buf;
 	const Diagnostic&	diagnostic = diagnostics[diagnosticsDone];
 	const size_t		lineNum = diagnostic.lineNum;
-	const size_t		colNum = diagnostic.columnNum;
+	const size_t		colNum = diagnostic.colNum;
 	const String		line = getLineFromFile(filename, lineNum);
 
 	buf << lineInfo(lineNum, colNum)
@@ -142,7 +143,7 @@ String	Fmt::formatDiagnostic()
 		 ++diagnosticsDone)
 	{
 		const Diagnostic&	diagnostic = diagnostics[diagnosticsDone];
-		const size_t		endCol = diagnostic.columnNum;
+		const size_t		endCol = diagnostic.colNum;
 
 		buf << pad(line, startCol, endCol);
 		buf << BOLD_RED << '^' << RESET;
@@ -162,7 +163,7 @@ String	Fmt::formatDiagnostic(const String& message)
 	std::stringstream	buf;
 	const Diagnostic&	diagnostic = diagnostics[diagnosticsDone];
 	const size_t		lineNum = diagnostic.lineNum;
-	const size_t		colNum = diagnostic.columnNum;
+	const size_t		colNum = diagnostic.colNum;
 
 	buf << lineInfo(lineNum, colNum)
 		<< gutterLine()
@@ -269,13 +270,13 @@ String	Fmt::formatList(const std::vector<Token>& tokens)
 	return buf.str();
 }
 
-String	Fmt::formatList(const std::vector<Context>& contexts)
+String	Fmt::formatList(const std::vector<Context::Context>& contexts)
 {
 	std::stringstream	buf;
 
 	for (size_t i = 0; i < contexts.size(); ++i)
 	{
-		buf << '`' << stringifyContext(contexts[i]) << '`';
+		buf << '`' << Context::toString(contexts[i]) << '`';
 		if (i == contexts.size() - 2)
 		{
 			buf << " or ";
@@ -286,4 +287,34 @@ String	Fmt::formatList(const std::vector<Context>& contexts)
 		}
 	}
 	return buf.str();
+}
+
+String	Fmt::getLineFromFile(const String& filename, size_t lineNum) const
+{
+	std::ifstream	file(filename.c_str());
+
+	file.seekg(std::ios::beg);
+	for (size_t i = 0; i < lineNum - 1; ++i)
+	{
+		file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	}
+	std::string	line;
+	std::getline(file, line);
+
+	return line;
+}
+
+int	Fmt::countDigits(size_t num) const {
+	
+	int	digits = 0;
+	if (num == 0)
+	{
+		digits = 1;
+	}
+	while (num != 0)
+	{
+		num /= 10;
+		++digits;
+	}
+	return digits;
 }

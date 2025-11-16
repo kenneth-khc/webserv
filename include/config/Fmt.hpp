@@ -25,7 +25,7 @@ public:
 	String	formatHelp(const String& helpMessage) const;
 
 	static String	formatList(const std::vector<Token>& tokens);
-	static String	formatList(const std::vector<Context>& contexts);
+	static String	formatList(const std::vector<Context::Context>& contexts);
 
 private:
 	size_t					gutterSize;
@@ -33,6 +33,9 @@ private:
 
 	std::vector<Diagnostic>	diagnostics;
 	size_t					diagnosticsDone;
+
+	String	getLineFromFile(const String& filename, size_t lineNum) const;
+	int		countDigits(size_t) const;
 
 	String	pad(const String& line, size_t columnNum) const;
 	String	pad(const String& line, size_t startColNum, size_t endColNum) const;

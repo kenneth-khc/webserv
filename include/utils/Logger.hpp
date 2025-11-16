@@ -15,19 +15,16 @@
 
 #include <netdb.h>
 #include "Client.hpp"
-#include "Token.hpp"
-#include "Diagnostic.hpp"
 
-/* This class is responsible for logging interactions between the servers
+/* This namespace is responsible for logging interactions between the servers
  * and clients to file streams for visualization purposes */
-
-// TODO: expand this into logging errors encountered?
 
 namespace	Logger
 {
 	void	logRequest(Request&, Client&);
 	void	logResponse(Response&, Client&);
 	void	logConnection(int, int, Client&);
+	void	logIPPort(sockaddr*);
 
 	enum CONNECTION {
 		ESTABLISHED,
@@ -48,18 +45,6 @@ namespace	Logger
 		extern const char*	BOLD_BLUE;
 		extern const char*	RESET;
 	}
-
-	extern const char*	filename;
-
-	void	logIPPort(sockaddr*);
-
-	/* Logging configuration errors */
-	void	formatErrorMessage(std::stringstream&, const String&);
-	void	showErrorLine(std::stringstream&, const Token&);
-	void	showErrorLine(std::stringstream&, const Diagnostic&);
-	String	getLineFromFile(size_t lineNum, const char*);
-	void	seekToLineNum(size_t lineNum, std::ifstream&);
-
 };
 
 #endif

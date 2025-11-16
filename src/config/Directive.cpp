@@ -11,53 +11,69 @@
 /* ************************************************************************** */
 
 #include "Directive.hpp"
-#include "ConfigErrors.hpp"
-#include "VectorInitializer.hpp"
-#include <iostream>
+#include "Context.hpp"
+#include <stdexcept>
 
+/* Privated */
 Directive::Directive()
 {
-
 }
 
-/*Directive::Directive(const String& dname,*/
-/*					 const std::vector<String>& parameters,*/
-/*					 Context context):*/
-/*	name(dname),*/
-/*	parameters(parameters),*/
-/*	enclosing(),*/
-/*	parent(),*/
-/*	enclosingContext(context),*/
-/*	diagnostic()*/
-/*{*/
-/**/
-/*}*/
+/* Privated */
+Directive::Directive(const Directive&)
+{
+}
 
-Directive::Directive(const String& dname,
+Directive::Directive(const String& name,
 					 const std::vector<Parameter>& parameters,
-					 Context context):
-	name(dname),
+					 const Directive* parent,
+					 const Diagnostic& diagnostic):
+	name(name),
 	parameters(parameters),
-	enclosing(),
-	parent(),
-	enclosingContext(context),
-	diagnostic()
+	parent(parent),
+	/** we start with no children and the caller has to manually
+		add them with .addDirective() */
+	directives(),
+	diagnostic(diagnostic)
 {
-
 }
 
-
-void	Directive::addDirective(Directive* dir)
+void	Directive::addDirective(Directive* directive)
 {
-	directives.insert(std::make_pair(dir->name, dir));
+	std::pair<String, Directive*>	pair(directive->name, directive);
+
+	directives.insert(pair);
 }
 
 const Directive*	Directive::getDirective(const String& key) const
 {
-	return directives.find(key)->second;
+	std::multimap<String, Directive*>::const_iterator	iter =
+		directives.find(key);
+
+	if (iter == directives.end())
+	{
+		throw std::out_of_range("directive " + key + " not found");
+	}
+	else
+	{
+		return iter->second;
+	}
 }
 
-std::vector<Directive*>	Directive::getDirectives(const String& key) const
+const std::multimap<String, Directive*>&
+Directive::getDirectives() const
+{
+	return this->directives;
+}
+
+const Diagnostic&
+Directive::getDiagnostic() const
+{
+	return this->diagnostic;
+}
+
+std::vector<Directive*>
+Directive::getDirectives(const String& key) const
 {
 	typedef std::pair<String,Directive*>	keyValuePair;
 
@@ -73,84 +89,16 @@ std::vector<Directive*>	Directive::getDirectives(const String& key) const
 	return matchingDirectives;
 }
 
-bool	Directive::hasParameters() const
+Context::Context	Directive::getContext() const
 {
-	return !parameters.empty();
-}
-
-void	Directive::printParameters() const
-{
-	for (size_t i = 0; i < parameters.size(); ++i)
+	if (this->parent == NULL)
 	{
-		std::cout << parameters[i].value;
-		if (i != parameters.size()-1)
-			std::cout << " ";
-	}
-}
-
-Context	contextify(const String& str)
-{
-	if (str == "http")
-	{
-		return HTTP;
-	}
-	else if (str == "server")
-	{
-		return SERVER;
-	}
-	else if (str == "location")
-	{
-		return LOCATION;
-	}
-	else if (str == "global")
-	{
-		return GLOBAL;
-	}
-	else if (str == "none")
-	{
-		return NONE;
-	}
-	else if (str == "CGI_script")
-	{
-		return CGI_SCRIPT;
+		return Context::GLOBAL;
 	}
 	else
 	{
-		throw InvalidDirective(str);
+		return Context::from(this->parent->name);
 	}
-}
-
-String	stringifyContext(Context ctx)
-{
-	if (ctx == HTTP)
-	{
-		return "http";
-	}
-	else if (ctx == SERVER)
-	{
-		return "server";
-	}
-	else if (ctx == LOCATION)
-	{
-		return "location";
-	}
-	else if (ctx == GLOBAL)
-	{
-		return "global";
-	}
-	else if (ctx == NONE)
-	{
-		return "none";
-	}
-	else if (ctx == CGI_SCRIPT)
-	{
-		return "CGI_script";
-	}
-	else
-	{
-		throw std::exception();
-	}
-	
 }
 
 Optional<String>
@@ -230,11 +178,11 @@ Optional<ErrorPageMapping>	Directive::generateErrorPagesMapping() const
 
 void	Directive::cleanUp()
 {
-	for (Mappings::iterator it = this->directives.begin();
-		 it != this->directives.end();
-		 ++it)
+	for (MapIter iter = this->directives.begin();
+		 iter != this->directives.end();
+		 ++iter)
 	{
-		Directive*	child = it->second;
+		Directive*	child = iter->second;
 		child->cleanUp();
 		delete child;
 	}

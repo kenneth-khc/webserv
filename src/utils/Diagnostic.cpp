@@ -15,34 +15,31 @@
 Diagnostic::Diagnostic():
 filename(""),
 lineNum(1),
-columnNum(1)
+colNum(1)
 {
-
 }
 
-Diagnostic::Diagnostic(const String& filename, size_t lineNum, size_t columnNum):
+Diagnostic::Diagnostic(const String& filename, size_t lineNum, size_t colNum):
 filename(filename),
 lineNum(lineNum),
-columnNum(columnNum)
+colNum(colNum)
 {
-
 }
 
 Diagnostic::Diagnostic(const Diagnostic& other):
 filename(other.filename),
 lineNum(other.lineNum),
-columnNum(other.columnNum)
+colNum(other.colNum)
 {
-	
 }
 
 Diagnostic	Diagnostic::operator=(const Diagnostic& other)
 {
 	if (&other != this)
 	{
-		this->columnNum = other.columnNum;
 		this->filename = other.filename;
 		this->lineNum = other.lineNum;
+		this->colNum= other.colNum;
 	}
 	return *this;
 }

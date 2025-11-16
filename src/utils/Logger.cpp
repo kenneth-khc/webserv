@@ -14,8 +14,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <fstream>
-#include <limits>
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
@@ -32,9 +30,7 @@ namespace Logger
 		const char*	BOLD_BLUE = "\x1B[1;34m";
 		const char*	RESET = "\e[0m";
 	}
-	const char*	filename;
 }
-
 
 void	Logger::logIPPort(sockaddr* client)
 {
@@ -56,7 +52,6 @@ void	Logger::logIPPort(sockaddr* client)
 	}
 }
 
-// TODO: clean this up nicely
 void	Logger::logRequest(Request& request, Client& client) 
 {
 	std::cout << Colour::YELLOW;
@@ -123,81 +118,3 @@ void	Logger::logConnection(int status, int fd, Client& client)
 	}
 	std::cout << "\n";
 }
-
-void	Logger::formatErrorMessage(std::stringstream& ss, const String& msg)
-{
-	using namespace Logger::Colour;
-
-	ss << RED << "error: " << RESET;
-	ss << BOLD_WHITE << msg << RESET << '\n';
-}
-
-String	Logger::getLineFromFile(size_t lineNum, const char* filename)
-{
-	std::ifstream	file(filename);
-	seekToLineNum(lineNum, file);
-	std::string		line;
-	std::getline(file, line);
-	return line;
-}
-
-void	Logger::seekToLineNum(size_t lineNum, std::ifstream& file)
-{
-	file.seekg(std::ios::beg);
-	for (size_t i = 0; i < lineNum-1; ++i)
-	{
-		file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-	}
-}
-
-void	Logger::showErrorLine(std::stringstream& ss, const Token& got)
-{
-	using namespace Logger::Colour;
-
-	const String&	line = getLineFromFile(got.lineNum, Logger::filename);
-	ss << BOLD_BLUE
-	   << " --> " << RESET << Logger::filename << ":"
-	   << got.lineNum << ":" << got.columnNum;
-
-	ss << "\n  " << BOLD_BLUE << "|" << RESET << "\n"
-	   << BOLD_BLUE << got.lineNum << " " << "| " << RESET << line
-	   << "\n";
-
-	ss << "  " << BOLD_BLUE << "| " << RESET;
-	std::string	padding;
-	for (size_t i = 0; i < got.columnNum-1; ++i)
-	{
-		padding += line[i];
-	}
-	ss << padding << BOLD_RED << "^" << RESET << "\n";
-}
-
-void	Logger::showErrorLine(std::stringstream& ss, const Diagnostic& diagnostic)
-{
-	using namespace Logger::Colour;
-
-	const String&	line = getLineFromFile(diagnostic.lineNum, Logger::filename);
-	ss << BOLD_BLUE
-	   << " --> " << RESET << Logger::filename << ":"
-	   << diagnostic.lineNum << ":" << diagnostic.columnNum;
-
-	ss << "\n  " << BOLD_BLUE << "|" << RESET << "\n"
-	   << BOLD_BLUE << diagnostic.lineNum << " " << "| " << RESET << line
-	   << "\n";
-
-	ss << "  " << BOLD_BLUE << "| " << RESET;
-	std::string	padding;
-	for (size_t i = 0; i < diagnostic.columnNum-1; ++i)
-	{
-		if (line[i] == '\t')
-		{
-			padding += '\t';
-		}
-		else
-		{
-			padding += ' ';
-		}
-	}
-	ss << padding << BOLD_RED << "^" << RESET << "\n";
-}
-

@@ -4,7 +4,7 @@
 
 InvalidParameterAmount::InvalidParameterAmount(const Directive& directive,
 											   size_t expectedAmount):
-ConfigError(directive.diagnostic.filename),
+ConfigError(directive.getDiagnostic().filename),
 directive(directive),
 expectedMin(expectedAmount),
 expectedMax(expectedAmount)
@@ -14,7 +14,7 @@ expectedMax(expectedAmount)
 InvalidParameterAmount::InvalidParameterAmount(const Directive& directive,
 											   size_t expectedMin,
 											   size_t expectedMax):
-ConfigError(directive.diagnostic.filename),
+ConfigError(directive.getDiagnostic().filename),
 directive(directive),
 expectedMin(expectedMin),
 expectedMax(expectedMax)
@@ -82,14 +82,14 @@ String	InvalidParameterAmount::format() const
 		if (parameters.size() == 0)
 		{
 			word = directive.name;
-			missingParam = directive.diagnostic;
+			missingParam = directive.getDiagnostic();
 		}
 		else
 		{
 			word = parameters.back().value;
 			missingParam = parameters.back().diagnostic;
 		}
-		missingParam.columnNum += word.size() + 1;
+		missingParam.colNum += word.size() + 1;
 		Fmt fmt = Fmt(filename, missingParam);
 		buf << fmt.formatError(errmsg.str());
 		buf << fmt.formatDiagnostic("expected parameter");

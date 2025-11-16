@@ -10,16 +10,20 @@
 #                                                                              #
 # **************************************************************************** #
 
-.DEFAULT_GOAL := debug_server
+.DEFAULT_GOAL := debug
 
 NAME := webserv
+DEBUG_BUILD := webserv_debug
+FSAN_BUILD := webserv_fsan
+RELEASE_BUILD := webserv_release
 
-CXX := g++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98 #-fuse-ld=mold
+CXX := c++
+CXXFLAGS = -Wall -Werror -Wextra -MMD -std=c++98
 
 src_dir := src
 dirs := $(src_dir) \
 		$(src_dir)/config \
+		$(src_dir)/config/errors \
 		$(src_dir)/server \
 		$(src_dir)/methods \
 		$(src_dir)/URI \
@@ -29,12 +33,11 @@ dirs := $(src_dir) \
 		$(src_dir)/debug
 
 srcs := $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))
-# For my own testing purposes
-srcs += main.cpp
 inc_dir := include
 
 includes := -I $(inc_dir)/ \
 			-I $(inc_dir)/config \
+			-I $(inc_dir)/config/errors \
 			-I $(inc_dir)/URI \
 			-I $(inc_dir)/message \
 			-I $(inc_dir)/headers \
@@ -42,6 +45,7 @@ includes := -I $(inc_dir)/ \
 
 obj_dir := obj
 objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)
+deps := $(objs:%.o=%.d)
 
 uploads_dir := uploads
 
@@ -64,20 +68,34 @@ clean:
 	$(RM) -r $(obj_dir)
 
 fclean: clean
-	$(RM) $(NAME)
+	$(RM) $(NAME) $(DEBUG_BUILD)
 
 re: fclean all
 
-optimized: CXXFLAGS += -O3
-optimized: all
-
-debug_server: CXXFLAGS += -g3
+debug_server: CXXFLAGS += -O0 -g3
 debug_server: all
 
+debug: CXXFLAGS += -O0 -g3
+debug: $(DEBUG_BUILD)
+
+$(DEBUG_BUILD): $(objs) $(uploads_dir)
+	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(DEBUG_BUILD)
+
 fsan: CXXFLAGS += -fsanitize=address,undefined -g3
-fsan: all
+fsan: $(FSAN_BUILD)
+
+$(FSAN_BUILD): $(objs) $(uploads_dir)
+	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(FSAN_BUILD)
+
+release: CXXFLAGS += -O3
+release: $(RELEASE_BUILD)
+
+$(RELEASE_BUILD): $(objs) $(uploads_dir)
+	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(RELEASE_BUILD)
 
 lib:
 	ar -rcs libserv.a $(objs)
 
 .PHONY: all clean fclean re optimized debug fsan
+
+-include $(deps)

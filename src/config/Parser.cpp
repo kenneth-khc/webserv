@@ -6,151 +6,203 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:45:56 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 21:22:41 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/04 22:52:11 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <cctype>
-#include <cstdlib>
-#include <iostream>
-#include "Optional.hpp"
-#include "String.hpp"
 #include "Parser.hpp"
 #include "Lexer.hpp"
 #include "Token.hpp"
+#include "String.hpp"
 #include "Configuration.hpp"
-#include "Configurator.hpp"
-#include "ConfigErrors.hpp"
-#include "Logger.hpp"
+#include "Validators.hpp"
+#include "Parameter.hpp"
+#include "UnexpectedToken.hpp"
+#include "MissingDirective.hpp"
+#include "InvalidContext.hpp"
+#include "VectorInitializer.hpp"
 
-Parser::Parser(const char *fileName):
-	configurator(),
-	lexer(fileName),
-	token(Token::NONE),
-	contexts(),
-	accepted()
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#include <stdexcept>
+
+Parser::Parser(const char *filename):
+	config(),
+	validators(),
+	lexer(filename),
+	token(),
+	accepted(),
+	filename(filename)
 {
 }
 
 Parser::~Parser()
 {
-
 }
 
 Configuration	Parser::parseConfig()
 {
-	Configuration	config;
-
-	contexts.push(GLOBAL);
-	// TODO: testing stack of multimaps
-	mapStack.push(std::multimap<String,Directive*>());
-	parents.push(NULL);
 	try
 	{
 		token = lexer.advance();
 		while (token != Token::END_OF_FILE)
 		{
 			Directive*	directive = parseDirective();
-			configurator.add(directive, config);
+			config.add(directive);
 		}
-		config.assertHasDirective("prefix");
-		config.assertHasDirective("http");
+		if (!config.getDirective("prefix").exists)
+		{
+			throw MissingDirective(filename, "prefix");
+		}
+		if (!config.getDirective("http").exists)
+		{
+			throw MissingDirective(filename, "http");
+		}
 	}
-	// TODO: better diagnostics
 	catch (const ConfigError& e)
 	{
-		std::cerr << e.what() << '\n';
-		std::exit(E_CONFIG);
+		std::cerr << e.format();
+		std::exit(1);
 	}
 	return config;
 }
 
 Directive*	Parser::parseDirective()
 {
-	const String	name = token.lexeme;
+	Directive*			directive = NULL;
+	const String		name = token.lexeme;
+	const Diagnostic	diagnostics = token.diagnostic;
+	const Token			nameToken = token;
+
 	expect(Token::NAME);
 
-	Diagnostic	diagnostics = Diagnostic(accepted.lineNum, accepted.columnNum);
-	// TODO: is there a way to strengthen a Parameter rather than
-	//		 treating it as a vector of Strings?
 	std::vector<Parameter>	parameters = parseParameters();
 
-	Directive*	directive;
 	if (token == Token::LCURLY)
 	{
-		directive = parseBlock(name, parameters);
+		directive = parseBlock(name, parameters, diagnostics);
 	}
 	else if (token == Token::SEMICOLON)
 	{
-		directive = parseSimple(name, parameters);
-		directive->enclosing = mapStack.top();
-		directive->parent = parents.top();
+		directive = parseSimple(name, parameters, diagnostics);
 	}
 	else
 	{
-		throw UnexpectedToken(token);
+		throw UnexpectedToken(token, nameToken, vector_of(Token(Token::LCURLY, "{"))(Token(Token::SEMICOLON, ";")));
 	}
-	directive->diagnostic = diagnostics;
-	// validate the directive in the context of its surrounding
-	configurator.validate(directive, mapStack.top());
-	std::pair<String,Directive*>	mapping = std::make_pair(directive->name, directive);
-	mapStack.top().insert(mapping);
+
 	return directive;
 }
 
+
 std::vector<Parameter>	Parser::parseParameters()
 {
-	std::vector<Parameter>	params;
+	std::vector<Parameter>	parameters;
 
-	while (token.type == Token::PARAMETER)
+	while (token.type == Token::PARAMETER || token.type == Token::NEWLINE)
 	{
-		Parameter	p = Parameter(token.lexeme, token.diagnostic);
-		accept(Token::PARAMETER);
-		params.push_back(p);
+		if (token.type == Token::NEWLINE)
+		{
+			accept(Token::NEWLINE);
+		}
+		else
+		{
+			Parameter	parameter = Parameter(token.lexeme, token.diagnostic);
+			accept(Token::PARAMETER);
+			parameters.push_back(parameter);
+		}
 	}
 	lexer.lookFor(Token::NAME);
-	return params;
+
+	return parameters;
 }
 
 Directive*	Parser::parseSimple(const String& name,
-								const std::vector<Parameter>& params)
+								const std::vector<Parameter>& parameters,
+								const Diagnostic& diagnostic)
 {
 	expect(Token::SEMICOLON);
-	return new Directive(name, params, contexts.top());
+
+	Directive*	parent = parents.empty() ?
+						 NULL :
+						 parents.top();
+	Directive*	directive = new Directive(name,
+										  parameters,
+										  parent,
+										  diagnostic);
+	validators.validate(directive,
+						directive->parent ?
+						directive->parent->getDirectives() :
+						config.directives);
+
+	return directive;
 }
 
 Directive*	Parser::parseBlock(const String& name,
-							   const std::vector<Parameter>& params)
+							   const std::vector<Parameter>& params,
+							   const Diagnostic& diagnostic)
 {
 	expect(Token::LCURLY);
-	Directive*	block = new Directive(name, params, contexts.top());
-	contexts.push(contextify(name));
-	block->parent = parents.top();
+
+	Directive*	parent = parents.size() == 0 ? NULL : parents.top();
+	Directive*	block;
+
+	try
+	{
+		block = new Directive(name,
+							  params,
+							  parent,
+							  diagnostic);
+	}
+	catch (const std::invalid_argument& e)
+	{
+
+		/* TODO(kecheong):
+		   there needs to be a way to get the intended blocks
+		   for the directive here */
+		throw InvalidContext(*block);
+	}
+
+	validators.validate(block,
+						block->parent ?
+						block->parent->getDirectives() :
+						config.directives);
 	parents.push(block);
-	mapStack.push(std::multimap<String,Directive*>());
 	while (token != Token::RCURLY)
 	{
 		Directive* directive = parseDirective();
 		block->addDirective(directive);
 	}
 	expect(Token::RCURLY);
-	contexts.pop();
-	mapStack.pop();
 	parents.pop();
-	block->enclosing = mapStack.top();
+
 	return block;
 }
 
 void	Parser::expect(Token::TokenType expected)
 {
+	static std::vector<Token>	expectedTokens = vector_of<Token>
+		(Token(Token::NONE, "None"))
+		(Token(Token::NAME, "Name"))
+		(Token(Token::PARAMETER, "Parameter"))
+		(Token(Token::DQUOTE, "\""))
+		(Token(Token::LCURLY, "{"))
+		(Token(Token::RCURLY, "}"))
+		(Token(Token::SEMICOLON, ";"))
+		(Token(Token::HASH, "#"))
+		(Token(Token::NEWLINE, "\n"))
+		(Token(Token::END_OF_FILE, "EOF"));
+
+	Token	prev = accepted;
 	if (accept(expected))
 	{
 		return ;
 	}
 	else
 	{
-		throw UnexpectedToken(expected, token);
-		throw UnexpectedToken(expected, token.type);
+		throw UnexpectedToken(token, prev, expectedTokens[expected]);
 	}
 }
 

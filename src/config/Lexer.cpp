@@ -15,36 +15,39 @@
 #include <cctype>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <stdexcept>
 
 const Predicate Lexer::isWSP(" \t\n");
 
-Lexer::Lexer(const char* fileName):
-	configFile(fileName),
-	input(configFile),
+Lexer::Lexer(const char* filename):
+	filename(filename),
+	currentToken(),
 	lookingFor(Token::NAME),
-	columnOffset(1),
-	lineOffset(1),
 	lexemeBuffer(),
-	currentToken()
+	lineOffset(1),
+	columnOffset(1)
 {
+	std::ifstream	configFile(filename);
 	if (!configFile.is_open())
 	{
-		std::cerr << "Error. Cannot open file <" << fileName << ">\n";
+		std::cerr << "Error. Cannot open file <" << filename << ">\n";
 		std::exit(EXIT_FAILURE);
 	}
+	input = String(configFile);
 }
 
 Lexer::~Lexer()
 {
-
 }
 
 void	Lexer::lookFor(Token::TokenType type)
 {
 	if (type != Token::NAME && type != Token::PARAMETER)
 	{
-		String	msg = "Invalid TokenType " + Token::stringify(type) + " to look for";
+		String	msg = "Invalid TokenType " +
+					   Token::stringify(type) +
+					   " to look for";
 		throw std::invalid_argument(msg.c_str());
 	}
 	lookingFor = type;
@@ -87,7 +90,7 @@ Token	Lexer::getNextToken()
 				skipComment();
 		}
 	}
-	return Token(Token::END_OF_FILE, "EOF");
+	return tokenize(Token::END_OF_FILE);
 }
 
 const Token&	Lexer::peek() const
@@ -99,8 +102,6 @@ Token	Lexer::advance()
 {
 	currentToken = getNextToken();
 	columnOffset += currentToken.lexeme.length();
-	/*std::cout << Token::stringified[currentToken.type] << ": "*/
-	/*		  << currentToken.lexeme << '\n';*/
 	return currentToken;
 }
 
@@ -126,9 +127,11 @@ void	Lexer::tryParameter()
 
 Token	Lexer::tokenize(Token::TokenType type)
 {
-	String	lexeme = lexemeBuffer;
+	String		lexeme = lexemeBuffer;
+	Diagnostic	diagnostic = Diagnostic(filename, lineOffset, columnOffset);
+
 	lexemeBuffer.clear();
-	return Token(type, lexeme, lineOffset, columnOffset);
+	return Token(type, lexeme, diagnostic);
 }
 
 void	Lexer::skipWhitespaces()

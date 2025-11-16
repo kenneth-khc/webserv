@@ -28,11 +28,11 @@ struct	Diagnostic
 	         so this has to be copied over each time */
 	String	filename;
 	size_t	lineNum;
-	size_t	columnNum;
+	size_t	colNum;
 
 	Diagnostic();
 	Diagnostic(const Diagnostic&);
-	Diagnostic(const String&, size_t, size_t);
+	Diagnostic(const String& filename, size_t lineNum, size_t colNum);
 
 	Diagnostic	operator=(const Diagnostic&);
 };

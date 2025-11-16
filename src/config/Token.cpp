@@ -11,75 +11,61 @@
 /* ************************************************************************** */
 
 #include "Token.hpp"
+#include "Diagnostic.hpp"
 #include "String.hpp"
 #include <stdexcept>
 
+const int Token::TOKEN_TYPES = 10;
+
+const char*	Token::STRINGIFIED[TOKEN_TYPES] = {
+	"None",
+	"Name",
+	"Parameter",
+	"DoubleQuote",
+	"LeftCurly",
+	"RightCurly",
+	"Semicolon",
+	"Hash",
+	"Newline",
+	"EndOfFile",
+};
+
+
 Token::Token():
-	type(),
-	lexeme(),
-	lineNum(0),
-	columnNum(0)
+	type(NONE),
+	lexeme(""),
+	diagnostic()
 {
-
-}
-
-const int Token::TOKEN_TYPES = 13;
-
-
-Token::Token(const String& str):
-	lexeme(str)
-{
-
-}
-
-Token::Token(const String& str, size_t lineNum, size_t columnNum):
-	lexeme(str),
-	lineNum(lineNum),
-	columnNum(columnNum),
-	diagnostic(lineNum, columnNum)
-{
-
 }
 
 Token::Token(const TokenType& type, const String& lexeme):
 	type(type),
-	lexeme(lexeme)
+	lexeme(lexeme),
+/** diagnostics are ignored and irrelevant in this case */
+	diagnostic()
 {
-
 }
 
-#include <iostream>
-Token::Token(const TokenType& type, const String& lexeme,
-			 size_t lineNum, size_t columnNum):
+Token::Token(const TokenType& type,
+			 const String& lexeme,
+			 const Diagnostic& diagnostic):
 	type(type),
 	lexeme(lexeme),
-	lineNum(lineNum),
-	columnNum(columnNum),
-	diagnostic(lineNum, columnNum)
+	diagnostic(diagnostic)
 {
-	std::cout << "Token |" << lexeme << "| at " << lineNum << ":" << columnNum << '\n';
 }
 
 Token::Token(const Token& other):
 	type(other.type),
 	lexeme(other.lexeme),
-	lineNum(other.lineNum),
-	columnNum(other.columnNum),
 	diagnostic(other.diagnostic)
 {
-
 }
 
 Token::operator TokenType() const
 {
 	return type;
 }
-
-const char*	Token::stringified[] = {
-	"None", "Name", "Parameter", "Digit", "Alpha", "Whitespace", "Char",
-	"DoubleQuote", "LeftCurly", "RightCurly", "Semicolon", "Hash", "Newline",
-	"EndOfFile"
-};
 
 String	Token::stringify(Token::TokenType type)
 {
@@ -90,5 +76,5 @@ String	Token::stringify(Token::TokenType type)
 					  String(TOKEN_TYPES);
 		throw std::out_of_range(msg.c_str());
 	}
-	return stringified[type];
+	return STRINGIFIED[type];
 }

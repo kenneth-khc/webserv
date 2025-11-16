@@ -20,7 +20,7 @@
 #include "Lexer.hpp"
 #include "String.hpp"
 #include "Directive.hpp"
-#include "Configurator.hpp"
+#include "Validators.hpp"
 #include "Configuration.hpp"
 #include "Parameter.hpp"
 
@@ -36,7 +36,7 @@ public:
 	Configuration	parseConfig();
 
 	Configuration			config;
-	Configurator			configurator;
+	Validators				validators;
 	Lexer					lexer;
 	Token					token;
 	Token					accepted;

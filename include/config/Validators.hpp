@@ -10,32 +10,35 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef CONFIGURATOR_HPP
-#define CONFIGURATOR_HPP
+#ifndef VALIDATORS_HPP
+#define VALIDATORS_HPP
 
-#include <map>
-#include <stack>
 #include "String.hpp"
 #include "Validator.hpp"
-#include "Configuration.hpp"
 
-struct	Configurator
+#include <map>
+
+struct	Validators
 {
-	Configurator();
+public:
 
-	void	support(const String&, const Validator&);
-	void	validate(const Directive&,
-					 const std::multimap<String,Directive>&);
+	Validators();
 
-	void	validate(const Directive*,
-					 const std::multimap<String,Directive*>&);
+	/** Registers a Directive to support, providing the name of the Directive
+		as a key and the Validator to use for validating the Directive */
+	void	registerDirective(const String&, const Validator&);
 
-	/* Returns the Validator for the given Directive */
+	/** Takes in a Directive, searches for its Validator and then calls it.
+		Throws an InvalidDirective if the Directive is not supported */
+	void	validate(const Directive*, const Directive::Map&) const;
+
+private:
+
+	/** Returns the Validator for the given Directive */
 	const Validator&	operator[](const String&) const;
 
-	std::map<String,Validator>	supportedDirectives;
-
-	void	add(Directive*, Configuration&) const;
+	/** A map of DirectiveName -> Validator */
+	std::map<String,Validator>	validators;
 };
 
 #endif

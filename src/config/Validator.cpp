@@ -26,10 +26,10 @@
 #include <limits>
 #include <cctype>
 
-Validator::Validator(void (*function)(const Directive&,
-									  const Directive::Map&)):
+Validator::Validator(ValidationFunc function):
 function(function)
-{ }
+{
+}
 
 void	Validator::operator()(const Directive& directive,
 							  const Directive::Map& mappings) const

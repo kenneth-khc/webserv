@@ -15,7 +15,7 @@
 #include "Token.hpp"
 #include "String.hpp"
 #include "Configuration.hpp"
-#include "Configurator.hpp"
+#include "Validators.hpp"
 #include "Parameter.hpp"
 #include "UnexpectedToken.hpp"
 #include "MissingDirective.hpp"
@@ -30,7 +30,7 @@
 
 Parser::Parser(const char *filename):
 	config(),
-	configurator(),
+	validators(),
 	lexer(filename),
 	token(),
 	accepted(),
@@ -50,7 +50,7 @@ Configuration	Parser::parseConfig()
 		while (token != Token::END_OF_FILE)
 		{
 			Directive*	directive = parseDirective();
-			configurator.add(directive, config);
+			config.add(directive);
 		}
 		if (!config.getDirective("prefix").exists)
 		{
@@ -132,10 +132,10 @@ Directive*	Parser::parseSimple(const String& name,
 										  parameters,
 										  parent,
 										  diagnostic);
-	configurator.validate(directive,
-						  directive->parent ?
-						  directive->parent->getDirectives() :
-						  config.directives);
+	validators.validate(directive,
+						directive->parent ?
+						directive->parent->getDirectives() :
+						config.directives);
 
 	return directive;
 }
@@ -165,10 +165,10 @@ Directive*	Parser::parseBlock(const String& name,
 		throw InvalidContext(*block);
 	}
 
-	configurator.validate(block,
-						  block->parent ?
-						  block->parent->getDirectives() :
-						  config.directives);
+	validators.validate(block,
+						block->parent ?
+						block->parent->getDirectives() :
+						config.directives);
 	parents.push(block);
 	while (token != Token::RCURLY)
 	{

@@ -24,16 +24,19 @@
 class	Validator
 {
 public:
-	// Construct a Validator taking in a Directive->void function used to
-	// validate the Directive
-	Validator(void (*)(const Directive&, const Directive::Map&));
 
-	// Call operator to invoke the underlying function
+	/** A (const Directive&, const Map&) -> void function */
+	typedef void (*ValidationFunc)(const Directive&, const Directive::Map&);
+
+	/** Construct a Validator using a ValidationFunc to validate a Directive */
+	Validator(ValidationFunc);
+
+	/** Call operator to invoke the underlying ValidationFunc */
 	void	operator()(const Directive&, const Directive::Map&) const;
 
-	// TODO: testing this. validators require the surrounding mappings
-	//		 to know the frequency of the directive
 private:
+
+	/** The underlying function pointer to invoke for validation */
 	void	(*function)(const Directive&, const Directive::Map&);
 };
 

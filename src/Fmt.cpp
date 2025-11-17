@@ -39,6 +39,16 @@ diagnosticsDone(0)
 	gutterSize = countDigits(diagnostic.lineNum) + 2;
 }
 
+Fmt::Fmt(const std::vector<Diagnostic>& diagnostics):
+filename(diagnostics.front().filename),
+diagnostics(diagnostics),
+diagnosticsDone(0)
+{
+	const std::vector<Diagnostic>::const_iterator iter =
+		std::max_element(diagnostics.begin(), diagnostics.end(), cmpLineNum);
+	gutterSize = countDigits(iter->lineNum) + 2;
+}
+
 Fmt::Fmt(const String& filename, const Diagnostic& diagnostic):
 filename(filename),
 diagnosticsDone(0)
@@ -168,9 +178,9 @@ String	Fmt::formatDiagnostic(const String& message)
 	buf << lineInfo(lineNum, colNum)
 		<< gutterLine()
 		<< diagnosis(message, lineNum, colNum)
-		<< '\n';
+		<< '\n'
+		<< gutterLine();
 	++diagnosticsDone;
-
 	return buf.str();
 }
 

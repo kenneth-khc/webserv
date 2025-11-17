@@ -14,6 +14,7 @@ public:
 	Fmt();
 	Fmt(const String& filename);
 	Fmt(const Diagnostic&);
+	Fmt(const std::vector<Diagnostic>&);
 	Fmt(const String& filename, const Diagnostic&);
 	Fmt(const String& filename, const std::vector<Diagnostic>&);
 

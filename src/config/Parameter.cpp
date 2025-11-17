@@ -36,6 +36,11 @@ bool	Parameter::operator==(const Parameter& rhs) const
 	return this->value == rhs.value;
 }
 
+bool	Parameter::operator<(const Parameter& rhs) const
+{
+	return this->value < rhs.value;
+}
+
 char&	Parameter::operator[](size_t index)
 {
 	return value[index];

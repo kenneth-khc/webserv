@@ -27,6 +27,7 @@ public:
 	Parameter(const String&, const Diagnostic&);
 
 	bool		operator==(const Parameter&) const;
+	bool		operator<(const Parameter&) const;
 	char&		operator[](size_t index);
 	const char&	operator[](size_t index) const;
 

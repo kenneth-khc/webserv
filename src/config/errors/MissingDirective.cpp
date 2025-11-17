@@ -1,17 +1,19 @@
 #include "MissingDirective.hpp"
 #include "ConfigError.hpp"
+#include "Directive.hpp"
 #include "Fmt.hpp"
+#include "String.hpp"
 
-MissingDirective::MissingDirective(const String& filename, const String& key):
-ConfigError(filename),
-directiveKey(key)
+MissingDirective::MissingDirective(const Directive& directive,
+                                   const String& missingKey):
+ConfigError(directive.getDiagnostic().filename),
+directive(directive),
+missingKey(missingKey)
 {
-
 }
 
 MissingDirective::~MissingDirective() throw()
 {
-
 }
 
 const char*	MissingDirective::what() const throw()
@@ -21,10 +23,12 @@ const char*	MissingDirective::what() const throw()
 
 String	MissingDirective::format() const
 {
-	Fmt					fmt = Fmt(filename);
 	std::stringstream	buf;
+	Fmt	fmt = Fmt(directive.getDiagnostic());
 
-	buf << fmt.formatFilename()
-		<< fmt.formatError("missing directive `" + directiveKey + '`');
+	buf << fmt.formatError("missing `" + missingKey + "` in `" +
+	                       directive.name + "` block")
+		<< fmt.formatDiagnostic("block declared here")
+		<< fmt.formatHelp("add a " + missingKey + " directive within");
 	return buf.str();
 }

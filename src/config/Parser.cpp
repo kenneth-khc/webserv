@@ -18,7 +18,7 @@
 #include "Validators.hpp"
 #include "Parameter.hpp"
 #include "UnexpectedToken.hpp"
-#include "MissingDirective.hpp"
+#include "MissingGlobalDirective.hpp"
 #include "InvalidContext.hpp"
 #include "VectorInitializer.hpp"
 
@@ -54,11 +54,11 @@ Configuration	Parser::parseConfig()
 		}
 		if (!config.getDirective("prefix").exists)
 		{
-			throw MissingDirective(filename, "prefix");
+			throw MissingGlobalDirective(filename, "prefix");
 		}
 		if (!config.getDirective("http").exists)
 		{
-			throw MissingDirective(filename, "http");
+			throw MissingGlobalDirective(filename, "http");
 		}
 	}
 	catch (const ConfigError& e)
@@ -165,10 +165,15 @@ Directive*	Parser::parseBlock(const String& name,
 		throw InvalidContext(*block);
 	}
 
-	validators.validate(block,
-						block->parent ?
-						block->parent->getDirectives() :
-						config.directives);
+	const Validator&	validator = validators.getValidator(block);
+
+	validator.validateHeader(block, block->parent ?
+									block->parent->getDirectives() :
+									config.directives);
+	// validators.validate(block,
+	// 					block->parent ?
+	// 					block->parent->getDirectives() :
+	// 					config.directives);
 	parents.push(block);
 	while (token != Token::RCURLY)
 	{
@@ -177,6 +182,10 @@ Directive*	Parser::parseBlock(const String& name,
 	}
 	expect(Token::RCURLY);
 	parents.pop();
+
+	validator.validateBody(block, block->parent ?
+								  block->parent->getDirectives() :
+								  config.directives);
 
 	return block;
 }

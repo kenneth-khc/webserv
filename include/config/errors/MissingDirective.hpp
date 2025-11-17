@@ -2,18 +2,20 @@
 #define MISSING_DIRECTIVE_HPP
 
 #include "ConfigError.hpp"
+#include "Directive.hpp"
 
-class	MissingDirective : public ConfigError
+class MissingDirective : public ConfigError
 {
 public:
-	MissingDirective(const String& filename, const String& directiveName);
+	MissingDirective(const Directive&, const String&);
 	~MissingDirective() throw();
 
 	const char*	what() const throw();
 	String		format() const;
 
 private:
-	String	directiveKey;
+	const Directive&	directive;
+	const String		missingKey;
 };
 
 #endif

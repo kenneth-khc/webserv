@@ -33,8 +33,10 @@
 
 struct HTTP
 {
+	HTTP();
 	/* Read configuration options from a HTTP Directive */
 	HTTP(const Directive&);
+	HTTP&	operator=(const HTTP&);
 
 	std::vector<Server>		servers;
 	MediaType				MIMEMappings;
@@ -48,10 +50,8 @@ struct HTTP
 	void	addServer(const Server&);
 
 private:
-	/* No default construction or copying necessary */
-	HTTP();
+	// No default construction or copying necessary
 	HTTP(const HTTP&);
-	HTTP&	operator=(const HTTP&);
 };
 
 #endif

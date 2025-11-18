@@ -120,7 +120,7 @@ void	Request::erase(const String &key) {
 	this->headers.erase(key.lower());
 }
 
-RequestState	*Request::processState(Client &client, Logger &logger) {
+RequestState	*Request::processState(Client &client) {
 	if (this->state == 0)
 		this->state = new RequestLineState();
 
@@ -128,7 +128,7 @@ RequestState	*Request::processState(Client &client, Logger &logger) {
 
 	if (newState->getState() == RequestState::HEAD_DONE)
 	{
-		logger.logRequest(*this, client);
+		Logger::logRequest(*this, client);
 	}
 	if (this->state != newState) {
 		delete this->state;

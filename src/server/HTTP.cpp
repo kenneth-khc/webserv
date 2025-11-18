@@ -13,11 +13,34 @@
 #include "HTTP.hpp"
 #include "VectorInitializer.hpp"
 
+HTTP::HTTP()
+{
+}
+
+HTTP&	HTTP::operator=(const HTTP& rhs)
+{
+	if (this != &rhs)
+	{
+		servers = rhs.servers;
+		MIMEMappings = rhs.MIMEMappings;
+		autoindex = rhs.autoindex;
+		rootDirectory = rhs.rootDirectory;
+		indexFiles = rhs.indexFiles;
+		clientMaxBodySize = rhs.clientMaxBodySize;
+		errorPages = rhs.errorPages;
+	}
+	return *this;
+}
+
 HTTP::HTTP(const Directive& httpBlock):
 	servers(),
 
+	// TODO(kecheong): default mime types file?
+	// TODO(kecheong): mime.types should be relative to where the config file is
+	// and not where the process is ran on?
+	// or should it be appended to prefix?
 	MIMEMappings(httpBlock.getParameterOf("types")
-						  .value_or("")),
+						  .value_or("mime.types")),
 
 	autoindex(httpBlock.getParameterOf("autoindex")
 					   .transform(String::toBool)

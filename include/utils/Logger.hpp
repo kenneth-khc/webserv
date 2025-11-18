@@ -14,10 +14,13 @@
 #define LOGGER_HPP
 
 #include <netdb.h>
-#include "Client.hpp"
 
 /* This namespace is responsible for logging interactions between the servers
  * and clients to file streams for visualization purposes */
+
+class Client;
+class Request;
+class Response;
 
 namespace	Logger
 {

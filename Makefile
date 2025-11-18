@@ -26,6 +26,7 @@ dirs := $(src_dir) \
 		$(src_dir)/config/errors \
 		$(src_dir)/server \
 		$(src_dir)/client \
+		$(src_dir)/server/errors \
 		$(src_dir)/methods \
 		$(src_dir)/URI \
 		$(src_dir)/message \
@@ -49,7 +50,9 @@ includes := -I $(inc_dir)/ \
 			-I $(inc_dir)/headers \
 			-I $(inc_dir)/utils \
 			-I $(inc_dir)/utils/Time \
-			-I $(inc_dir)/CGI
+			-I $(inc_dir)/CGI \
+			-I $(inc_dir)/server \
+			-I $(inc_dir)/server/errors
 
 obj_dir := obj
 objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)

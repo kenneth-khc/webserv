@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <exception>
 #include <iostream>
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -18,12 +19,7 @@
 #include "Configuration.hpp"
 #include "Parser.hpp"
 #include "Driver.hpp"
-
-void	sigint_exit(int)
-{
-	std::cout << "\nGot a SIGINT, exiting!\n";
-	std::exit(1);
-}
+#include "SetupError.hpp"
 
 int	main(int argc, char** argv)
 {
@@ -33,17 +29,25 @@ int	main(int argc, char** argv)
 		std::exit(1);
 	}
 
-	// TODO: this is just for debugging the server so that it exits
-	//		 cleanly when we CTRL-C, remove later
-	std::signal(SIGINT, sigint_exit);
-
 	Parser			parser(argv[1]);
 	Configuration	config = parser.parseConfig();
 	config.display();
-	/* with all the configuration values successfully validated, we can now
-	 * start setting up what is necessary to run our webserver */
 
-	Driver	driver(config);
+	Driver	driver;
+	try
+	{
+		driver.initialize(config);
+	}
+	catch (const SetupError& e)
+	{
+		std::cout << e.format();
+		std::exit(1);
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << "Caught exception: " << e.what() << '\n';
+		std::exit(1);
+	}
 
 	std::cout << "Server is running...\n";
 	while (1)

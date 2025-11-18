@@ -12,16 +12,24 @@
 
 #include "Socket.hpp"
 #include "String.hpp"
+#include "AddressInUseError.hpp"
+#include "AddressNotAvailable.hpp"
+#include "AddressProtected.hpp"
+
+#include <cerrno>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <stdexcept>
 #include <sys/socket.h>
 #include <cstdlib>
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstring>
 
-Socket::Socket() { };
+Socket::Socket()
+{
+};
 
 Socket	Socket::spawn(const String& ip, const String& port)
 {
@@ -45,15 +53,15 @@ _addressLen(sizeof _address)
 	while (info != NULL)
 	{
 		fd = socket(info->ai_family, info->ai_socktype, 0);
-		if (fd != -1)
+		if (fd == -1)
+		{
+			throw std::runtime_error("socket() failed");
+		}
+		else if (fd != -1)
 		{
 			break ;
 		}
 		info = info->ai_next;
-	}
-	if (fd == -1)
-	{
-		// TODO: error handling;
 	}
 	std::memcpy(&_address, info->ai_addr, info->ai_addrlen);
 	convertAddressToIpAndPort(_address);
@@ -61,20 +69,20 @@ _addressLen(sizeof _address)
 
 	int	yes = 1;
 	int	retval = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
-	if (retval == 1)
+	if (retval == -1)
 	{
-		// TODO: error handling;
+		throw std::runtime_error("setsockopt() failed");
 	}
 	linger	linger = {.l_onoff = 1, .l_linger = 5};
 	retval = setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
-	if (retval == 1)
+	if (retval == -1)
 	{
-		// TODO: error handling;
+		throw std::runtime_error("setsockopt() failed");
 	}
 	retval = fcntl(fd, F_SETFL, O_NONBLOCK);
-	if (retval == 1)
+	if (retval == -1)
 	{
-		// TODO: error handling;
+		throw std::runtime_error("fcntl() failed");
 	}
 }
 
@@ -90,20 +98,20 @@ _addressLen(sizeof _address)
 
 	int	yes = 1;
 	int	retval = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
-	if (retval == 1)
+	if (retval == -1)
 	{
-		// TODO: error handling;
+		throw std::runtime_error("setsockopt() failed");
 	}
 	linger	linger = {.l_onoff = 1, .l_linger = 5};
 	retval = setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
-	if (retval == 1)
+	if (retval == -1)
 	{
-		// TODO: error handling;
+		throw std::runtime_error("setsockopt() failed");
 	}
 	retval = fcntl(fd, F_SETFL, O_NONBLOCK);
-	if (retval == 1)
+	if (retval == -1)
 	{
-		// TODO: error handling;
+		throw std::runtime_error("fcntl() failed");
 	}
 }
 
@@ -113,19 +121,37 @@ Socket::~Socket()
 
 int	Socket::bind() const
 {
-	return ::bind(fd, (sockaddr*)&_address, _addressLen);
-}
-
-int	Socket::bind(const struct sockaddr* addr, socklen_t len) const
-{
-	return ::bind(fd, addr, len);
-	// TODO: error handling;
+	int	retval = ::bind(fd, (sockaddr*)&_address, _addressLen);
+	if (retval == -1)
+	{
+		if (errno == EADDRINUSE)
+		{
+			throw AddressInUseError("bind to " + ip + ":" + port + " failed");
+		}
+		else if (errno == EADDRNOTAVAIL)
+		{
+			throw AddressNotAvailable("bind to " + ip + ":" + port + " failed");
+		}
+		else if (errno == EACCES)
+		{
+			throw AddressProtected("bind to " + ip + ":" + port + " failed");
+		}
+		else
+		{
+			throw std::runtime_error("bind() failed");
+		}
+	}
+	return retval;
 }
 
 int	Socket::listen(int connectionCount) const
 {
-	return ::listen(fd, connectionCount);
-	// TODO: error handling;
+	int	retval = ::listen(fd, connectionCount);
+	if (retval == -1)
+	{
+		throw std::runtime_error("listen() failed");
+	}
+	return retval;
 }
 
 Socket	Socket::accept() const
@@ -137,14 +163,14 @@ Socket	Socket::accept() const
 	int	newFD = ::accept(this->fd, (sockaddr*)&addr, &addrLen);
 	if (newFD == -1)
 	{
-		// TODO: error handling;
+		throw std::runtime_error("accept() failed");
 	}
 	return Socket::wrap(newFD, addr);
 }
 
 void	Socket::convertAddressToIpAndPort(sockaddr_storage add)
 {
-	sockaddr*	address = (sockaddr*)&add;
+	sockaddr*	address = reinterpret_cast<sockaddr*>(&add);
 
 	if (address->sa_family == AF_INET)
 	{
@@ -181,7 +207,7 @@ addrinfo*	Socket::getAddrInfo(const String& ip, const String& port)
 	int	retval = ::getaddrinfo(ip.c_str(), port.c_str(), &requirements, &info);
 	if (retval != 0)
 	{
-		// TODO: error handling
+		throw std::runtime_error("getaddrinfo() failed");
 	}
 	return info;
 }

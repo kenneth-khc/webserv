@@ -25,9 +25,9 @@
 # define NUM_OF_EXT_META_VARIABLES 1
 # define PHP_META_VARIABLES 3
 
-class Driver;
+struct Driver;
 class Client;
-class Server;
+struct Server;
 
 class CGI {
 		CGI(void);

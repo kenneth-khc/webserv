@@ -48,28 +48,32 @@ Server::Server():
 
 Server::Server(const Directive& serverBlock,
 			   std::map<int,Socket>& existingSockets):
-	socket(),
-	domainNames(serverBlock.getParametersOf("server_name")
-						   .value_or(std::vector<String>())),
-	root(serverBlock.recursivelyLookup<String>("root")
-					.value_or("html")),
-	locations(),
-	autoindex(serverBlock.recursivelyLookup<String>("autoindex")
-						 .transform(String::toBool)
-						 .value_or(false)),
-	indexFiles(serverBlock.recursivelyLookup< std::vector<String> >("index")
-						  .value_or(vector_of<String>("index.html"))),
-	MIMEMappings(serverBlock.recursivelyLookup<String>("types")
-							.value_or("")),
-	clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
-								 .transform(String::toSize)
-								 .value_or(1000000)),
-	cgiScript(vector_of<String>("py")("php"))
+socket(),
+domainNames(serverBlock.getParametersOf("server_name")
+					   .value_or(std::vector<String>())),
+root(serverBlock.recursivelyLookup<String>("root")
+				.value_or("html")),
+locations(),
+autoindex(serverBlock.recursivelyLookup<String>("autoindex")
+					 .transform(String::toBool)
+					 .value_or(false)),
+indexFiles(serverBlock.recursivelyLookup< std::vector<String> >("index")
+					  .value_or(vector_of<String>("index.html"))),
+MIMEMappings(serverBlock.recursivelyLookup<String>("types")
+						.value_or("")),
+clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
+							 .transform(String::toSize)
+							 .value_or(1000000)),
+cgiScript(vector_of<String>("py")("php"))
 {
 	// TODO: dynamic address
-	const String&	address = "127.0.0.1";
-	const String&	port = serverBlock.getParameterOf("listen")
-									  .value_or("8000");
+	const String&	listenParams = serverBlock.getParameterOf("listen")
+												.value_or("0.0.0.0:8000");
+	const String::size_type	colon = listenParams.find(':').value;
+	const String&	address = listenParams.substr(0, colon);
+	// const String&	port = serverBlock.getParameterOf("listen")
+	// 								  .value_or("8000");
+	const String&	port = listenParams.substr(colon + 1);
 	assignSocket(address, port, existingSockets);
 	configureLocations(serverBlock);
 	errorPages = serverBlock.generateErrorPagesMapping()
@@ -206,11 +210,11 @@ void	Server::assignSocket(const String& address, const String& port,
 	}
 	else
 	{
-		std::map<int,Socket>::iterator	it;
-		it = std::find_if(existingSockets.begin(),
-						  existingSockets.end(),
-						  IsMatchingPort(portNum));
-		socket = &it->second;
+		std::map<int,Socket>::iterator	iter;
+		iter = std::find_if(existingSockets.begin(),
+							existingSockets.end(),
+							IsMatchingPort(portNum));
+		socket = &iter->second;
 	}
 }
 

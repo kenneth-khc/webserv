@@ -3,6 +3,7 @@
 
 #include "ConfigError.hpp"
 #include "Directive.hpp"
+#include "String.hpp"
 
 class MissingDirective : public ConfigError
 {

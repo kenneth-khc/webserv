@@ -19,7 +19,7 @@
 # include "String.hpp"
 # include "Request.hpp"
 
-class Driver;
+struct Driver;
 class CGI;
 
 class CGIInput {

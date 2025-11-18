@@ -61,7 +61,7 @@ class Request : public Message {
 		void					parseCookieHeader(void);
 
 		RequestState			*state;
-		RequestState			*processState(Client &client, Logger &logger);
+		RequestState			*processState(Client &client);
 };
 
 template<>

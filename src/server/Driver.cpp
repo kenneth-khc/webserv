@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <queue>
 
 Driver::Driver():
 webServerName("42webserv"),
@@ -62,8 +63,6 @@ void	Driver::initialize(const Configuration& config)
 
 	/* Epoll configuration */
 	epollFD = epoll_create(1);
-	globalEpollFD = epollFD;
-	globalCgis = &cgis;
 	if (epollFD == -1)
 	{
 		std::perror("epoll_create() failed");
@@ -256,7 +255,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 				client.responseQueue.push_back(Response());
 				client.responseQueue.back().insert("Server", webServerName);
 			}
-			while (request.processState(client, logger)->getState() != RequestState::DONE)
+			while (request.processState(client)->getState() != RequestState::DONE)
 			{
 				if (initialMessageLength == client.message.length())
 				{
@@ -287,7 +286,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 		{
 			delete request.state;
 			request.state = new DoneState();
-			request.processState(client, logger);
+			request.processState(client);
 			client.responseQueue.back() = e;
 		}
 

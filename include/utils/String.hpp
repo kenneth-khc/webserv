@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 23:15:25 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 03:35:34 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/04/01 19:38:46 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,6 +133,9 @@ public:
 	Optional<String>	consumeUntil(const String&);
 
 	Optional<String>	consumeUntilNot(const Predicate&);
+
+	// Consume characters from the back until a substring, returning the string consumed
+	Optional<String>	consumeBackwardsUntil(const String&);
 
 	// Consume characters up until a substring, assuming they all match the
 	// Predicate, throwing on unexpected characters

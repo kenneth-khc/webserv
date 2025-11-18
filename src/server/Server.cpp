@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 21:46:19 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/05 10:28:58 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,11 @@ Server::Server(const Directive& serverBlock,
 							.value_or(std::map<int,String>());
 }
 
-void	Server::handleRequest(Request& request, Response& response)
+void	Server::handleRequest(
+	Driver& driver,
+	Client& client,
+	Request& request,
+	Response& response)
 {
 	if (!request.isSupportedVersion())
 	{
@@ -99,7 +103,7 @@ void	Server::handleRequest(Request& request, Response& response)
 		location->executeCGI == true &&
 		request.path.ends_with(".bla"))	// Test-specific condition
 	{
-		cgi(response, request);
+		cgi(driver, client, response, request);
 		return ;
 	}
 
@@ -171,14 +175,20 @@ void	Server::processCookies(Request& request, Response& response)
 	}
 }
 
-void	Server::cgi(Response &response, Request &request) const {
+void	Server::cgi(
+	Driver& driver,
+	Client& client,
+	Response &response,
+	Request &request) const
+{
 	if (request.method != "GET" && request.method != "POST")
 		throw NotImplemented501();
 
-	CGI	*cgi = new CGI(*this, *request.client, request, response);
+	CGI	*cgi = new CGI(*this, client, request, response);
 
-	cgi->generateEnv(*this);
-	cgi->execute(*this);
+	cgi->generateEnv(driver);
+	cgi->execute(driver);
+	client.cgis.push_back(cgi);
 }
 
 void	Server::assignSocket(const String& address, const String& port,
@@ -190,7 +200,7 @@ void	Server::assignSocket(const String& address, const String& port,
 	{
 		Socket	listener = Socket::spawn(address, port);
 		listener.bind();
-		listener.listen(1);
+		listener.listen(1024);
 		existingSockets[listener.fd] = listener;
 		socket = &existingSockets[listener.fd];
 	}

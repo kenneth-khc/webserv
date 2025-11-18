@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 20:15:12 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 21:59:58 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/05 15:53:27 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,27 +16,19 @@
 #include "Configuration.hpp"
 #include "HTTP.hpp"
 #include "Client.hpp"
+#include "Timer.hpp"
 #include "Socket.hpp"
 #include "String.hpp"
 #include "Request.hpp"
-#include "Response.hpp"
-#include "Logger.hpp"
 #include "Configuration.hpp"
-#include "PathHandler.hpp"
-#include "Logger.hpp"
+#include "CGI.hpp"
 #include <sys/epoll.h>
 #include <sys/types.h>
-#include <set>
-#include <vector>
-#include <queue>
 #include <map>
 
 extern "C" char	**environ;
 
 class CGI;
-
-/*int						globalEpollFD;*/
-/*std::map<int, CGI*>*	globalCgis;*/
 
 struct	Driver
 {
@@ -56,19 +48,19 @@ struct	Driver
 	std::map<int, Socket>	listeners;
 	std::map<int, Socket>	establishedSockets;
 	std::map<int, Client>	clients;
-	std::map<int, CGI *>	cgis;
+	std::map<int, CGI*>		cgis;
 
 	int			epollWait();
 
 	void		processReadyEvents();
 	void		receiveMessage(std::map<int, Client>::iterator&);
-	void		processRequest(std::map<int, Client>::iterator&, std::set<Client *>&);
-	void		processCGI(std::map<int, CGI*>::iterator&);
-	void		generateResponse(std::map<int, Client>::iterator&, std::set<Client *>&);
+	void		processRequest(std::map<int, Client>::iterator&, std::set<Timer*>&);
+	void		processCGI(std::map<int, CGI*>::iterator&, std::set<Timer*>&);
+	void		sendResponse(std::map<int, Client>::iterator&, std::set<Timer*>&);
 
 	void		updateEpollTimeout();
 
-	void		monitorConnections();
+	void		monitorTimers();
 	void		closeConnection(std::map<int, Client>::iterator, int);
 
 private:

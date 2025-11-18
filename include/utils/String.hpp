@@ -63,6 +63,8 @@ public:
 	const char*				operator+(size_type) const;
 	String					operator+(const String&);
 	String					operator+(const String&) const;
+	String					operator+(char);
+	String					operator+(char) const;
 	String					operator+(const char*);
 	String					operator+(const char*) const;
 	friend String			operator+(const char*, const String&);
@@ -74,6 +76,8 @@ public:
 	/* Wrapper to call std::string functions */
 	char&					at(size_type);
 	const char&				at(size_type) const;
+	char&					front();
+	const char&				front() const;
 	char&					back();
 	const char&				back() const;
 	size_type				size() const;
@@ -191,6 +195,7 @@ private:
 	template <typename Type>
 	static std::string	toStdString(const Type& T);
 };
+
 
 /* A functor for matching characters. By constructing a Predicate with a string,
  * we can then pass the functor into an operation which can then call

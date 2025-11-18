@@ -6,34 +6,63 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 22:02:59 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/16 17:14:45 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/04 16:29:45 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef TOKEN_HPP
 #define TOKEN_HPP
 
-#include <map>
 #include "String.hpp"
-
+#include "Diagnostic.hpp"
 
 struct	Token
 {
 	enum	TokenType
 	{
-		NONE, NAME, PARAMETER, DIGIT, ALPHA, WSP, CHAR, DQUOTE,
-		LCURLY, RCURLY, SEMICOLON, HASH, NEWLINE, END_OF_FILE
+		NONE,
+		NAME,
+		PARAMETER,
+		DQUOTE,
+		LCURLY,
+		RCURLY,
+		SEMICOLON,
+		HASH,
+		NEWLINE,
+		END_OF_FILE
 	};
-	static const char* stringified[];
+	/** number of types of tokens */
+	static const int 	TOKEN_TYPES;
 
-	TokenType	type;
-	String		lexeme;
+	/** array holding string representation of the types */
+	static const char*	STRINGIFIED[];
 
+	/** Construct a default Token with nothing set */
 	Token();
-	Token(const String&);
+
+	/** Construct a Token with a given Type and lexeme */
 	Token(const TokenType&, const String&);
+
+	/** Construct a complete Token with a given Type, lexeme and diagnostic information */
+	Token(const TokenType&, const String&, const Diagnostic&);
+
+	/** Copy from another Token */
+	Token(const Token&);
+
+	/** Stringify a Token's Type */
+	static String	stringify(TokenType);
+
+	/** Implicitly convert a Token into its TokenType */
 	operator	TokenType() const;
 
+	/** type of this token */
+	TokenType	type;
+
+	/** lexeme of this token */
+	String		lexeme;
+
+	/** diagnostic information for this token */
+	Diagnostic	diagnostic;
 };
 
 #endif

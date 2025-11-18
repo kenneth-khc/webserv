@@ -6,43 +6,89 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 17:57:05 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/16 01:48:08 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/03 21:00:38 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Directive.hpp"
-#include "ConfigErrors.hpp"
-#include "VectorInitializer.hpp"
-#include <iostream>
+#include "Context.hpp"
+#include <stdexcept>
 
+/* Privated */
 Directive::Directive()
 {
-
 }
 
-Directive::Directive(const String& dname,
-					 const std::vector<String>& parameters,
-					 Context context):
-name(dname),
-parameters(parameters),
-enclosing(),
-parent(),
-enclosingContext(context)
+/* Privated */
+Directive::Directive(const Directive&)
 {
-
 }
 
-void	Directive::addDirective(Directive* dir)
+Directive::Directive(const String& name,
+					 const std::vector<Parameter>& parameters,
+					 const Directive* parent,
+					 const Diagnostic& diagnostic):
+	name(name),
+	parameters(parameters),
+	parent(parent),
+	/** we start with no children and the caller has to manually
+		add them with .addDirective() */
+	directives(),
+	diagnostic(diagnostic)
 {
-	directives.insert(std::make_pair(dir->name, dir));
 }
 
-const Directive*	Directive::getDirective(const String& key) const
+void	Directive::addDirective(Directive* directive)
 {
-	return directives.find(key)->second;
+	std::pair<String, Directive*>	pair(directive->name, directive);
+
+	directives.insert(pair);
 }
 
-std::vector<Directive*>	Directive::getDirectives(const String& key) const
+const Directive&	Directive::get(const String& key) const
+{
+	std::multimap<String, Directive*>::const_iterator	iter =
+ 		directives.find(key);
+
+	if (iter == directives.end())
+	{
+		throw std::out_of_range("directive " + key + " not found");
+	}
+	else
+	{
+		return *iter->second;
+	}
+}
+
+Optional<Directive*>	Directive::getDirective(const String& key) const
+{
+	std::multimap<String, Directive*>::const_iterator	iter =
+		directives.find(key);
+
+	if (iter == directives.end())
+	{
+		return makeNone<Directive*>();
+	}
+	else
+	{
+		return makeOptional(iter->second);
+	}
+}
+
+const std::multimap<String, Directive*>&
+Directive::getDirectives() const
+{
+	return this->directives;
+}
+
+const Diagnostic&
+Directive::getDiagnostic() const
+{
+	return this->diagnostic;
+}
+
+std::vector<Directive*>
+Directive::getDirectives(const String& key) const
 {
 	typedef std::pair<String,Directive*>	keyValuePair;
 
@@ -58,76 +104,35 @@ std::vector<Directive*>	Directive::getDirectives(const String& key) const
 	return matchingDirectives;
 }
 
-bool	Directive::hasParameters() const
+Context::Context	Directive::getContext() const
 {
-	return !parameters.empty();
+	if (this->parent == NULL)
+	{
+		return Context::GLOBAL;
+	}
+	else
+	{
+		return Context::from(this->parent->name);
+	}
 }
 
-void	Directive::printParameters() const
+Parameter	Directive::getParameter() const
 {
+	String	buffer;
 	for (size_t i = 0; i < parameters.size(); ++i)
 	{
-		std::cout << parameters[i];
-		if (i != parameters.size()-1)
-			std::cout << " ";
+		buffer += parameters[i].value;
+		if (i != parameters.size() - 1)
+		{
+			buffer += ' ';
+		}
 	}
+	return buffer;
 }
 
-Context	contextify(const String& str)
+const std::vector<Parameter>&	Directive::getParameters() const
 {
-	if (str == "http")
-	{
-		return HTTP;
-	}
-	else if (str == "server")
-	{
-		return SERVER;
-	}
-	else if (str == "location")
-	{
-		return LOCATION;
-	}
-	else if (str == "global")
-	{
-		return GLOBAL;
-	}
-	else if (str == "none")
-	{
-		return NONE;
-	}
-	else
-	{
-		throw InvalidDirective(str);
-	}
-}
-
-String	stringifyContext(Context ctx)
-{
-	if (ctx == HTTP)
-	{
-		return "http";
-	}
-	else if (ctx == SERVER)
-	{
-		return "server";
-	}
-	else if (ctx == LOCATION)
-	{
-		return "location";
-	}
-	else if (ctx == GLOBAL)
-	{
-		return "global";
-	}
-	else if (ctx == NONE)
-	{
-		return "none";
-	}
-	else
-	{
-		throw std::exception();
-	}
-	
+	return this->parameters;
 }
 
 Optional<String>
@@ -142,11 +147,11 @@ Directive::getParameterOf(const String& key) const
 	}
 	else
 	{
-		const std::vector<String>&	parameters = it->second->parameters;
+		const std::vector<Parameter>&	parameters = it->second->parameters;
 		String						buffer;
 		for (size_t i = 0; i < parameters.size(); ++i)
 		{
-			buffer += parameters[i];
+			buffer += parameters[i].value;
 			if (i != parameters.size() - 1)
 			{
 				buffer += ' ';
@@ -168,18 +173,26 @@ Directive::getParametersOf(const String& key) const
 	}
 	else
 	{
-		return makeOptional(it->second->parameters);
+		std::vector<String>	tmp;
+		for(size_t i = 0; i < it->second->parameters.size(); ++i)
+		{
+			tmp.push_back(it->second->parameters[i].value);
+		}
+		return makeOptional(tmp);
 	}
 }
 
-Optional< std::map<int,String> >	Directive::generateErrorPagesMapping() const
+typedef std::map<int,String>	ErrorPageMapping;
+Optional<ErrorPageMapping>	Directive::generateErrorPagesMapping() const
 {
-	std::map<int,String>		errorPages;
-	const std::vector<String>&	errorPage = recursivelyLookup< std::vector<String> >("error_page")
-										   .value_or(vector_of<String>());
+	typedef	std::vector<String>	StringVector;
+
+	ErrorPageMapping	errorPages;
+	const StringVector&	errorPage = recursivelyLookup<StringVector>("error_page")
+								   .value_or(StringVector());
 	if (errorPage.size() < 2)
 	{
-		return makeNone< std::map<int,String> >();
+		return makeNone<ErrorPageMapping>();
 	}
 	const String&	page = errorPage.back();
 	for (size_t i = 0; i < errorPage.size()-1; ++i)
@@ -189,7 +202,7 @@ Optional< std::map<int,String> >	Directive::generateErrorPagesMapping() const
 	}
 	if (errorPages.empty())
 	{
-		return makeNone< std::map<int,String> >();
+		return makeNone<ErrorPageMapping>();
 	}
 	else
 	{
@@ -199,11 +212,11 @@ Optional< std::map<int,String> >	Directive::generateErrorPagesMapping() const
 
 void	Directive::cleanUp()
 {
-	for (Mappings::iterator it = this->directives.begin();
-		 it != this->directives.end();
-		 ++it)
+	for (MapIter iter = this->directives.begin();
+		 iter != this->directives.end();
+		 ++iter)
 	{
-		Directive*	child = it->second;
+		Directive*	child = iter->second;
 		child->cleanUp();
 		delete child;
 	}

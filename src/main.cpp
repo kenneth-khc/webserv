@@ -18,7 +18,6 @@
 #include "Configuration.hpp"
 #include "Parser.hpp"
 #include "Driver.hpp"
-#include "ErrorCode.hpp"
 
 void	sigint_exit(int)
 {
@@ -41,7 +40,6 @@ int	main(int argc, char** argv)
 	Parser			parser(argv[1]);
 	Configuration	config = parser.parseConfig();
 	config.display();
-
 	/* with all the configuration values successfully validated, we can now
 	 * start setting up what is necessary to run our webserver */
 

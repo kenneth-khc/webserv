@@ -6,43 +6,58 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 21:35:41 by kecheong          #+#    #+#             */
-/*   Updated: 2025/02/23 18:40:30 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/05 21:46:06 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
+/* A Recursive Descent Parser responsible for parsing a configuration file
+ * that sets up the web server. */
+
 #include <stack>
 #include "Lexer.hpp"
 #include "String.hpp"
 #include "Directive.hpp"
-#include "Configurator.hpp"
+#include "Validators.hpp"
 #include "Configuration.hpp"
+#include "Parameter.hpp"
 
-struct	Parser
+/* The Parser gets hooked up to a Lexer that reads from a file, and it keeps
+ * requesting Tokens from the Lexer until it is done reading the file */
+
+class	Parser
 {
+public:
 	Parser(const char* fileName);
+	~Parser();
 
-	Configurator		configurator;
-	Lexer				lexer;
-	Token				token;
-	std::stack<Context>	contexts;
-	std::stack< std::multimap<String,Directive*> >	mapStack;
+	Configuration	parseConfig();
 
-	// TODO: wtf am i doing
+	Configuration			config;
+	Validators				validators;
+	Lexer					lexer;
+	Token					token;
+	Token					accepted;
 	std::stack<Directive*>	parents;
 
-	Configuration		parseConfig();
-	Directive*			parseDirective();
-	std::vector<String>	parseParameters();
-	Directive*			parseSimple(const String&,
-									const std::vector<String>&);
-	Directive*			parseBlock(const String&,
-								   const std::vector<String>&);
+private:
+	Parser();
+	Parser(const Parser&);
 
-	void				expect(Token::TokenType);
-	bool				accept(Token::TokenType);
+	Directive*				parseDirective();
+	std::vector<Parameter>	parseParameters();
+	Directive*				parseSimple(const String&,
+										const std::vector<Parameter>&,
+										const Diagnostic&);
+	Directive*				parseBlock(const String&,
+									   const std::vector<Parameter>&,
+									   const Diagnostic&);
+	void					expect(Token::TokenType);
+	bool					accept(Token::TokenType);
+
+	const String filename;
 };
 
 #endif

@@ -11,18 +11,16 @@
 /* ************************************************************************** */
 
 #include "Driver.hpp"
+#include "PathHandler.hpp"
 #include "Server.hpp"
 #include "ConfigErrors.hpp"
 #include "Directive.hpp"
 #include "Utils.hpp"
 #include "ErrorCode.hpp"
-#include "Base64.hpp"
 #include "DoneState.hpp"
 #include "KeepAliveTimer.hpp"
-#include <queue>
 #include <deque>
 #include <cstddef>
-#include <string>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
@@ -45,6 +43,7 @@ Driver::Driver(const Configuration& config):
 	establishedSockets(),
 	clients()
 {
+	Server::pathHandler.setPrefix(config.get("prefix").parameters[0]);
 	std::vector<Directive*>	serverBlocks = config.get("http")
 												 .getDirectives("server");
 	for (size_t i = 0; i < serverBlocks.size(); ++i)
@@ -109,7 +108,8 @@ void	Driver::processReadyEvents()
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
 		currEvent = &readyEvents[i];
-		std::map<int,Socket>::iterator	it = listeners.find(currEvent->data.fd);
+		const int&	fd = currEvent->data.fd;
+		std::map<int,Socket>::iterator	it = listeners.find(fd);
 		if (it != listeners.end())
 		{
 			const Socket&	listener = it->second;
@@ -127,13 +127,13 @@ void	Driver::processReadyEvents()
 
 			clients[fd] = newClient;
 
-			logger.logConnection(Logger::ESTABLISHED, fd, newClient);
+			Logger::logConnection(Logger::ESTABLISHED, fd, newClient);
 			activeTimers.insert(clients[fd].timer);
 			continue ;
 		}
 
-		std::map<int, Client>::iterator	clientIt = clients.find(currEvent->data.fd);
-		std::map<int, CGI *>::iterator	cgiIt = cgis.find(currEvent->data.fd);
+		std::map<int, Client>::iterator	clientIt = clients.find(fd);
+		std::map<int, CGI *>::iterator	cgiIt = cgis.find(fd);
 
 		if (clientIt == clients.end() && cgiIt == cgis.end())
 			continue ;
@@ -166,7 +166,22 @@ void	Driver::processReadyEvents()
 
 	for (std::set<Timer*>::iterator it = activeTimers.begin(); it != activeTimers.end(); it++)
 	{
+<<<<<<< HEAD
+		if ((*it)->timer & Client::CLIENT_BODY && Server::clientBodyTimeoutDuration > 0)
+		{
+			(*it)->clientBodyTimeout = Time::getTimeSinceEpoch() + Server::clientBodyTimeoutDuration;
+		}
+		else if ((*it)->timer & Client::CLIENT_HEADER && Server::clientHeaderTimeoutDuration > 0)
+		{
+			(*it)->clientHeaderTimeout = Time::getTimeSinceEpoch() + Server::clientHeaderTimeoutDuration;
+		}
+		else if ((*it)->timer & Client::KEEP_ALIVE && Server::keepAliveTimeoutDuration > 0)
+		{
+			(*it)->keepAliveTimeout = Time::getTimeSinceEpoch() + Server::keepAliveTimeoutDuration;
+		}
+=======
 		(*it)->update();
+>>>>>>> main
 	}
 }
 
@@ -217,7 +232,23 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 					activeTimers.insert(client.timer);
 					return ;
 				}
+<<<<<<< HEAD
+				Logger::logRequest(request, client);
+			}
+			if (request.processStage & Request::MESSAGE_BODY)
+			{
+				request.parseMessageBody(client.message);
+			}
+			if (request.processStage & Request::DONE)
+			{
+				client.timer &= ~Client::CLIENT_BODY;
+
+				String				host = request.find< Optional<String> >("Host")
+										  		  .value_or("");
+				if (host.find(':'))
+=======
 				else
+>>>>>>> main
 				{
 					initialMessageLength = client.message.length();
 				}
@@ -314,7 +345,7 @@ void	Driver::sendResponse(std::map<int, Client>::iterator& clientIt, std::set<Ti
 
 	if (response.processStage & Response::DONE)
 	{
-		logger.logResponse(response, client);
+		Logger::logResponse(response, client);
 
 		if (response.closeConnection == true)
 		{
@@ -376,7 +407,7 @@ void	Driver::closeConnection(std::map<int, Client>::iterator clientIt, int logFl
 	const int&	fd = clientIt->first;
 	Client&		client = clientIt->second;
 
-	logger.logConnection(logFlag, fd, client);
+	Logger::logConnection(logFlag, fd, client);
 	epoll_ctl(epollFD, EPOLL_CTL_DEL, fd, 0);
 	close(fd);
 	establishedSockets.erase(establishedSockets.find(fd));

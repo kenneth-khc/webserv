@@ -6,12 +6,14 @@
 /*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 22:41:03 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/22 07:30:17 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/04/03 21:00:48 by kecheong         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Location.hpp"
 #include "VectorInitializer.hpp"
+#include "ErrorCode.hpp"
+#include <algorithm>
 
 Location::Location():
 	matchType(PREFIX),
@@ -24,11 +26,10 @@ Location::Location():
 
 }
 
-#include <iostream>
 Location::Location(const Directive& locationBlock):
 	matchType(PREFIX),
 	// TODO: location exact matches
-	uri(locationBlock.parameters[0]),
+	uri(locationBlock.parameters[0].value),
 
 	root(locationBlock.recursivelyLookup<String>("root")
 					  .value_or("html")),
@@ -66,19 +67,16 @@ Location::Location(const Directive& locationBlock):
 	uploadDirectory(locationBlock.getParameterOf("upload_directory")
 								 .value_or(""))
 {
-	// TODO: recurse instead of manually chasing the pointers lol lmao
 	errorPages = locationBlock.generateErrorPagesMapping()
 							  .value_or(std::map<int,String>());
-	for (std::map<int,String>::iterator it = errorPages.begin();
-		 it != errorPages.end(); ++it)
-	{
-		std::cout << it->first << " -> " << it->second << '\n';
-	}
-	std::cout << "EXEC_CGI: " << executeCGI << "\n";
-	for (size_t i = 0; i < CGIScriptFileExtensions.size(); ++i)
-	{
-		std::cout << "CGI_Script: " << CGIScriptFileExtensions[i] << "\n";
-	}
-	std::cout << "\n";
 }
 
+void	Location::checkIfAllowedMethod(const String& method) const
+{
+	if (std::find(allowedMethods.begin(),
+				  allowedMethods.end(),
+				  method) == allowedMethods.end())
+	{
+		throw MethodNotAllowed405();
+	}
+}

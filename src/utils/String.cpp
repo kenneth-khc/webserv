@@ -114,6 +114,16 @@ String	String::operator+(const String& rhs) const
 	return String(str + rhs.str);
 }
 
+String	String::operator+(char rhs)
+{
+	return String(str + rhs);
+}
+
+String	String::operator+(char rhs) const
+{
+	return String(str + rhs);
+}
+
 String	String::operator+(const char* rhs)
 {
 	return *this + String(rhs);
@@ -171,6 +181,16 @@ const char&	String::at(size_type index) const
 		throw std::out_of_range(message);
 	}
 	return str[index];
+}
+
+char&	String::front()
+{
+	return str[0];
+}
+
+const char&	String::front() const
+{
+	return str[0];
 }
 
 char&	String::back()

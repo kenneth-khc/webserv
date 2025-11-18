@@ -16,18 +16,25 @@
 #include <vector>
 #include "String.hpp"
 
-// TODO: maybe use bitmasks to check for valid Contexts? would that be better?
-enum Context
-{
-	NONE,
-	GLOBAL,
-	HTTP,
-	SERVER,
-	LOCATION
-};
+const int CONTEXT_COUNT = 6;
 
-Context	contextify(const String&);
-String	stringifyContext(Context);
+namespace Context {
+	enum Context
+	{
+		NONE,
+		GLOBAL,
+		HTTP,
+		SERVER,
+		CGI_SCRIPT,
+		LOCATION
+	};
+
+	/** Returns a Context based on the String passed in.
+		If the String is not a valid Context, throws a std::invalid_argument */
+	Context	from(const String&);
+
+	/** Returns the String representation of a Context */
+	String	toString(Context);
 
 // HACK: because there are no initializer lists in C++98, initializing a vector
 //		 of Contexts is a pain in the ass
@@ -35,8 +42,9 @@ String	stringifyContext(Context);
 //		 Contexts
 //		 (C1, C2) would return a vector of [C1, C2]
 //		 ([C1, C2], C3) would return a vector of [C1, C2, C3]
-//
 std::vector<Context>	operator,(Context, Context);
 std::vector<Context>	operator,(std::vector<Context>, Context);
+}
+
 
 #endif

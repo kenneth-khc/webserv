@@ -14,22 +14,17 @@
 #define LOGGER_HPP
 
 #include <netdb.h>
+#include "Client.hpp"
 
-/* This class is responsible for logging interactions between the servers
+/* This namespace is responsible for logging interactions between the servers
  * and clients to file streams for visualization purposes */
 
-// TODO: expand this into logging errors encountered?
-
-class	Client;
-class	Request;
-class	Response;
-
-class	Logger
+namespace	Logger
 {
-public:
-	void	logRequest(Request&, Client&) const;
-	void	logResponse(Response&, Client&) const;
-	void	logConnection(int, int, Client&) const;
+	void	logRequest(Request&, Client&);
+	void	logResponse(Response&, Client&);
+	void	logConnection(int, int, Client&);
+	void	logIPPort(sockaddr*);
 
 	enum CONNECTION {
 		ESTABLISHED,
@@ -39,13 +34,17 @@ public:
 		PEER_CLOSE,
 		CLOSE
 	};
-private:
-	static const char*	GREEN;
-	static const char*	YELLOW;
-	static const char*	RED;
-	static const char*	CRESET;
 
-	static void	logIPPort(sockaddr*);
+	namespace	Colour
+	{
+		extern const char*	RED;
+		extern const char*	BOLD_RED;
+		extern const char*	GREEN;
+		extern const char*	YELLOW;
+		extern const char*	BOLD_WHITE;
+		extern const char*	BOLD_BLUE;
+		extern const char*	RESET;
+	}
 };
 
 #endif

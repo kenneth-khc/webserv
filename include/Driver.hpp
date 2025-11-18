@@ -20,14 +20,10 @@
 #include "Socket.hpp"
 #include "String.hpp"
 #include "Request.hpp"
-#include "Response.hpp"
-#include "Logger.hpp"
+#include "Configuration.hpp"
 #include "CGI.hpp"
 #include <sys/epoll.h>
 #include <sys/types.h>
-#include <set>
-#include <vector>
-#include <queue>
 #include <map>
 
 extern "C" char	**environ;
@@ -53,9 +49,6 @@ struct	Driver
 	std::map<int, Socket>	establishedSockets;
 	std::map<int, Client>	clients;
 	std::map<int, CGI*>		cgis;
-
-	friend class Logger;
-	Logger	logger;
 
 	int			epollWait();
 

@@ -45,10 +45,10 @@ void	Directive::addDirective(Directive* directive)
 	directives.insert(pair);
 }
 
-const Directive*	Directive::getDirective(const String& key) const
+const Directive&	Directive::get(const String& key) const
 {
 	std::multimap<String, Directive*>::const_iterator	iter =
-		directives.find(key);
+ 		directives.find(key);
 
 	if (iter == directives.end())
 	{
@@ -56,7 +56,22 @@ const Directive*	Directive::getDirective(const String& key) const
 	}
 	else
 	{
-		return iter->second;
+		return *iter->second;
+	}
+}
+
+Optional<Directive*>	Directive::getDirective(const String& key) const
+{
+	std::multimap<String, Directive*>::const_iterator	iter =
+		directives.find(key);
+
+	if (iter == directives.end())
+	{
+		return makeNone<Directive*>();
+	}
+	else
+	{
+		return makeOptional(iter->second);
 	}
 }
 
@@ -99,6 +114,25 @@ Context::Context	Directive::getContext() const
 	{
 		return Context::from(this->parent->name);
 	}
+}
+
+Parameter	Directive::getParameter() const
+{
+	String	buffer;
+	for (size_t i = 0; i < parameters.size(); ++i)
+	{
+		buffer += parameters[i].value;
+		if (i != parameters.size() - 1)
+		{
+			buffer += ' ';
+		}
+	}
+	return buffer;
+}
+
+const std::vector<Parameter>&	Directive::getParameters() const
+{
+	return this->parameters;
 }
 
 Optional<String>

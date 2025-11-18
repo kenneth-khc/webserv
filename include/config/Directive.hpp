@@ -50,9 +50,13 @@ typedef std::pair<MapConstIter, MapConstIter>	EqualRange;
 	void
 	addDirective(Directive*);
 
-	/** Returns a Directive matching the given key */
-	const Directive*
-	getDirective(const String& key) const;
+	/** Returns a Directive matching the given key, throws an
+		exception if the Directive does not exist */
+	const Directive&		get(const String&) const;
+
+	/** Returns a Directive matching the given key, wrapped in an
+		Optional */
+	Optional<Directive*>	getDirective(const String& key) const;
 
 	/** Returns a vector of all Directives matching the given key */
 	std::vector<Directive*>
@@ -61,6 +65,13 @@ typedef std::pair<MapConstIter, MapConstIter>	EqualRange;
 	/** Returns all the Directives within this block */
 	const std::multimap<String, Directive*>&
 	getDirectives() const;
+
+	/** Returns the Parameter(s) for this Directive, reduced into a
+		single String */
+	Parameter	getParameter() const;
+
+	/** Returns the vector of Parameters for this Directive */
+	const std::vector<Parameter>&	getParameters() const;
 
 	/** Returns the Parameter of a Directive within this block
 		reduced into a single String,

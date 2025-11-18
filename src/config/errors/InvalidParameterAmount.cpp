@@ -40,13 +40,13 @@ String	InvalidParameterAmount::format() const
 		if (expectedMin == expectedMax)
 		{
 			errmsg << "invalid amount of parameters: got " << amount << ", "
-				   << "expected " << expectedMax << " for directive `"
+				   << "expected " << expectedMax << " for `"
 				   << directive.name << '`';
 		}
 		else
 		{
 			errmsg << "invalid amount of parameters: got " << amount << ", "
-				   << "expected at most " << expectedMax << " for directive `"
+				   << "expected at most " << expectedMax << " for `"
 				   << directive.name << '`';
 		}
 		std::vector<Diagnostic>	extraParameters;
@@ -61,6 +61,7 @@ String	InvalidParameterAmount::format() const
 		{
 			buf << fmt.formatDiagnostic();
 		}
+		buf << fmt.formatHelp("remove excess parameters");
 	}
 	else
 	{
@@ -70,13 +71,13 @@ String	InvalidParameterAmount::format() const
 		if (expectedMin == expectedMax)
 		{
 			errmsg << "invalid amount of parameters: got " << amount << ", "
-				   << "expected " << expectedMax << " for directive `"
+				   << "expected " << expectedMax << " for `"
 				   << directive.name << '`';
 		}
 		else
 		{
 			errmsg << "invalid amount of parameters: got " << amount << ", "
-				   << "expected at least " << expectedMin << " for directive `"
+				   << "expected at least " << expectedMin << " for `"
 				   << directive.name << '`';
 		}
 		if (parameters.size() == 0)
@@ -91,8 +92,9 @@ String	InvalidParameterAmount::format() const
 		}
 		missingParam.colNum += word.size() + 1;
 		Fmt fmt = Fmt(filename, missingParam);
-		buf << fmt.formatError(errmsg.str());
-		buf << fmt.formatDiagnostic("expected parameter");
+		buf << fmt.formatError(errmsg.str())
+			<< fmt.formatDiagnostic("expected parameter")
+			<< fmt.formatHelp("add missing parameters");
 	}
 	return buf.str();
 }

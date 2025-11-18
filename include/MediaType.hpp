@@ -27,7 +27,6 @@
 //	This map would be used in file retrieval operations such as GET requests to
 //	construct the 'Content-Type' header.
 class MediaType {
-		MediaType(void);
 
 		class MIMETypesFileError : public std::exception {
 				String	message;
@@ -38,6 +37,7 @@ class MediaType {
 		};
 
 	public:
+		MediaType(void);
 		std::map<String, String>	map;
 
 		MediaType(const MediaType &obj);

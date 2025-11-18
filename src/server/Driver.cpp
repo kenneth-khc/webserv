@@ -13,9 +13,10 @@
 #include "Driver.hpp"
 #include "PathHandler.hpp"
 #include "Server.hpp"
-#include "ConfigErrors.hpp"
-#include "Directive.hpp"
-#include "Utils.hpp"
+#include "Configuration.hpp"
+#include "SetupError.hpp"
+#include "contentLength.hpp"
+#include "connection.hpp"
 #include "ErrorCode.hpp"
 #include "DoneState.hpp"
 #include "KeepAliveTimer.hpp"
@@ -29,6 +30,51 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <sys/wait.h>
+
+Driver::Driver():
+webServerName("42webserv"),
+http(),
+epollTimeout(-1),
+epollFD(-1),
+maxEvents(1021),
+readyEvents(new epoll_event[maxEvents]),
+numReadyEvents(0),
+listeners(),
+establishedSockets(),
+clients()
+{
+}
+
+void	Driver::initialize(const Configuration& config)
+{
+	Server::pathHandler.setPrefix(config.get("prefix").parameters[0]);
+
+	const Directive&		httpBlock = config.get("http");
+	std::vector<Directive*>	serverBlocks = httpBlock.getDirectives("server");
+
+	this->http = httpBlock;
+	for (size_t i = 0; i < serverBlocks.size(); ++i)
+	{
+		const Directive&	serverBlock = *serverBlocks[i];
+		const Server&		httpServer = Server(serverBlock, listeners);
+		http.addServer(httpServer);
+	}
+
+	/* Epoll configuration */
+	epollFD = epoll_create(1);
+	globalEpollFD = epollFD;
+	globalCgis = &cgis;
+	if (epollFD == -1)
+	{
+		std::perror("epoll_create() failed");
+		std::exit(1);
+	}
+	for (std::map<int, Socket>::const_iterator it = listeners.begin();
+		 it != listeners.end(); ++it)
+	{
+		addToEpoll(it->second.fd, EPOLLIN);
+	}
+}
 
 Driver::Driver(const Configuration& config):
 	webServerName("42webserv"),
@@ -166,22 +212,7 @@ void	Driver::processReadyEvents()
 
 	for (std::set<Timer*>::iterator it = activeTimers.begin(); it != activeTimers.end(); it++)
 	{
-<<<<<<< HEAD
-		if ((*it)->timer & Client::CLIENT_BODY && Server::clientBodyTimeoutDuration > 0)
-		{
-			(*it)->clientBodyTimeout = Time::getTimeSinceEpoch() + Server::clientBodyTimeoutDuration;
-		}
-		else if ((*it)->timer & Client::CLIENT_HEADER && Server::clientHeaderTimeoutDuration > 0)
-		{
-			(*it)->clientHeaderTimeout = Time::getTimeSinceEpoch() + Server::clientHeaderTimeoutDuration;
-		}
-		else if ((*it)->timer & Client::KEEP_ALIVE && Server::keepAliveTimeoutDuration > 0)
-		{
-			(*it)->keepAliveTimeout = Time::getTimeSinceEpoch() + Server::keepAliveTimeoutDuration;
-		}
-=======
 		(*it)->update();
->>>>>>> main
 	}
 }
 
@@ -232,23 +263,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt, std::set<
 					activeTimers.insert(client.timer);
 					return ;
 				}
-<<<<<<< HEAD
-				Logger::logRequest(request, client);
-			}
-			if (request.processStage & Request::MESSAGE_BODY)
-			{
-				request.parseMessageBody(client.message);
-			}
-			if (request.processStage & Request::DONE)
-			{
-				client.timer &= ~Client::CLIENT_BODY;
-
-				String				host = request.find< Optional<String> >("Host")
-										  		  .value_or("");
-				if (host.find(':'))
-=======
 				else
->>>>>>> main
 				{
 					initialMessageLength = client.message.length();
 				}

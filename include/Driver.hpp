@@ -32,8 +32,11 @@ class CGI;
 
 struct	Driver
 {
+	Driver();
 	Driver(const Configuration&);
 	~Driver();
+
+	void	initialize(const Configuration&);
 
 	String					webServerName;
 	struct HTTP				http;
@@ -65,7 +68,6 @@ struct	Driver
 
 private:
 	/* No default construction or copying necessary */
-	Driver();
 	Driver(const Driver&);
 	Driver&	operator=(const Driver&);
 

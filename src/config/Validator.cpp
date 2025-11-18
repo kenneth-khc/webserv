@@ -13,22 +13,58 @@
 #include "Context.hpp"
 #include "Directive.hpp"
 #include "Validator.hpp"
+#include "MissingDirective.hpp"
 #include "String.hpp"
 #include "InvalidParameter.hpp"
 #include "InvalidParameterAmount.hpp"
 #include "InvalidDirective.hpp"
 #include "InvalidContext.hpp"
 #include "DuplicateDirective.hpp"
+#include "ServerNameConflict.hpp"
+#include "DefaultServerNameConflict.hpp"
 #include "VectorInitializer.hpp"
+#include <iterator>
 #include <stdexcept>
 #include <vector>
+#include <set>
 #include <algorithm>
 #include <limits>
 #include <cctype>
 
 Validator::Validator(ValidationFunc function):
-function(function)
+function(function),
+headerValidationFunc(NULL),
+bodyValidationFunc(NULL)
 {
+}
+
+Validator::Validator(ValidationFunc validateHeader, ValidationFunc validateBody):
+function(validateHeader),
+headerValidationFunc(validateHeader),
+bodyValidationFunc(validateBody)
+{
+}
+
+void	Validator::validateHeader(const Directive* directive,
+								  const Directive::Map& mappings) const
+{
+	if (this->headerValidationFunc == NULL)
+	{
+		throw std::runtime_error("Missing header validation function for " +
+								  directive->name);
+	}
+	return this->headerValidationFunc(*directive, mappings);
+}
+
+void	Validator::validateBody(const Directive* directive,
+								  const Directive::Map& mappings) const
+{
+	if (this->bodyValidationFunc == NULL)
+	{
+		throw std::runtime_error("Missing body validation function for " +
+								  directive->name);
+	}
+	return this->bodyValidationFunc(*directive, mappings);
 }
 
 void	Validator::operator()(const Directive& directive,
@@ -113,8 +149,6 @@ void	validateEnclosingContext(const Directive& directive,
 	if (std::find(expected.begin(),
 				  expected.end(),
 				  context) == expected.end())
-				  // directive.getContext()) == allowedContexts.end())
-				  // directive.enclosingContext) == allowedContexts.end())
 	{
 		throw InvalidContext(directive, expected);
 	}
@@ -157,53 +191,173 @@ void	validatePrefix(const Directive& directive, const Directive::Map& mappings)
 	}
 }
 
-// TODO: accept more options for listen. right now, the only parameter
-// accepted is a single port number
-
 /*
-Syntax : listen port;
+Syntax : server { ... }
 Default: —
-Context: server */
-void	validateListen(const Directive& directive, const Directive::Map&)
+Context: http */
+void	validateServerHeader(const Directive& directive, const Directive::Map&)
 {
-	validateParameterSize(directive, 1);
-	const String&	str = directive.parameters[0].value;
-	int	portNum = str.toInt();
+	validateEnclosingContext(directive, Context::HTTP);
+	validateParameterSize(directive, 0);
+}
 
-	if (portNum < 0 || portNum > 65535)
+std::set<Parameter>	getCommonListens(const Directive& serverA, const Directive& serverB)
+{
+	std::set<Parameter>	a;
+	std::vector<Directive*>	listenA = serverA.getDirectives("listen");
+	for (size_t i = 0; i < listenA.size(); ++i)
 	{
-		throw InvalidParameter(directive, directive.parameters[0],
-							   "port number should be between 0-65535");
+		a.insert(listenA[i]->getParameter());
 	}
-	validateEnclosingContext(directive, Context::SERVER);
+	std::set<Parameter>	b;
+	std::vector<Directive*>	listenB = serverB.getDirectives("listen");
+	for (size_t i = 0; i < listenB.size(); ++i)
+	{
+		b.insert(listenB[i]->getParameter());
+	}
+
+	std::set<Parameter>	commonListens;
+	std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
+						  std::inserter(commonListens, commonListens.begin()));
+	return commonListens;
+}
+
+std::set<Parameter>	getCommonServerNames(const Directive& serverA, const Directive& serverB)
+{
+	std::set<Parameter>	a;
+	std::vector<Directive*>	serverNameA = serverA.getDirectives("server_name");
+	for (size_t i = 0; i < serverNameA.size(); ++i)
+	{
+		const std::vector<Parameter>&	names = serverNameA[i]->getParameters();
+		for (size_t j = 0; j < names.size(); ++j)
+		{
+			a.insert(names[j]);
+		}
+	}
+	std::set<Parameter>	b;
+	std::vector<Directive*>	serverNameB = serverB.getDirectives("server_name");
+	for (size_t i = 0; i < serverNameB.size(); ++i)
+	{
+		const std::vector<Parameter>&	names = serverNameB[i]->getParameters();
+		for (size_t j = 0; j < names.size(); ++j)
+		{
+			b.insert(names[j]);
+		}
+	}
+
+	std::set<Parameter>	commonServerNames;
+	std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
+						  std::inserter(commonServerNames, commonServerNames.begin()));
+	return commonServerNames;
+}
+
+void	validateServerBody(const Directive& directive, const Directive::Map&)
+{
+	validateEnclosingContext(directive, Context::HTTP);
+
+	const Directive&		parent = *directive.parent;
+	std::vector<Directive*>	servers = parent.getDirectives("server");
+
+	for (size_t i = 0; i < servers.size(); ++i)
+	{
+		const Directive&	otherServer = *servers[i];
+		std::set<Parameter> commonListens = getCommonListens(otherServer, directive);
+		if (!commonListens.empty())
+		{
+			if (otherServer.getDirectives("server_name").empty() &&
+				directive.getDirectives("server_name").empty())
+			{
+				throw DefaultServerNameConflict(otherServer, directive,
+												commonListens.begin()->value);
+			}
+			std::set<Parameter>	commonServerNames =
+				getCommonServerNames(otherServer, directive);
+			if (!commonServerNames.empty())
+			{
+				throw ServerNameConflict(otherServer, directive,
+				                         commonListens.begin()->value,
+				                         commonServerNames.begin()->value);
+			}
+		}
+	}
 }
 
 /*
 Syntax : http { ... }
 Default: —
-Context: main
+Context: global 
 Count  : 1 */
-void	validateHTTP(const Directive& directive, const Directive::Map& mappings)
+void	validateHttpHeader(const Directive& directive, const Directive::Map& mappings)
 {
 	validateParameterSize(directive, 0);
 	validateEnclosingContext(directive, Context::GLOBAL);
 	validateDuplicateDirective(directive, mappings);
 }
 
-/*
-Syntax : server { ... }
-Default: —
-Context: http */
-void	validateServer(const Directive& directive, const Directive::Map&)
+void	validateHttpBody(const Directive& directive, const Directive::Map&)
 {
-	validateEnclosingContext(directive, Context::HTTP);
+	if (!directive.getDirective("server").exists)
+	{
+		throw MissingDirective(directive, "server");;
+		throw std::runtime_error("missing server");
+	}
+}
+
+/*
+Syntax : location uri { ... }
+Default: —
+Context: server, location */
+void	validateLocationHeader(const Directive& directive, const Directive::Map&)
+{
+	validateParameterSize(directive, 1);
+	validateEnclosingContext(directive,
+							 vector_of(Context::SERVER)(Context::LOCATION));
+	
+}
+
+void	validateLocationBody(const Directive& directive, const Directive::Map&)
+{
+	validateEnclosingContext(directive,
+							 vector_of(Context::SERVER)(Context::LOCATION));
+}
+
+/*
+Syntax : listen address:port;
+Default: —
+Context: server */
+void	validateListen(const Directive& directive, const Directive::Map&)
+{
+	validateParameterSize(directive, 1);
+
+	const Parameter&	param = directive.parameters[0];
+	const String&		str = param.value;
+
+	Optional<String::size_type>	colon = str.find(":");
+	if (!colon.exists)
+	{
+		throw InvalidParameter(directive, param, "expected address:port");
+	}
+	// TODO(kecheong): validate ip. inet_pton is not an allowed function
+	const String&	ip = str.substr(0, colon.value);
+	const String&	port = str.substr(colon.value + 1);
+
+	int	portNum = port.toInt();
+	if (portNum < 0 || portNum > 65535)
+	{
+		// TODO(kecheong): get rid of the const_cast lmao
+		// this would be easy if InvalidParameter accepted a Diagnostic itself
+		// rather than looking into the Parameter for a Diagnostic
+		const_cast<Parameter&>(param).diagnostic.colNum += ip.size() + 1;
+		throw InvalidParameter(directive, param,
+							   "port number should be between 0-65535");
+	}
+	validateEnclosingContext(directive, Context::SERVER);
 }
 
 /*
 Syntax : server_name name;
 Default : —
-Context: server
-*/
+Context: server */
 void	validateServerName(const Directive& directive, const Directive::Map&)
 {
 	validateParameterSize(directive, 1, std::numeric_limits<size_t>::max());
@@ -211,21 +365,9 @@ void	validateServerName(const Directive& directive, const Directive::Map&)
 }
 
 /*
-Syntax : location uri { ... }
-Default: —
-Context: server, location */
-void	validateLocation(const Directive& directive, const Directive::Map&)
-{
-	// TODO: support exact matches?
-	validateParameterSize(directive, 1);
-	validateEnclosingContext(directive,
-							 vector_of(Context::SERVER)(Context::LOCATION));
-}
-
-/*
 Syntax : root path;
 Default: root html;
-Context: http, server, location, if in location */
+Context: http, server, location */
 void	validateRoot(const Directive& directive, const Directive::Map& mappings)
 {
 	validateParameterSize(directive, 1);

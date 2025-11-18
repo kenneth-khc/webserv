@@ -23,10 +23,13 @@
 Validators::Validators()
 {
 	registerDirective("prefix", validatePrefix);
-	registerDirective("http", validateHTTP);
-	registerDirective("server", validateServer);
+	registerDirective("http",
+					 Validator(validateHttpHeader, validateHttpBody));
+	registerDirective("server",
+					  Validator(validateServerHeader, validateServerBody));
 	registerDirective("listen", validateListen);
-	registerDirective("location", validateLocation);
+	registerDirective("location",
+					  Validator(validateLocationHeader, validateLocationBody));
 	registerDirective("root", validateRoot);
 	registerDirective("index", validateIndex);
 	registerDirective("types", validateTypes);
@@ -47,6 +50,20 @@ void	Validators::registerDirective(const String& name,
 									  const Validator& validator)
 {
 	validators.insert(std::make_pair(name, validator));
+}
+
+const Validator&	Validators::getValidator(const Directive* directive) const
+{
+	try
+	{
+		const Validator& validator =
+		operator[](directive->name);
+		return validator;
+	}
+	catch (const std::out_of_range&)
+	{
+		throw InvalidDirective(directive);
+	}
 }
 
 void	Validators::validate(const Directive* directive,

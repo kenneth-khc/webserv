@@ -32,6 +32,10 @@ public:
 		Throws an InvalidDirective if the Directive is not supported */
 	void	validate(const Directive*, const Directive::Map&) const;
 
+	/** Returns the Validator for a Directive without invoking it directly.
+		Throws an InvalidDirective if the Directive is not supported */
+	const Validator&	getValidator(const Directive*) const;
+
 private:
 
 	/** Returns the Validator for the given Directive */

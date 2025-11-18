@@ -24,6 +24,7 @@
 #include "contentType.hpp"
 #include "Server.hpp"
 #include "etag.hpp"
+#include <iostream>
 
 #define FILE_NAME_LEN 45
 
@@ -41,11 +42,9 @@ getFile(const String&, Response&, const Request&, const Location&);
 
 static void		generateUploadsListing(const String& uploadsDir, Response& response, const Request& request);
 static String	getUploadsReference(const String& uploadsDir, const Request &request);
-static void		generateDirectoryListing(Response& response, const std::string& dirName);
+static void		generateDirectoryListing(Response& response, std::string dirName, const std::string& uri);
 static bool		fileIsDirectory(const String& filepath);
 static Optional<String>	tryIndexFiles(const Location&, const String& filepath);
-
-#include <iostream>
 
 void	Server::get(Response& response, Request& request, const Location& location) const
 {
@@ -108,7 +107,7 @@ static Optional<String>	resolveDirectoryGET(Response &response,
 	{
 		if (location.autoindex)
 		{
-			generateDirectoryListing(response, request.resolvedPath);
+			generateDirectoryListing(response, request.resolvedPath, location.uri);
 			response.setStatusCode(Response::OK);
 			response.insert("Content-Length", response.messageBody.length());
 			response.insert("Content-Type", "text/html");
@@ -217,26 +216,24 @@ static String	getUploadsReference(
 #define FILE_SIZE_LEN 20
 #include <iostream>
 
-void	generateDirectoryListing(Response& response, const std::string& dirName)
+void	generateDirectoryListing(Response& response,
+    	                         std::string path,
+    	                         const std::string& uri)
 {
-	DIR*	dir = opendir(dirName.c_str());
+	DIR*	dir = opendir(path.c_str());
 
 	if (!dir)
 		throw NotFound404();
 
 	struct stat			statbuf;
-	std::string			path = dirName;
-	std::string			trimmedRootPath;
 	std::stringstream	stream;
 
 	if (path[path.length() - 1] != '/')
 		path += "/";
 
-	std::cout << ">>> " << path << '\n';
-	trimmedRootPath = path.substr(path.find_first_of('/'));
 	stream << "<html>\n"
 		   << 	"<head>\n"
-		   << 		"<title>Index of " + trimmedRootPath + "</title>\n"
+		   << 		"<title>Index of " + uri + "</title>\n"
 		   << 		"<style>\n\t"
 		   << 			"html { font-family: 'Comic Sans MS' }\n\t"
 		   << 			"body { background-color: #f4dde7 }\n\t"
@@ -244,7 +241,7 @@ void	generateDirectoryListing(Response& response, const std::string& dirName)
 		   << 		"</style>\n"
 		   << 	"</head>\n"
 		   << 	"<body>\n"
-		   << 		"<h1>Index of " + trimmedRootPath + "</h1>\n"
+		   << 		"<h1>Index of " + uri + "</h1>\n"
 		   << 		"<hr><pre>\n";
 
 	response.messageBody += stream.str();
@@ -281,7 +278,7 @@ void	generateDirectoryListing(Response& response, const std::string& dirName)
 		}
 
 		stream << "<a href=\""
-			   << ((entry->d_type == DT_DIR) ? trimmedRootPath + d_name + "/" : trimmedRootPath + d_name)
+			   << ((entry->d_type == DT_DIR) ? uri + d_name + "/" : uri + d_name)
 			   << "\">"
 			   << std::left
 			   << std::setw(FILE_NAME_LEN + 5)

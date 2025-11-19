@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/20 03:14:51 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 05:30:32 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ const String	CGI::cgiFields[NUM_OF_CGI_FIELDS] = {
 	"status"
 };
 
-CGI::CGI(const Server &server, Client &client, Request &request, Response &response) :
+CGI::CGI(Client &client, Request &request, Response &response) :
 	client(client),
 	request(request),
 	response(response),
@@ -52,9 +52,9 @@ CGI::CGI(const Server &server, Client &client, Request &request, Response &respo
 		this->extension = request.path.substr(extPos.value);
 
 	String								pathInfo;
-	std::vector<String>::const_iterator	it = request.location->cgiScript.begin();
+	std::set<String>::const_iterator	it = request.location->cgiScripts.begin();
 
-	while (it != request.location->cgiScript.end()) {
+	while (it != request.location->cgiScripts.end()) {
 		if (this->extension == ("." + *it)) {
 			if (pathInfoPos.exists == true) {
 				this->scriptName = request.path.substr(1, pathInfoPos.value - 1);
@@ -68,7 +68,7 @@ CGI::CGI(const Server &server, Client &client, Request &request, Response &respo
 	}
 	this->execPath = this->scriptName;
 
-	if (it == request.location->cgiScript.end() || access(this->execPath.c_str(), X_OK) != 0)
+	if (it == request.location->cgiScripts.end() || access(this->execPath.c_str(), X_OK) != 0)
 		throw NotFound404();
 
 	String						cgiName;

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 03:19:46 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 05:24:01 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,11 +77,7 @@ clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
 							.value_or(std::map<int,String>());
 }
 
-void	Server::handleRequest(
-	Driver& driver,
-	Client& client,
-	Request& request,
-	Response& response)
+void	Server::handleRequest(Request& request, Response& response)
 {
 	request.isSupportedVersion();
 	request.parseCookieHeader();
@@ -89,7 +85,7 @@ void	Server::handleRequest(
 
 	request.path = pathHandler.normalize(request.path);
 	request.location = matchURILocation(request)
-					   .value_or(&Server::defaultLocation);
+					   .value_or(const_cast<Location *>(&Server::defaultLocation));
 	request.checkIfValidMethod();
 
 	const String&	rootDir = pathHandler.resolveWithPrefix(request.location->root);
@@ -169,7 +165,7 @@ void	Server::cgi(
 	Response &response,
 	Request &request) const
 {
-	CGI	*cgi = new CGI(*this, client, request, response);
+	CGI	*cgi = new CGI(client, request, response);
 
 	cgi->generateEnv(driver.webServerName);
 	cgi->execute(driver.epollFD, driver.cgis);

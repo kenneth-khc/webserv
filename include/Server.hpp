@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 02:55:21 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 05:18:04 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ struct	Server
 	static const unsigned int	timeoutValue;
 	static PathHandler			pathHandler;
 
-	void						handleRequest(Driver&, Client&, Request&, Response&);
+	void						handleRequest(Request&, Response&);
 	void						processCookies(Request&, Response&);
 	Optional<Location*>			matchURILocation(const Request&);
 

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 22:21:40 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 02:24:40 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 05:29:56 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
  * - cgi
  */
 
+#include <set>
 #include "String.hpp"
 #include "MediaType.hpp"
 #include "Directive.hpp"
@@ -55,6 +56,8 @@ struct	Location
 	bool					acceptUploads;
 
 	String					uploadDirectory;
+
+	std::set<String>		cgiScripts;
 };
 
 #endif

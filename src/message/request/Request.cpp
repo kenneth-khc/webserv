@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/20 04:17:52 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 05:20:50 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ Request::~Request(void) {
 
 Request::Request(const Request &obj) :
 	Message(obj),
-	location(location),
+	location(obj.location),
 	method(obj.method),
 	requestTarget(obj.requestTarget),
 	path(obj.path),
@@ -174,7 +174,6 @@ void	Request::isSupportedVersion(void) const {
 	for (int i = 0; i < NUM_OF_HEADERS; i++) {
 		if (this->httpVersion == supportedVersions[i])
 			return ;
-		i++;
 	}
 	throw VersionNotSupported505();
 }

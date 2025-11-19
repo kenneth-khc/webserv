@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 04:17:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 05:18:32 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,7 +282,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt,
 			Server*		server = matchServerName(host)
 								.value_or(client.server);
 
-			server->handleRequest(*this, client, request, client.responseQueue.back());
+			server->handleRequest(request, client.responseQueue.back());
 		}
 		catch (const ErrorCode &e)
 		{

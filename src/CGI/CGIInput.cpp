@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 21:13:25 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/20 03:11:49 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 05:31:00 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,8 @@
 #include "CGIInput.hpp"
 
 CGIInput::CGIInput(CGI &cgi, int epollFD, std::map<int, CGI*> &cgis, int fd) :
-	cgi(cgi),
 	epollFD(epollFD),
+	cgi(cgi),
 	cgis(cgis),
 	fd(fd),
 	inputLength(0),

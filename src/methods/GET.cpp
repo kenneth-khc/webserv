@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 02:47:12 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 05:20:10 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,21 +29,21 @@
 
 static
 Optional<String>
-resolveUploadGET(Response&, const Request&, const Location&);
+resolveUploadGET(Response&, const Request&);
 
 static
 Optional<String>
-resolveDirectoryGET(Response&, const Request&, const Location&);
+resolveDirectoryGET(Response&, const Request&);
 
 static
 void
-getFile(const String&, Response&, const Request&, const Location&);
+getFile(const String&, Response&, const Request&);
 
 static void		generateUploadsListing(const String& uploadsDir, Response& response, const Request& request);
-static String	getUploadsReference(const String& uploadsDir, const Request &request);
+static String	getUploadsReference(const Request &request);
 static void		generateDirectoryListing(Response& response, std::string dirName, const std::string& uri);
 static bool		fileIsDirectory(const String& filepath);
-static Optional<String>	tryIndexFiles(const Location&, const String& filepath);
+static Optional<String>	tryIndexFiles(const std::vector<String>& indexFiles, const String& filepath);
 
 void	Server::get(Response& response, const Request& request) const
 {

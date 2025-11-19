@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 22:21:40 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 19:03:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 02:24:40 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,8 +55,6 @@ struct	Location
 	bool					acceptUploads;
 
 	String					uploadDirectory;
-
-	void	checkIfAllowedMethod(const String&) const;
 };
 
 #endif

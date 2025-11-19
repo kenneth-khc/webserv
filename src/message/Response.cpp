@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/19 22:05:32 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 02:09:46 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,6 +142,9 @@ void	Response::setStatusCode(int statusCode) {
 	switch (statusCode) {
 		case 200:
 			this->reasonPhrase = "OK";
+			break ;
+		case 204:
+			this->reasonPhrase = "No Content";
 			break ;
 		case 301:
 			this->reasonPhrase = "Moved Permanently";

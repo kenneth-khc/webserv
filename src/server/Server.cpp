@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/05 10:28:58 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 03:19:15 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,10 +41,7 @@ Server::Server():
 	locations(),
 	autoindex(true),
 	MIMEMappings("mime.types")
-{
-	cgiScript.push_back("py");
-	cgiScript.push_back("php");
-}
+{}
 
 Server::Server(const Directive& serverBlock,
 			   std::map<int,Socket>& existingSockets):
@@ -63,8 +60,7 @@ MIMEMappings(serverBlock.recursivelyLookup<String>("types")
 						.value_or("")),
 clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
 							 .transform(String::toSize)
-							 .value_or(1000000)),
-cgiScript(vector_of<String>("py")("php"))
+							 .value_or(1000000))
 {
 	// TODO: dynamic address
 	const String&	listenParams = serverBlock.getParameterOf("listen")
@@ -86,34 +82,27 @@ void	Server::handleRequest(
 	Request& request,
 	Response& response)
 {
-	if (!request.isSupportedVersion())
-	{
-		throw VersionNotSupported505();
-	}
-
+	request.isSupportedVersion();
 	request.parseCookieHeader();
 	processCookies(request, response);
 
 	request.path = pathHandler.normalize(request.path);
-	const Location*	location = matchURILocation(request)
-							  .value_or(&Server::defaultLocation);
-	location->checkIfAllowedMethod(request.method);
+	request.location = matchURILocation(request)
+					   .value_or(&Server::defaultLocation);
+	request.checkIfValidMethod();
 
-	const String&	rootDir = pathHandler.resolveWithPrefix(location->root);
+	const String&	rootDir = pathHandler.resolveWithPrefix(request.location->root);
 	request.resolvedPath = pathHandler.resolve(rootDir, request.path);
 
-
-	if (request.path.starts_with(location->uri) &&
-		location->executeCGI == true &&
-		request.path.ends_with(".bla"))	// Test-specific condition
-	{
-		cgi(driver, client, response, request);
-		return ;
-	}
+	// if (location)
+	// {
+	// 	cgi(driver, client, response, request);
+	// 	return ;
+	// }
 
 	if (request.method == "GET")
 	{
-		get(response, request, *location);
+		get(response, request);
 	}
 	else if (request.method == "POST")
 	{
@@ -123,12 +112,6 @@ void	Server::handleRequest(
 	{
 		delete_(response, request);
 	}
-	else	// Test-specific condition
-	{
-		if (request.path == "/")
-			throw MethodNotAllowed405();
-		throw NotImplemented501();
-	}
 
 	constructConnectionHeader(request, response);
 	response.insert("Date", Time::printHTTPDate());
@@ -136,7 +119,7 @@ void	Server::handleRequest(
 }
 
 // TODO: exact matches
-Optional<const Location*>	Server::matchURILocation(const Request& request)
+Optional<Location*>	Server::matchURILocation(const Request& request)
 {
 	std::vector<Location>::iterator	longestMatch = locations.end();
 	size_t							longestMatchSoFar = 0;
@@ -154,11 +137,11 @@ Optional<const Location*>	Server::matchURILocation(const Request& request)
 	}
 	if (longestMatch == locations.end())
 	{
-		return makeNone<const Location*>();
+		return makeNone<Location*>();
 	}
 	else
 	{
-		std::vector<Location>::const_iterator	retval = longestMatch;
+		std::vector<Location>::iterator	retval = longestMatch;
 		return makeOptional(&*retval);
 	}
 }
@@ -185,9 +168,6 @@ void	Server::cgi(
 	Response &response,
 	Request &request) const
 {
-	if (request.method != "GET" && request.method != "POST")
-		throw NotImplemented501();
-
 	CGI	*cgi = new CGI(*this, client, request, response);
 
 	cgi->generateEnv(driver);

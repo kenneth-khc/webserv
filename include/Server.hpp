@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/01 22:59:27 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 02:55:21 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,21 +54,19 @@ struct	Server
 
 	void						handleRequest(Driver&, Client&, Request&, Response&);
 	void						processCookies(Request&, Response&);
-	Optional<const Location*>	matchURILocation(const Request&);
+	Optional<Location*>			matchURILocation(const Request&);
 
 	/* Handling HTTP methods */
-	void		get(Response&, Request&, const Location&) const;
-	void		post(Response&, Request&) const;
-	void		delete_(Response&, Request&) const;
+	void				get(Response&, const Request&) const;
+	void				post(Response&, const Request&) const;
+	void				delete_(Response&, const Request&) const;
 
-	void		cgi(Driver&, Client&, Response&, Request&) const;
+	void				cgi(Driver&, Client&, Response&, Request&) const;
 
 	friend class CGI;
 	// TODO: dumped this here just to compile, fix it
-	std::vector<String>	cgiScript;
 
 private:
-	void	checkIfAllowedMethod(const Location&, const Request&);
 	void	configureLocations(const Directive&);
 	void	assignSocket(const String&, const String&, std::map<int,Socket>&);
 };

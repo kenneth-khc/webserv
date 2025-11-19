@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 02:22:45 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 02:47:52 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,23 +33,11 @@ static void		uploadFiles(const POSTBody& body, const String& uploadsDir, const S
 static String	constructFormPath(const String& uploadsDir, const String& sid);
 static void		uploadForm(const POSTBody& body, const String& uploadsDir, const String& sid);
 
-void	Server::post(Response& response, Request& request) const
+void	Server::post(Response& response, const Request& request) const
 {
-	POSTBody					msgBody(request);
-	Optional<String::size_type>	pos = request.requestTarget.find(String("/") + "cgi-bin" + "/");
+	POSTBody	msgBody(request);
 
-	if (pos.exists == true && pos.value == 0)
-	{
-		throw MethodNotAllowed405();
-	}
-	else if (request.path == "/post_body")	// Test-specific condition
-	{
-		if (request.find< Optional<String::size_type> >("Content-Length").value > 100)
-			throw ContentTooLarge413();
-		response.setStatusCode(Response::OK);
-		response.insert("Content-Length", 0);
-	}
-	else if (request.path == "/pages/form.html")
+	if (request.location->acceptUploads)
 	{
 		POSTBody		msgBody(request);
 		const String&	sid = request.cookies.find("sid")->second.value;
@@ -57,11 +45,11 @@ void	Server::post(Response& response, Request& request) const
 		//TODO: dynamic uploads dir
 		if (msgBody.contentType == "application/x-www-form-urlencoded")
 		{
-			uploadForm(msgBody, "uploads", sid);
+			uploadForm(msgBody, request.location->uploadDirectory, sid);
 		}
 		else if (msgBody.contentType == "multipart/form-data")
 		{
-			uploadFiles(msgBody, "uploads", sid);
+			uploadFiles(msgBody, request.location->uploadDirectory, sid);
 		}
 		else
 		{
@@ -69,7 +57,7 @@ void	Server::post(Response& response, Request& request) const
 		}
 		response.setStatusCode(Response::SEE_OTHER);
 		response.insert("Content-Length", 0);
-		response.insert("Location", "http://localhost:8000/pages/form.html");
+		response.insert("Location", "/");
 	}
 	else
 	{
@@ -77,7 +65,9 @@ void	Server::post(Response& response, Request& request) const
 	}
 }
 
-static String	constructFilePath(const String& uploadsDir, const String& sid, const String& fileName)
+static String	constructFilePath(const String& uploadsDir,
+								  const String& sid,
+								  const String& fileName)
 {
 	Optional<String::size_type>	pos = fileName.find_last_of('.');
 	String						tempFilePath;

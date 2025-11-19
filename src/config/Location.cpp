@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 22:41:03 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 21:00:48 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/11/20 02:31:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,14 +57,4 @@ Location::Location(const Directive& locationBlock):
 {
 	errorPages = locationBlock.generateErrorPagesMapping()
 							  .value_or(std::map<int,String>());
-}
-
-void	Location::checkIfAllowedMethod(const String& method) const
-{
-	if (std::find(allowedMethods.begin(),
-				  allowedMethods.end(),
-				  method) == allowedMethods.end())
-	{
-		throw MethodNotAllowed405();
-	}
 }

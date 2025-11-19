@@ -6,26 +6,28 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/19 22:08:35 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 02:32:56 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <typeinfo>
 #include <sstream>
+#include <algorithm>
 #include "ErrorCode.hpp"
 #include "Request.hpp"
 #include "RequestLineState.hpp"
 
-const String	Request::methods[NUM_OF_METHODS] = {
+const String	Request::supportedMethods[NUM_OF_SUPPORTED_METHODS] = {
 	"GET",
 	"POST",
 	"DELETE"
 };
 
-const String	Request::supportedVersions[NUM_OF_VERSIONS] = { "1.0", "1.1" };
+const String	Request::supportedVersions[NUM_OF_SUPPORTED_VERSIONS] = { "1.0", "1.1" };
 
 Request::Request(void) :
 	Message(),
+	location(0),
 	method(),
 	requestTarget(),
 	path(),
@@ -44,6 +46,7 @@ Request::~Request(void) {
 
 Request::Request(const Request &obj) :
 	Message(obj),
+	location(location),
 	method(obj.method),
 	requestTarget(obj.requestTarget),
 	path(obj.path),
@@ -58,6 +61,7 @@ Request	&Request::operator=(const Request &obj) {
 	if (this == &obj)
 		return (*this);
 	Message::operator=(obj);
+	this->location = obj.location;
 	this->method = obj.method;
 	this->requestTarget = obj.requestTarget;
 	this->path = obj.path;
@@ -145,19 +149,29 @@ void	Request::parseCookieHeader(void) {
 	isCookieString(this->cookies, cookieHeader.value);
 }
 
-bool	Request::isValidMethod(void) {
-	for (int i = 0; i < NUM_OF_METHODS; i++) {
-		if (this->method == methods[i])
-			return (true);
+void	Request::checkIfValidMethod(void) const {
+	int	i = 0;
+
+	while (i < NUM_OF_SUPPORTED_METHODS) {
+		if (this->method == Request::supportedMethods[i])
+			break ;
 	}
-	return (false);
+	if (i == NUM_OF_SUPPORTED_METHODS)
+		throw NotImplemented501();
+
+	if (std::find(this->location->begin(),
+				  this->location->end(),
+				  method) == this->location->end())
+	{
+		throw MethodNotAllowed405();
+	}
 }
 
-bool	Request::isSupportedVersion(void) {
+void	Request::isSupportedVersion(void) const {
 	for (int i = 0; i < NUM_OF_HEADERS; i++) {
 		if (this->httpVersion == supportedVersions[i])
-			return (true);
+			return ;
 		i++;
 	}
-	return (false);
+	throw VersionNotSupported505();
 }

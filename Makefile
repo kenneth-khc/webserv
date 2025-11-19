@@ -79,7 +79,7 @@ clean:
 	$(RM) -r $(obj_dir)
 
 fclean: clean
-	$(RM) $(NAME) $(DEBUG_BUILD)
+	$(RM) $(NAME) $(DEBUG_BUILD) $(FSAN_BUILD)
 
 re: fclean all
 

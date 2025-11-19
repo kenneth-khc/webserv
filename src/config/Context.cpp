@@ -36,7 +36,7 @@ Context::Context	Context::from(const String& str)
 	{
 		return NONE;
 	}
-	else if (str == "CGI_script")
+	else if (str == "cgi_script")
 	{
 		return CGI_SCRIPT;
 	}
@@ -49,7 +49,7 @@ Context::Context	Context::from(const String& str)
 String	Context::toString(Context context)
 {
 	static const String	stringified[] = {
-		"none", "global", "http", "server", "CGI_script", "location"
+		"none", "global", "http", "server", "cgi_script", "location"
 	};
 
 	if (context >= CONTEXT_COUNT)

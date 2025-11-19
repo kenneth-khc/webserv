@@ -6,7 +6,7 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/04/03 17:30:27 by cteoh            ###   ########.fr        #
+#    Updated: 2025/11/20 05:15:02 by cteoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -55,25 +55,20 @@ includes := -I $(inc_dir)/ \
 			-I $(inc_dir)/server/errors
 
 obj_dir := obj
+obj_dirs := $(subst $(src_dir), $(obj_dir), $(dirs))
 objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)
 deps := $(objs:%.o=%.d)
 
-uploads_dir := uploads
-
 all: $(NAME)
 
-$(NAME): $(objs) $(uploads_dir)
+$(NAME): $(objs)
 	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(NAME)
 
 $(obj_dir):
-	mkdir -p $(obj_dir)
+	mkdir -p $(obj_dirs)
 
-$(obj_dir)/%.o: $(src_dir)/%.cpp | obj
-	mkdir -p $(dir $@)
+$(obj_dir)/%.o: $(src_dir)/%.cpp | $(obj_dir)
 	$(CXX) $(CXXFLAGS) $(includes) $< -c -o $@
-
-$(uploads_dir):
-	mkdir -p $(uploads_dir)
 
 clean:
 	$(RM) -r $(obj_dir)
@@ -89,19 +84,19 @@ debug_server: all
 debug: CXXFLAGS += -O0 -g3
 debug: $(DEBUG_BUILD)
 
-$(DEBUG_BUILD): $(objs) $(uploads_dir)
+$(DEBUG_BUILD): $(objs)
 	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(DEBUG_BUILD)
 
 fsan: CXXFLAGS += -fsanitize=address,undefined -g3
 fsan: $(FSAN_BUILD)
 
-$(FSAN_BUILD): $(objs) $(uploads_dir)
+$(FSAN_BUILD): $(objs)
 	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(FSAN_BUILD)
 
 release: CXXFLAGS += -O3
 release: $(RELEASE_BUILD)
 
-$(RELEASE_BUILD): $(objs) $(uploads_dir)
+$(RELEASE_BUILD): $(objs)
 	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(RELEASE_BUILD)
 
 lib:

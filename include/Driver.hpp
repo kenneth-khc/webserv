@@ -71,10 +71,10 @@ private:
 	Driver(const Driver&);
 	Driver&	operator=(const Driver&);
 
-	void				addToEpoll(int, EPOLL_EVENTS);
-	// TODO: check these 2 out
-	Optional<Server*>	matchServerName(const String&);
-	Optional<Server*>	matchPort(int);
+	void			addToEpoll(int, EPOLL_EVENTS);
+	const Server*	selectVirtualHost(const std::vector<Server>&,
+									  const Client&,
+									  const Request&);
 };
 
 #endif

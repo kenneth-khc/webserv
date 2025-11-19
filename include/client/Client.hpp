@@ -44,7 +44,7 @@ public:
 
 	Socket*				socket;
 	const Socket*		receivedBy;
-	Server*				server;
+	const Server*		defaultServer;
 	String				message;
 	Timer*				timer;
 	std::vector<CGI*>	cgis;

@@ -37,6 +37,7 @@ struct	Server
 	static const unsigned int	clientHeaderTimeoutDuration;
 	static const unsigned int	clientBodyTimeoutDuration;
 
+	// TODO(kecheong): a server can have multiple sockets
 	Socket*					socket;
 	std::vector<String>		domainNames;
 
@@ -52,9 +53,9 @@ struct	Server
 	static const unsigned int	timeoutValue;
 	static PathHandler			pathHandler;
 
-	void						handleRequest(Driver&, Client&, Request&, Response&);
-	void						processCookies(Request&, Response&);
-	Optional<const Location*>	matchURILocation(const Request&);
+	void						handleRequest(Driver&, Client&, Request&, Response&) const;
+	void						processCookies(Request&, Response&) const;
+	Optional<const Location*>	matchURILocation(const Request&) const;
 
 	/* Handling HTTP methods */
 	void		get(Response&, Request&, const Location&) const;

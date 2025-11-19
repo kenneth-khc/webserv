@@ -355,7 +355,7 @@ void	validateListen(const Directive& directive, const Directive::Map&)
 }
 
 /*
-Syntax : server_name name;
+Syntax : server_name name ...;
 Default : —
 Context: server */
 void	validateServerName(const Directive& directive, const Directive::Map&)
@@ -399,12 +399,7 @@ Context: http, server, location */
 void	validateTypes(const Directive& directive, const Directive::Map& mappings)
 {
 	validateParameterSize(directive, 1);
-	// TODO(kecheong): allow server/location contexts
-	// validateEnclosingContext(dir, HTTP);
-	validateEnclosingContext(directive,
-	                        (Context::HTTP,
-	                         Context::SERVER,
-	                         Context::LOCATION));
+	validateEnclosingContext(directive, Context::HTTP);
 	validateDuplicateDirective(directive, mappings);
 }
 
@@ -435,40 +430,12 @@ void	validateAutoindex(const Directive& directive, const Directive::Map& mapping
 	}
 }
 
-/*
-Syntax : ExecCGI boolean;
-Default: off
-Context: location */
-void	validateExecCGI(const Directive& directive, const Directive::Map& mappings)
-{
-	validateParameterSize(directive, 1);
-	validateEnclosingContext(directive, Context::LOCATION);
-	validateDuplicateDirective(directive, mappings);
-	validateBoolean(directive, directive.parameters[0]);
-}
-
 void	validateFileExtension(const Directive& directive, const Parameter& parameter)
 {
 	if (parameter.value[0] != '.')
 	{
 		throw InvalidParameter(directive, parameter,
 							   "expected file extension beginning with a .");
-	}
-}
-
-/*
-Syntax : CGI_script file-extension ... ;
-Default: —
-Context: server */
-void	validateCGIScript(const Directive& directive, const Directive::Map& mappings)
-{
-	validateParameterSize(directive, 1, std::numeric_limits<size_t>::max());
-	validateEnclosingContext(directive, Context::SERVER);
-	validateDuplicateDirective(directive, mappings);
-	const std::vector<Parameter>&	parameters = directive.parameters;
-	for (size_t i = 0; i < parameters.size(); ++i)
-	{
-		validateFileExtension(directive, parameters[i]);
 	}
 }
 
@@ -480,11 +447,19 @@ void	validateAllowMethod(const Directive& directive, const Directive::Map& mappi
 {
 	validateParameterSize(directive, 1, 3);
 	validateParameterValues(directive,
-							vector_of<Parameter>("GET")("POST")("DELETE")("HEAD"));
+							vector_of<Parameter>("GET")("POST")("DELETE"));
 	validateEnclosingContext(directive,
 							 vector_of(Context::LOCATION)(Context::CGI_SCRIPT));
 	validateDuplicateDirective(directive, mappings);
 }
+
+void	validateRedirect(const Directive& directive, const Directive::Map&)
+{
+	validateParameterSize(directive, 2);
+	validateEnclosingContext(directive,
+	                         vector_of(Context::SERVER)(Context::LOCATION));
+}
+
 
 /*
 Syntax : client_max_body_size size;
@@ -530,27 +505,10 @@ void	validateErrorCode(const Directive& directive, const Parameter& code)
 	}
 }
 
-void	validateAcceptUploads(const Directive& directive, const Directive::Map& mappings)
-{
-	validateParameterSize(directive, 1);
-	validateEnclosingContext(directive, Context::LOCATION);
-	validateDuplicateDirective(directive, mappings);
-	validateBoolean(directive, directive.parameters[0].value);
-	if (countFrequency("autoindex", mappings) > 0)
-	{
-		throw InvalidDirective(directive);
-	}
-}
-
-/*
-Syntax : upload_directory file_path;
-Default: —
-Context: location */
 void	validateUploadDirectory(const Directive& directive, const Directive::Map& mappings)
 {
 	validateParameterSize(directive, 1);
-	validateEnclosingContext(directive,
-							 vector_of(Context::LOCATION)(Context::CGI_SCRIPT));
+	validateEnclosingContext(directive, vector_of(Context::LOCATION)(Context::CGI_SCRIPT));
 	validateDuplicateDirective(directive, mappings);
 }
 
@@ -573,11 +531,48 @@ void	validateErrorPage(const Directive& directive, const Directive::Map& mapping
 }
 
 /*
-Syntax : CGI_directory directory;
+Syntax : cgi_script file-extension ... ;
 Default: —
-Context: CGI_script */
-void	validateCGIDirectory(const Directive& dir, const Directive::Map& mappings)
+Context: server */
+void	validateCgiScriptHeader(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(dir, 1);
-	validateDuplicateDirective(dir, mappings);
+	validateParameterSize(directive, 1, std::numeric_limits<size_t>::max());
+	validateEnclosingContext(directive, Context::SERVER);
+	validateDuplicateDirective(directive, mappings);
+	const std::vector<Parameter>&	parameters = directive.parameters;
+	for (size_t i = 0; i < parameters.size(); ++i)
+	{
+		validateFileExtension(directive, parameters[i]);
+	}
 }
+
+void	validateCgiScriptBody(const Directive& directive, const Directive::Map& mappings)
+{
+	validateCgiScriptHeader(directive, mappings);
+	if (!directive.getDirective("cgi_bin_directory").exists)
+	{
+		throw MissingDirective(directive, "cgi_bin_directory");
+	}
+}
+
+/*
+Syntax : cgi_bin_directory directory;
+Default: —
+Context: cgi_script */
+void	validateCgiBinDirectory(const Directive& directive, const Directive::Map&)
+{
+	validateParameterSize(directive, 1);
+	validateEnclosingContext(directive, vector_of(Context::CGI_SCRIPT));
+}
+
+/*
+Syntax : cgi_upload_directory directory;
+Default: —
+Context: cgi_script */
+void	validateCgiUploadDirectory(const Directive& directive, const Directive::Map& mappings)
+{
+	validateParameterSize(directive, 1);
+	validateEnclosingContext(directive, Context::CGI_SCRIPT);
+	validateDuplicateDirective(directive, mappings);
+}
+

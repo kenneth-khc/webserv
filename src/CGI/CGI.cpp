@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/05 10:23:45 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/19 22:14:35 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,8 +71,6 @@ CGI::CGI(
 		it++;
 	}
 	this->execPath = this->scriptName;
-	if (this->execPath.ends_with(".bla") == true)	// Test-specific condition
-		this->execPath = "subject/ubuntu_cgi_tester";
 
 	if (it == server.cgiScript.end() || access(this->execPath.c_str(), X_OK) != 0)
 		throw NotFound404();
@@ -111,11 +109,9 @@ CGI::~CGI(void) {
 void	CGI::generateEnv(const Driver &driver) {
 	String				host = this->request["Host"].value;
 	std::stringstream	serverPort;
-	std::stringstream	serverProtocol;
 	std::stringstream	contentLength;
 
 	serverPort << this->client.socket->port;
-	serverProtocol << std::setprecision(2) << this->request.httpVersion;
 	contentLength << this->request.messageBody.length();
 
 	const String	metaVariables[NUM_OF_META_VARIABLES] = {
@@ -130,7 +126,7 @@ void	CGI::generateEnv(const Driver &driver) {
 		"SCRIPT_NAME=",
 		"SERVER_NAME=" + String(host).consumeUntil(":").value_or(host),
 		"SERVER_PORT=" + serverPort.str(),
-		"SERVER_PROTOCOL=HTTP/" + serverProtocol.str(),
+		"SERVER_PROTOCOL=HTTP/" + this->request.httpVersion,
 		"SERVER_SOFTWARE=" + driver.webServerName,
 	};
 

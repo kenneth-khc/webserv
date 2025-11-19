@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:09:36 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/01 21:15:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/19 22:06:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,7 +148,7 @@ RequestState	*RequestLineState::process(Request &request, Client &client) {
 		throw BadRequest400();
 	if (std::isdigit(str[0]) == 0 || str[1] != '.' || std::isdigit(str[2]) == 0)
 		throw BadRequest400();
-	std::stringstream(str) >> request.httpVersion;
+	request.httpVersion = str;
 
 	message.erase(0, terminatorPos.value);
 	return (new HeadersState());

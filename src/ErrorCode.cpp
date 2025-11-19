@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/25 22:12:47 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/19 22:03:19 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 ErrorCode::ErrorCode(void) : Response() {}
 
 ErrorCode::ErrorCode(
-	float httpVersion,
+	String httpVersion,
 	int statusCode,
 	String reasonPhrase) :
 	Response()
@@ -30,7 +30,7 @@ ErrorCode::ErrorCode(
 }
 
 ErrorCode::ErrorCode(
-	float httpVersion,
+	String httpVersion,
 	int statusCode,
 	String reasonPhrase,
 	const char *title) :

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/01 22:57:43 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/19 22:08:35 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,12 +18,11 @@
 
 const String	Request::methods[NUM_OF_METHODS] = {
 	"GET",
-	"HEAD",
 	"POST",
 	"DELETE"
 };
 
-const float	Request::supportedVersions[NUM_OF_VERSIONS] = { 1.1 };
+const String	Request::supportedVersions[NUM_OF_VERSIONS] = { "1.0", "1.1" };
 
 Request::Request(void) :
 	Message(),
@@ -155,9 +154,10 @@ bool	Request::isValidMethod(void) {
 }
 
 bool	Request::isSupportedVersion(void) {
-	for (int i = 0; i < NUM_OF_VERSIONS; i++) {
-		if (this->httpVersion > supportedVersions[i])
-			return (false);
+	for (int i = 0; i < NUM_OF_HEADERS; i++) {
+		if (this->httpVersion == supportedVersions[i])
+			return (true);
+		i++;
 	}
-	return (true);
+	return (false);
 }

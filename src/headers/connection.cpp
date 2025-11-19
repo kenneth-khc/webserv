@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 23:43:39 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/27 16:29:11 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/19 22:04:53 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,9 @@ void	constructConnectionHeader(const Request &request, Response &response) {
 	connectionOption.value = connectionOption.value.lower();
 	if (connectionOption.value.find("close").exists == true)
 		response.closeConnection = true;
-	else if (request.httpVersion >= 1.1)
+	else if (request.httpVersion != "1.0")
 		response.closeConnection = false;
-	else if (std::abs(request.httpVersion - 1.0) < 0.00001 &&
+	else if (request.httpVersion == "1.0" &&
 		connectionOption.value.find("keep-alive").exists == true)
 		   response.closeConnection = false;
 	else

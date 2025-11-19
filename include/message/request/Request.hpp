@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/01 16:51:07 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/19 22:08:07 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,14 @@
 # include "RequestState.hpp"
 
 # define NUM_OF_METHODS 4
-# define NUM_OF_VERSIONS 1
+# define NUM_OF_VERSIONS 2
 
 class Client;
 
 class Request : public Message {
 	public:
 		static const String	methods[NUM_OF_METHODS];
-		static const float	supportedVersions[NUM_OF_VERSIONS];
+		static const String	supportedVersions[NUM_OF_VERSIONS];
 
 		Client*						client;
 		String						method;

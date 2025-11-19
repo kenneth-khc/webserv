@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:25:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/12 15:41:58 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/19 22:03:05 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,8 @@
 class ErrorCode : public std::exception, public Response {
 	public:
 		ErrorCode(void);
-		ErrorCode(float httpVersion, int statusCode, String reasonPhrase);
-		ErrorCode(float httpVersion, int statusCode, String reasonPhrase, const char *title);
+		ErrorCode(String httpVersion, int statusCode, String reasonPhrase);
+		ErrorCode(String httpVersion, int statusCode, String reasonPhrase, const char *title);
 		~ErrorCode(void) throw();
 		ErrorCode(const ErrorCode &obj);
 		ErrorCode	&operator=(const ErrorCode &obj);

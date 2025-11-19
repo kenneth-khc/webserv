@@ -36,13 +36,9 @@ struct	Location
 	Location();
 	Location(const Directive&);
 
-	enum { EXACT, PREFIX }	matchType;
-
 	String					uri; // the uri to match
 
 	String					root; // root directory appended to the front of uri
-
-	String					alias; // uri rewritten into alias
 
 	bool					autoindex;
 
@@ -56,10 +52,8 @@ struct	Location
 
 	std::map<int,String>	errorPages;
 
-	bool					executeCGI;
-	std::vector<String>		CGIScriptFileExtensions;
-
 	bool					acceptUploads;
+
 	String					uploadDirectory;
 
 	void	checkIfAllowedMethod(const String&) const;

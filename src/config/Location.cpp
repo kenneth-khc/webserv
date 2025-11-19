@@ -16,32 +16,25 @@
 #include <algorithm>
 
 Location::Location():
-	matchType(PREFIX),
 	root("html"),
-	alias(),
 	autoindex(false),
 	MIMEMappings("mime.types"),
 	indexFiles()
 {
-
 }
 
 Location::Location(const Directive& locationBlock):
-	matchType(PREFIX),
-	// TODO: location exact matches
 	uri(locationBlock.parameters[0].value),
 
 	root(locationBlock.recursivelyLookup<String>("root")
 					  .value_or("html")),
-
-	alias(),
 
 	autoindex(locationBlock.recursivelyLookup<String>("autoindex")
 						   .transform(String::toBool)
 						   .value_or(false)),
 
 	MIMEMappings(locationBlock.recursivelyLookup<String>("types")
-							  .value_or("")),
+							  .value_or("mime.types")),
 
 	indexFiles(locationBlock.recursivelyLookup< std::vector<String> >("index")
 							.value_or(vector_of<String>("index.html"))),
@@ -53,13 +46,8 @@ Location::Location(const Directive& locationBlock):
 								   .transform(String::toSize)
 								   .value_or(1000000)),
 
-	executeCGI(locationBlock.getParameterOf("exec_CGI")
-							.transform(String::toBool)
-							.value_or(false)),
-
-	CGIScriptFileExtensions(locationBlock.getParametersOf("CGI_script")
-										 .value_or(vector_of<String>())),
-
+	// TODO(kecheong): accept_uploads is outdated. check for existence of
+	// "upload_directory" instead
 	acceptUploads(locationBlock.getParameterOf("accept_uploads")
 							   .transform(String::toBool)
 							   .value_or(false)),

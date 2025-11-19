@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/20 02:32:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 04:17:52 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,10 @@ const String	Request::supportedMethods[NUM_OF_SUPPORTED_METHODS] = {
 	"DELETE"
 };
 
-const String	Request::supportedVersions[NUM_OF_SUPPORTED_VERSIONS] = { "1.0", "1.1" };
+const String	Request::supportedVersions[NUM_OF_SUPPORTED_VERSIONS] = {
+	"1.0",
+	"1.1"
+};
 
 Request::Request(void) :
 	Message(),
@@ -159,9 +162,9 @@ void	Request::checkIfValidMethod(void) const {
 	if (i == NUM_OF_SUPPORTED_METHODS)
 		throw NotImplemented501();
 
-	if (std::find(this->location->begin(),
-				  this->location->end(),
-				  method) == this->location->end())
+	if (std::find(this->location->allowedMethods.begin(),
+				  this->location->allowedMethods.end(),
+				  method) == this->location->allowedMethods.end())
 	{
 		throw MethodNotAllowed405();
 	}

@@ -13,9 +13,7 @@
 #include <arpa/inet.h>
 #include "Client.hpp"
 #include "ClientHeaderTimer.hpp"
-
-// TODO: limit request size based on config file. now defaulted to 1 mb
-const size_t	Client::MAX_REQUEST_SIZE = 1 * 1024 * 1024;
+#include "Socket.hpp"
 
 Client::Client():
 socket(NULL),

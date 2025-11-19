@@ -26,6 +26,8 @@
 #include <netdb.h>
 #include <unistd.h>
 
+struct Driver;
+
 struct	Server
 {
 	Server();

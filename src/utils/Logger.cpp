@@ -18,6 +18,7 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Client.hpp"
+#include "Socket.hpp"
 
 namespace Logger
 {

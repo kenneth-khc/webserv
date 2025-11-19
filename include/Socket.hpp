@@ -14,7 +14,6 @@
 #define SOCKET_HPP
 
 #include "String.hpp"
-#include "Client.hpp"
 #include <sys/socket.h>
 #include <netdb.h>
 
@@ -36,6 +35,21 @@ public:
 	int		listen(int connectionCount) const;
 	Socket	accept() const;
 
+	/** A functor to invoke to match addresses between two sockets */
+	struct IsMatchingAddress
+	{
+		String			ip;
+		unsigned short	port;
+
+		IsMatchingAddress(String ip, unsigned short port):
+		ip(ip), port(port) {}
+
+		bool	operator()(const std::pair<const int, const Socket>& pair) const
+		{
+			return pair.second.ip == ip && pair.second.port == port;
+		}
+	};
+
 private:
 	/* Internally how the addresses are represented by the socket API,
 	 * only used for us to convert into its String representations for ease
@@ -48,20 +62,6 @@ private:
 
 	addrinfo*	getAddrInfo(const String&, const String&);
 	void		convertAddressToIpAndPort(sockaddr_storage);
-};
-
-/* A functor to pass into std::find_if to match port numbers because
- * lambdas don't exist in C++98 ..... */
-struct	IsMatchingPort
-{
-	unsigned short	port;
-
-	IsMatchingPort(unsigned short port): port(port) {}
-
-	bool	operator()(const std::pair<const int, const Socket>& pair) const
-	{
-		return pair.second.port == port;
-	}
 };
 
 #endif

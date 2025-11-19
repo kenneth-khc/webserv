@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/19 22:14:35 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 03:14:51 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,11 +30,7 @@ const String	CGI::cgiFields[NUM_OF_CGI_FIELDS] = {
 	"status"
 };
 
-CGI::CGI(
-	const Server &server,
-	Client &client,
-	Request &request,
-	Response &response) :
+CGI::CGI(const Server &server, Client &client, Request &request, Response &response) :
 	client(client),
 	request(request),
 	response(response),
@@ -56,9 +52,9 @@ CGI::CGI(
 		this->extension = request.path.substr(extPos.value);
 
 	String								pathInfo;
-	std::vector<String>::const_iterator	it = server.cgiScript.begin();
+	std::vector<String>::const_iterator	it = request.location->cgiScript.begin();
 
-	while (it != server.cgiScript.end()) {
+	while (it != request.location->cgiScript.end()) {
 		if (this->extension == ("." + *it)) {
 			if (pathInfoPos.exists == true) {
 				this->scriptName = request.path.substr(1, pathInfoPos.value - 1);
@@ -72,7 +68,7 @@ CGI::CGI(
 	}
 	this->execPath = this->scriptName;
 
-	if (it == server.cgiScript.end() || access(this->execPath.c_str(), X_OK) != 0)
+	if (it == request.location->cgiScript.end() || access(this->execPath.c_str(), X_OK) != 0)
 		throw NotFound404();
 
 	String						cgiName;
@@ -106,7 +102,7 @@ CGI::~CGI(void) {
 	std::remove(this->client.cgis.begin(), this->client.cgis.end(), this);
 }
 
-void	CGI::generateEnv(const Driver &driver) {
+void	CGI::generateEnv(const String &webServerName) {
 	String				host = this->request["Host"].value;
 	std::stringstream	serverPort;
 	std::stringstream	contentLength;
@@ -127,11 +123,11 @@ void	CGI::generateEnv(const Driver &driver) {
 		"SERVER_NAME=" + String(host).consumeUntil(":").value_or(host),
 		"SERVER_PORT=" + serverPort.str(),
 		"SERVER_PROTOCOL=HTTP/" + this->request.httpVersion,
-		"SERVER_SOFTWARE=" + driver.webServerName,
+		"SERVER_SOFTWARE=" + webServerName,
 	};
 
 	const String	extMetaVariables[NUM_OF_EXT_META_VARIABLES] = {
-		"X_UPLOADS_DIR=uploads"
+		"X_UPLOADS_DIR=" + this->request.location->uploadDirectory
 	};
 
 	int 		i = 0;
@@ -156,7 +152,7 @@ void	CGI::generateEnv(const Driver &driver) {
 		const String	phpMetaVariables[PHP_META_VARIABLES] = {
 			"REDIRECT_STATUS=200",
 			"SCRIPT_FILENAME=" + this->execPath,
-			"DOCUMENT_ROOT=/home/cteoh/Documents/webserv"
+			"DOCUMENT_ROOT=" + this->request.location->root
 		};
 
 		for (int j = 0; j < PHP_META_VARIABLES; j++) {
@@ -189,7 +185,7 @@ void	CGI::generateEnv(const Driver &driver) {
 	this->envp.push_back(0);
 }
 
-void	CGI::execute(Driver &driver) {
+void	CGI::execute(int epollFD, std::map<int, CGI*> &cgis) {
 	int	input[2];
 	int	output[2];
 
@@ -211,11 +207,11 @@ void	CGI::execute(Driver &driver) {
 	close(input[0]);
 	close(output[1]);
 
-	this->input = new CGIInput(driver, *this, input[1]);
-	driver.cgis.insert(std::make_pair(input[1], this));
+	this->input = new CGIInput(*this, epollFD, cgis, input[1]);
+	cgis.insert(std::make_pair(input[1], this));
 
-	this->output = new CGIOutput(driver, *this, output[0]);
-	driver.cgis.insert(std::make_pair(output[0], this));
+	this->output = new CGIOutput(*this, epollFD, cgis, output[0]);
+	cgis.insert(std::make_pair(output[0], this));
 
 	this->timer = new CGITimer();
 }

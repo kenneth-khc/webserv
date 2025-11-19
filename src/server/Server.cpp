@@ -6,10 +6,11 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 03:19:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 03:19:46 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "Driver.hpp"
 #include "Server.hpp"
 #include "ErrorCode.hpp"
 #include "connection.hpp"
@@ -170,8 +171,8 @@ void	Server::cgi(
 {
 	CGI	*cgi = new CGI(*this, client, request, response);
 
-	cgi->generateEnv(driver);
-	cgi->execute(driver);
+	cgi->generateEnv(driver.webServerName);
+	cgi->execute(driver.epollFD, driver.cgis);
 	client.cgis.push_back(cgi);
 }
 

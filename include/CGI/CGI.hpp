@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/05 10:22:37 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 03:15:14 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,8 +54,8 @@ class CGI {
 
 		CGI(const Server &server, Client &client, Request &request, Response &response);
 		~CGI(void);
-		void	generateEnv(const Driver &driver);
-		void	execute(Driver &driver);
+		void	generateEnv(const String &webServerName);
+		void	execute(int epollFD, std::map<int, CGI*> &cgis);
 };
 
 #endif

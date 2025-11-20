@@ -326,9 +326,11 @@ void	validateLocationBody(const Directive& directive, const Directive::Map&)
 Syntax : listen address:port;
 Default: —
 Context: server */
+#define MAX_PORTS 0xFFFF
 void	validateListen(const Directive& directive, const Directive::Map&)
 {
 	validateParameterSize(directive, 1);
+	validateEnclosingContext(directive, Context::SERVER);
 
 	const Parameter&	param = directive.parameters[0];
 	const String&		str = param.value;
@@ -336,25 +338,30 @@ void	validateListen(const Directive& directive, const Directive::Map&)
 	Optional<String::size_type>	colon = str.find(":");
 	if (!colon.exists)
 	{
-		throw InvalidParameter(directive, param, "expected address:port");
+		throw InvalidParameter(directive,
+							   param,
+							   "invalid socket address",
+							   "enter a socket address of IP:port");
 	}
 	const String&	ip = str.substr(0, colon.value);
 	if (!isIPV4(ip))
 	{
-		throw InvalidParameter(directive, param, "invalid IPv4 address");
+		throw InvalidParameter(directive,
+							   param,
+							   "invalid IPv4 address",
+							   "enter a valid IP address in dotted-decimal format (x.x.x.x)");
 	}
 	const String&	port = str.substr(colon.value + 1);
-	int	portNum = port.toInt();
-	if (portNum < 0 || portNum > 65535)
+	Optional<int>	portNum = String::parseInt(port);
+	if (!portNum.exists || portNum.value < 0 || portNum.value > MAX_PORTS)
 	{
-		// TODO(kecheong): get rid of the const_cast lmao
-		// this would be easy if InvalidParameter accepted a Diagnostic itself
-		// rather than looking into the Parameter for a Diagnostic
-		const_cast<Parameter&>(param).diagnostic.colNum += ip.size() + 1;
-		throw InvalidParameter(directive, param,
-							   "port number should be between 0-65535");
+		Diagnostic	diagnostic(param.diagnostic);
+		diagnostic.colNum += ip.size() + 1;
+		throw InvalidParameter(directive, diagnostic,
+							   "invalid port number",
+							   "port number can only be between 0-65535");
+		
 	}
-	validateEnclosingContext(directive, Context::SERVER);
 }
 
 /*
@@ -487,20 +494,29 @@ void	validateClientMaxBodySize(const Directive& directive, const Directive::Map&
 							vector_of(Context::HTTP)(Context::SERVER)(Context::LOCATION));
 	validateDuplicateDirective(directive, mappings);
 
-	// validate size format
 	const String&	size = directive.parameters[0];
+	Diagnostic	diagnostic(directive.parameters[0].diagnostic);
 	for (size_t i = 0; i < size.length() - 1; ++i)
 	{
 		if (!std::isdigit(size[i]))
 		{
-			/*throw InvalidParameter(size);*/
+			throw InvalidParameter(directive,
+								   diagnostic,
+								   "unexpected character",
+								   "specify size with only numbers or with a suffix k/K/m/M");
 		}
+		diagnostic.colNum++;
 	}
 	if (!(std::isdigit(size.back()) ||
 		  size.back() == 'k' || size.back() == 'K' ||
 		  size.back() == 'm' || size.back() == 'M'))
 	{
-		/*throw InvalidParameter(size);*/
+		diagnostic.colNum = directive.parameters[0].diagnostic.colNum +
+							size.size() - 1;
+		throw InvalidParameter(directive,
+							   diagnostic,
+							   "unexpected size unit",
+							   "specify kilobytes with k/K or megabytes with m/M");
 	}
 }
 

@@ -61,6 +61,16 @@ Location::Location(const Directive& locationBlock):
 							  .value_or(std::map<int,String>());
 }
 
+bool	Location::shouldRedirect() const
+{
+	return redirectHandler.shouldRedirect;
+}
+
+void	Location::executeRedirection(Response& response) const
+{
+	return redirectHandler.executeRedirection(response);
+}
+
 void	Location::checkIfAllowedMethod(const String& method) const
 {
 	if (std::find(allowedMethods.begin(),

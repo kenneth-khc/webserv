@@ -56,9 +56,15 @@ struct	Location
 	/** where uploads for our web server is stored */
 	String				uploadDirectory;
 
-	RedirectHandler	redirectHandler;
+	/** forwards to redirectHandler to check if should redirect */
+	bool	shouldRedirect() const;
+	/** forwards to redirectHandler to perform redirection */
+	void	executeRedirection(Response&) const;
 
 	void	checkIfAllowedMethod(const String&) const;
+
+private:
+	RedirectHandler	redirectHandler;
 };
 
 #endif

@@ -27,9 +27,17 @@
 #include <fcntl.h>
 #include <cstring>
 
-Socket::Socket()
+/** This is only for default constructing within containers, do not manually
+	construct a Socket through this. Use the named constructors instead */
+Socket::Socket():
+fd(-1),
+ip(),
+port(),
+portNum(),
+_address(),
+_addressLen()
 {
-};
+}
 
 Socket	Socket::spawn(const String& ip, const String& port)
 {
@@ -64,7 +72,6 @@ _addressLen(sizeof _address)
 		info = info->ai_next;
 	}
 	std::memcpy(&_address, info->ai_addr, info->ai_addrlen);
-	convertAddressToIpAndPort(_address);
 	freeaddrinfo(info);
 
 	int	yes = 1;
@@ -94,6 +101,7 @@ portNum(),
 _address(acceptedAddress),
 _addressLen(sizeof _address)
 {
+	// TODO:: convert
 	convertAddressToIpAndPort(acceptedAddress);
 
 	int	yes = 1;
@@ -157,20 +165,19 @@ int	Socket::listen(int connectionCount) const
 Socket	Socket::accept() const
 {
 	sockaddr_storage	addr;
-	socklen_t			addrLen;
+	socklen_t			addrLen = sizeof addr;
 
-	addrLen = static_cast<socklen_t>(sizeof addr);
-	int	newFD = ::accept(this->fd, (sockaddr*)&addr, &addrLen);
+	int	newFD = ::accept(fd, reinterpret_cast<sockaddr*>(&addr), &addrLen);
 	if (newFD == -1)
 	{
-		throw std::runtime_error("accept() failed");
+		throw std::runtime_error("accept() failed ");
 	}
 	return Socket::wrap(newFD, addr);
 }
 
-void	Socket::convertAddressToIpAndPort(sockaddr_storage add)
+void	Socket::convertAddressToIpAndPort(sockaddr_storage addr)
 {
-	sockaddr*	address = reinterpret_cast<sockaddr*>(&add);
+	sockaddr*	address = reinterpret_cast<sockaddr*>(&addr);
 
 	if (address->sa_family == AF_INET)
 	{
@@ -211,4 +218,3 @@ addrinfo*	Socket::getAddrInfo(const String& ip, const String& port)
 	}
 	return info;
 }
-

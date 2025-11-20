@@ -17,9 +17,9 @@
 
 Location::Location():
 	root("html"),
+	indexFiles(),
 	autoindex(false),
-	MIMEMappings("mime.types"),
-	indexFiles()
+	MIMEMappings("mime.types")
 {
 }
 
@@ -29,18 +29,18 @@ Location::Location(const Directive& locationBlock):
 	root(locationBlock.recursivelyLookup<String>("root")
 					  .value_or("html")),
 
+	indexFiles(locationBlock.recursivelyLookup< std::vector<String> >("index")
+							.value_or(vector_of<String>("index.html"))),
+
 	autoindex(locationBlock.recursivelyLookup<String>("autoindex")
 						   .transform(String::toBool)
 						   .value_or(false)),
 
-	MIMEMappings(locationBlock.recursivelyLookup<String>("types")
-							  .value_or("mime.types")),
-
-	indexFiles(locationBlock.recursivelyLookup< std::vector<String> >("index")
-							.value_or(vector_of<String>("index.html"))),
-
 	allowedMethods(locationBlock.getParametersOf("allow_method")
 								.value_or(vector_of<String>("GET"))),
+
+	MIMEMappings(locationBlock.recursivelyLookup<String>("types")
+							  .value_or("mime.types")),
 
 	clientMaxBodySize(locationBlock.recursivelyLookup<String>("client_max_body_size")
 								   .transform(String::toSize)

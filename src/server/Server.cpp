@@ -39,8 +39,8 @@ PathHandler			Server::pathHandler;
 Server::Server():
 	socket(),
 	domainNames(),
-	root(),
 	locations(),
+	root(),
 	autoindex(true),
 	MIMEMappings("mime.types")
 {
@@ -54,14 +54,14 @@ Server::Server(const Directive& serverBlock,
 socket(),
 domainNames(serverBlock.getParametersOf("server_name")
 					   .value_or(std::vector<String>())),
+locations(),
 root(serverBlock.recursivelyLookup<String>("root")
 				.value_or("html")),
-locations(),
+indexFiles(serverBlock.recursivelyLookup< std::vector<String> >("index")
+					  .value_or(vector_of<String>("index.html"))),
 autoindex(serverBlock.recursivelyLookup<String>("autoindex")
 					 .transform(String::toBool)
 					 .value_or(false)),
-indexFiles(serverBlock.recursivelyLookup< std::vector<String> >("index")
-					  .value_or(vector_of<String>("index.html"))),
 MIMEMappings(serverBlock.recursivelyLookup<String>("types")
 						.value_or("mime.types")),
 clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
@@ -144,7 +144,6 @@ void	Server::handleRequest(
 	response.processStage |= Response::DONE;
 }
 
-// TODO: exact matches
 Optional<const Location*>	Server::matchURILocation(const Request& request) const
 {
 	std::vector<Location>::const_iterator	longestMatch = locations.end();

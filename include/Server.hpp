@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 05:18:04 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 01:38:59 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,10 +26,31 @@
 #include <netdb.h>
 #include <unistd.h>
 
+/**
+	This represents the configuration of a virtual host to handle requests
+	for specific domain names..
+	It tracks all the sockets bound here, all the domain names that this
+	should serve, and defines locations to route to based on the incoming
+	request.
+
+	More specific directives, such as root, autoindex, error_pages etc can be
+	declared here so that it encloses over multiple location scopes and they
+	can all inherit from above rather than having to redeclare the directive
+	multiple times.
+
+	After resolving the correct location to route to for the request, the
+	server executes the necessary procedure to prepare a response for the
+	client.
+*/
+
+struct Driver;
+
 struct	Server
 {
-	Server();
-	Server(const Directive&, std::map<int,Socket>&);
+public:
+	/** Construct a Server from a directive, binding and reusing sockets
+		from the map if necessary */
+	Server(const Directive& serverDirective, std::map<int,Socket>& sockets);
 
 	/* Server-wide timeout values in seconds */
 	static const unsigned int	keepAliveTimeoutDuration;
@@ -37,24 +58,30 @@ struct	Server
 	static const unsigned int	clientHeaderTimeoutDuration;
 	static const unsigned int	clientBodyTimeoutDuration;
 
+	// TODO: a server can have multiple sockets
 	Socket*					socket;
+
+	/** the domain names served by this virtual host */
 	std::vector<String>		domainNames;
 
-	String					root;
+	/** locations to match and route a request to */
 	std::vector<Location>	locations;
-	bool					autoindex;
-	std::vector<String>		indexFiles;
-	MediaType				MIMEMappings;
-	std::size_t				clientMaxBodySize;
-	std::map<int,String>	errorPages;
+
+	/** information for handling the request and response */
+	String				root;
+	std::vector<String>	indexFiles;
+	bool				autoindex;
+	std::map<int,String>errorPages;
+	MediaType			MIMEMappings;
+	std::size_t			clientMaxBodySize;
 
 	static const Location		defaultLocation;
 	static const unsigned int	timeoutValue;
 	static PathHandler			pathHandler;
 
-	void						handleRequest(Request&, Response&);
-	void						processCookies(Request&, Response&);
-	Optional<Location*>			matchURILocation(const Request&);
+	void						handleRequest(Request&, Response&) const;
+	void						processCookies(Request&, Response&) const;
+	Optional<const Location*>	matchURILocation(const Request&) const;
 
 	/* Handling HTTP methods */
 	void				get(Response&, const Request&) const;
@@ -64,23 +91,13 @@ struct	Server
 	void				cgi(Driver&, Client&, Response&, Request&) const;
 
 	friend class CGI;
-	// TODO: dumped this here just to compile, fix it
 
 private:
+	Server();
+
 	void	configureLocations(const Directive&);
+	/** Binds socket if not already bound, otherwise reuse existing sockets */
 	void	assignSocket(const String&, const String&, std::map<int,Socket>&);
-};
-
-// functor this functor that I hate C++98 go func yourself
-struct isDefaultListener
-{
-	const Socket*	listener;
-
-	isDefaultListener(const Socket* listener): listener(listener) {}
-	bool	operator()(const Server& server)
-	{
-		return server.socket == listener;
-	}
 };
 
 #endif

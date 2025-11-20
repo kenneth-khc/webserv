@@ -6,13 +6,15 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 05:24:01 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 01:41:03 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Driver.hpp"
 #include "Server.hpp"
+#include "Client.hpp"
 #include "ErrorCode.hpp"
+#include "Socket.hpp"
 #include "connection.hpp"
 #include "Base64.hpp"
 #include "CGI.hpp"
@@ -38,60 +40,69 @@ PathHandler			Server::pathHandler;
 Server::Server():
 	socket(),
 	domainNames(),
-	root(),
 	locations(),
+	root(),
 	autoindex(true),
 	MIMEMappings("mime.types")
 {}
 
 Server::Server(const Directive& serverBlock,
 			   std::map<int,Socket>& existingSockets):
+// TODO(kecheong): allow listen to more than one socket for each server
 socket(),
 domainNames(serverBlock.getParametersOf("server_name")
 					   .value_or(std::vector<String>())),
+locations(),
 root(serverBlock.recursivelyLookup<String>("root")
 				.value_or("html")),
-locations(),
+indexFiles(serverBlock.recursivelyLookup< std::vector<String> >("index")
+					  .value_or(vector_of<String>("index.html"))),
 autoindex(serverBlock.recursivelyLookup<String>("autoindex")
 					 .transform(String::toBool)
 					 .value_or(false)),
-indexFiles(serverBlock.recursivelyLookup< std::vector<String> >("index")
-					  .value_or(vector_of<String>("index.html"))),
 MIMEMappings(serverBlock.recursivelyLookup<String>("types")
-						.value_or("")),
+						.value_or("mime.types")),
 clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
 							 .transform(String::toSize)
 							 .value_or(1000000))
 {
-	// TODO: dynamic address
 	const String&	listenParams = serverBlock.getParameterOf("listen")
 												.value_or("0.0.0.0:8000");
 	const String::size_type	colon = listenParams.find(':').value;
 	const String&	address = listenParams.substr(0, colon);
-	// const String&	port = serverBlock.getParameterOf("listen")
-	// 								  .value_or("8000");
 	const String&	port = listenParams.substr(colon + 1);
 	assignSocket(address, port, existingSockets);
 	configureLocations(serverBlock);
 	errorPages = serverBlock.generateErrorPagesMapping()
 							.value_or(std::map<int,String>());
+	Optional<Directive*>	cgiScriptBlock = serverBlock.getDirective("cgi_script");
+	if (cgiScriptBlock.exists)
+	{
+		const std::vector<Parameter>&	extensions =
+			cgiScriptBlock.value->getParameters();
+		std::vector<String>	trimmed;
+		for (size_t i = 0; i < extensions.size(); ++i)
+		{
+			trimmed.push_back(extensions[i].value.substr(1));
+		}
+	}
 }
 
-void	Server::handleRequest(Request& request, Response& response)
+void	Server::handleRequest(Request& request, Response& response) const
 {
 	request.isSupportedVersion();
 	request.parseCookieHeader();
 	processCookies(request, response);
 
 	request.path = pathHandler.normalize(request.path);
-	request.location = matchURILocation(request)
-					   .value_or(const_cast<Location *>(&Server::defaultLocation));
+	request.location = const_cast<Location*>(matchURILocation(request)
+											.value_or(&Server::defaultLocation));
 	request.checkIfValidMethod();
 
 	const String&	rootDir = pathHandler.resolveWithPrefix(request.location->root);
 	request.resolvedPath = pathHandler.resolve(rootDir, request.path);
 
-	// if (location)
+	// if (location->execCGI)
 	// {
 	// 	cgi(driver, client, response, request);
 	// 	return ;
@@ -115,12 +126,11 @@ void	Server::handleRequest(Request& request, Response& response)
 	response.processStage |= Response::DONE;
 }
 
-// TODO: exact matches
-Optional<Location*>	Server::matchURILocation(const Request& request)
+Optional<const Location*>	Server::matchURILocation(const Request& request) const
 {
-	std::vector<Location>::iterator	longestMatch = locations.end();
-	size_t							longestMatchSoFar = 0;
-	for (std::vector<Location>::iterator it = locations.begin();
+	std::vector<Location>::const_iterator	longestMatch = locations.end();
+	size_t									longestMatchSoFar = 0;
+	for (std::vector<Location>::const_iterator it = locations.begin();
 		 it != locations.end();
 		 ++it)
 	{
@@ -134,16 +144,16 @@ Optional<Location*>	Server::matchURILocation(const Request& request)
 	}
 	if (longestMatch == locations.end())
 	{
-		return makeNone<Location*>();
+		return makeNone<const Location*>();
 	}
 	else
 	{
-		std::vector<Location>::iterator	retval = longestMatch;
+		std::vector<Location>::const_iterator	retval = longestMatch;
 		return makeOptional(&*retval);
 	}
 }
 
-void	Server::processCookies(Request& request, Response& response)
+void	Server::processCookies(Request& request, Response& response) const
 {
 	std::map<String, Cookie>&	cookies = request.cookies;
 	Cookie						cookie;
@@ -172,14 +182,18 @@ void	Server::cgi(
 	client.cgis.push_back(cgi);
 }
 
-void	Server::assignSocket(const String& address, const String& port,
+void	Server::assignSocket(const String& ip, const String& port,
 							 std::map<int,Socket>& existingSockets)
 {
 	unsigned short	portNum = port.toInt();
+	std::map<int, Socket>::iterator	iter =
+		std::find_if(existingSockets.begin(),
+					 existingSockets.end(),
+					 Socket::IsMatchingAddress(ip, portNum));
 
-	if (existingSockets.find(portNum) == existingSockets.end())
+	if (iter == existingSockets.end())
 	{
-		Socket	listener = Socket::spawn(address, port);
+		Socket	listener = Socket::spawn(ip, port);
 		listener.bind();
 		listener.listen(1024);
 		existingSockets[listener.fd] = listener;
@@ -187,10 +201,6 @@ void	Server::assignSocket(const String& address, const String& port,
 	}
 	else
 	{
-		std::map<int,Socket>::iterator	iter;
-		iter = std::find_if(existingSockets.begin(),
-							existingSockets.end(),
-							IsMatchingPort(portNum));
 		socket = &iter->second;
 	}
 }

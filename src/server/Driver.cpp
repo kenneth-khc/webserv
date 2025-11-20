@@ -6,21 +6,20 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 05:18:32 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 01:29:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Driver.hpp"
 #include "PathHandler.hpp"
+#include "Request.hpp"
 #include "Server.hpp"
 #include "Configuration.hpp"
-#include "SetupError.hpp"
-#include "contentLength.hpp"
-#include "connection.hpp"
 #include "ErrorCode.hpp"
 #include "DoneState.hpp"
 #include "KeepAliveTimer.hpp"
 #include <cstddef>
+#include <stdexcept>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
@@ -62,44 +61,6 @@ void	Driver::initialize(const Configuration& config)
 		http.addServer(httpServer);
 	}
 
-	/* Epoll configuration */
-	epollFD = epoll_create(1);
-	if (epollFD == -1)
-	{
-		std::perror("epoll_create() failed");
-		std::exit(1);
-	}
-	for (std::map<int, Socket>::const_iterator it = listeners.begin();
-		 it != listeners.end(); ++it)
-	{
-		addToEpoll(it->second.fd, EPOLLIN);
-	}
-}
-
-Driver::Driver(const Configuration& config):
-	webServerName("42webserv"),
-	http(config.get("http")),
-	epollTimeout(-1),
-	epollFD(-1),
-	maxEvents(1021),
-	readyEvents(new epoll_event[maxEvents]),
-	numReadyEvents(0),
-	/* Sockets and Clients */
-	listeners(),
-	establishedSockets(),
-	clients()
-{
-	Server::pathHandler.setPrefix(config.get("prefix").parameters[0]);
-	std::vector<Directive*>	serverBlocks = config.get("http")
-												 .getDirectives("server");
-	for (size_t i = 0; i < serverBlocks.size(); ++i)
-	{
-		const Directive&	serverBlock = *serverBlocks[i];
-		const Server&		httpServer = Server(serverBlock, listeners);
-		http.addServer(httpServer);
-	}
-
-	/* Epoll configuration */
 	epollFD = epoll_create(1);
 	if (epollFD == -1)
 	{
@@ -137,12 +98,9 @@ int	Driver::epollWait()
 	}
 
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, epollTimeout);
-	// std::cout << "epoll_wait() returned with " << numReadyEvents
-			//   << " ready event" << (numReadyEvents > 1 ? "s\n" : "\n");
-
 	if (numReadyEvents == -1)
 	{
-		//TODO: error handling
+		throw std::runtime_error("epoll_wait() failed");
 	}
 	return numReadyEvents;
 }
@@ -154,23 +112,29 @@ void	Driver::processReadyEvents()
 	for (int i = 0; i < numReadyEvents; ++i)
 	{
 		currEvent = &readyEvents[i];
-		const int&	fd = currEvent->data.fd;
-		std::map<int,Socket>::iterator	it = listeners.find(fd);
-		if (it != listeners.end())
+		const int	fd = currEvent->data.fd;
+		std::map<int,Socket>::iterator	iter = listeners.find(fd);
+
+		if (iter != listeners.end())
 		{
-			const Socket&	listener = it->second;
+			const Socket&	listener = iter->second;
 			Socket			clientSocket = listener.accept();
 			int				fd = clientSocket.fd;
 			establishedSockets[fd] = clientSocket;
 			addToEpoll(fd, EPOLL_EVENTS(EPOLLIN | EPOLLOUT));
 
 			Client	newClient(&establishedSockets[fd], &listener);
-			std::vector<Server>::iterator	serverIt =
-			std::find_if(http.servers.begin(),
-						 http.servers.end(),
-						 isDefaultListener(&listener));
-			newClient.server = &(*serverIt);
-
+			for (size_t i = 0; i < http.servers.size(); ++i)
+			{
+				const Server& server = http.servers[i];
+				// TODO(kecheong):
+				// go through each socket of each server
+				if (&listener == server.socket)
+				{
+					newClient.defaultServer = &server;
+					break;
+				}
+			}
 			clients[fd] = newClient;
 
 			Logger::logConnection(Logger::ESTABLISHED, fd, newClient);
@@ -223,22 +187,30 @@ void	Driver::receiveMessage(std::map<int, Client>::iterator& clientIt)
 	client.receiveBytes();
 }
 
-// TODO: this should probably also check that the port matches
-Optional<Server*>	Driver::matchServerName(const String& hostname)
+const Server*	Driver::selectVirtualHost(const std::vector<Server>& servers,
+										  const Client& client,
+										  const Request& request)
 {
-	for (std::vector<Server>::iterator it = http.servers.begin();
-		 it != http.servers.end();
-		 ++it)
+	String	host = request.find< Optional<String> >("Host").value_or("");
+	if (host.find(':'))
 	{
-		const std::vector<String>&	serverNames = it->domainNames;
-		if (std::find(serverNames.begin(),
-					  serverNames.end(), hostname) != serverNames.end())
+		host = host.consumeUntil(":").value;
+	}
+	std::vector<Server>::const_iterator	server;
+	for (server = servers.begin(); server != servers.end(); ++server)
+	{
+		if (server->socket != client.receivedBy)
 		{
-			Server*	server = &(*it);
-			return makeOptional(server);
+			continue;
+		}
+		if (std::find(server->domainNames.begin(),
+					  server->domainNames.end(),
+					  host) != server->domainNames.end())
+		{
+			return &*server;
 		}
 	}
-	return makeNone<Server*>();
+	return client.defaultServer;
 }
 
 void	Driver::processRequest(std::map<int, Client>::iterator& clientIt,
@@ -270,18 +242,9 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt,
 				}
 			}
 
-			String				host = request.find< Optional<String> >("Host")
-											  .value_or("");
-			if (host.find(':'))
-			{
-				host = host.consumeUntil(":").value;
-			}
-
-			// this picks the configuration block to use depending on server_name
-			// or defaulting back to first server with the matching port
-			Server*		server = matchServerName(host)
-								.value_or(client.server);
-
+			const Server*	server = selectVirtualHost(http.servers,
+													   client,
+													   request);
 			server->handleRequest(request, client.responseQueue.back());
 		}
 		catch (const ErrorCode &e)

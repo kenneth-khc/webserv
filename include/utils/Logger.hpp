@@ -27,7 +27,6 @@ namespace	Logger
 	void	logRequest(Request&, Client&);
 	void	logResponse(Response&, Client&);
 	void	logConnection(int, int, Client&);
-	void	logIPPort(sockaddr*);
 
 	enum CONNECTION {
 		ESTABLISHED,

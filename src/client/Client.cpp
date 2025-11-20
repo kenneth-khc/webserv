@@ -11,17 +11,14 @@
 /* ************************************************************************** */
 
 #include <arpa/inet.h>
-#include "Server.hpp"
 #include "Client.hpp"
 #include "ClientHeaderTimer.hpp"
-
-// TODO: limit request size based on config file. now defaulted to 1 mb
-const size_t	Client::MAX_REQUEST_SIZE = 1 * 1024 * 1024;
+#include "Socket.hpp"
 
 Client::Client():
 socket(NULL),
 receivedBy(NULL),
-server(NULL),
+defaultServer(NULL),
 message(),
 timer(new ClientHeaderTimer()),
 cgis(),
@@ -37,7 +34,7 @@ responseQueue()
 Client::Client(Socket* socket, const Socket* receivedBy):
 socket(socket),
 receivedBy(receivedBy),
-server(NULL),
+defaultServer(NULL),
 message(),
 timer(new ClientHeaderTimer()),
 cgis(),
@@ -61,7 +58,7 @@ Client::~Client()
 Client::Client(const Client& rhs) :
 socket(rhs.socket),
 receivedBy(rhs.receivedBy),
-server(rhs.server),
+defaultServer(rhs.defaultServer),
 message(rhs.message),
 timer(0),
 cgis(rhs.cgis),
@@ -83,7 +80,7 @@ Client	&Client::operator=(const Client& rhs)
 
 	socket = rhs.socket;
 	receivedBy = rhs.receivedBy;
-	server = rhs.server;
+	defaultServer = rhs.defaultServer;
 	message = rhs.message;
 
 	if (timer != 0)

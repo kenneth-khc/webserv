@@ -16,9 +16,7 @@
 #include <sys/socket.h>
 #include <deque>
 #include <vector>
-#include "Time.hpp"
 #include "String.hpp"
-#include "Socket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Timer.hpp"
@@ -44,7 +42,7 @@ public:
 
 	Socket*				socket;
 	const Socket*		receivedBy;
-	Server*				server;
+	const Server*		defaultServer;
 	String				message;
 	Timer*				timer;
 	std::vector<CGI*>	cgis;

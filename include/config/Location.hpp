@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 22:21:40 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 05:29:56 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 01:28:11 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,25 +37,35 @@ struct	Location
 	Location();
 	Location(const Directive&);
 
-	String					uri; // the uri to match
+	/** URI to match with the incoming request to determine whether this block
+		should handle the request */
+	String				uri;
 
-	String					root; // root directory appended to the front of uri
+	/** root directory of the local filesystem */
+	String				root;
 
-	bool					autoindex;
+	/** a list of index files to try when a directory is requested */
+	std::vector<String>	indexFiles;
 
-	MediaType				MIMEMappings;
+	/** whether to generate directory listings when no index files are found */
+	bool				autoindex;
 
-	std::vector<String>		indexFiles;
+	/** pages to serve when responding with an error code */
+	std::map<int,String>errorPages;
 
-	std::vector<String>		allowedMethods;
+	/** the allowed HTTP request methods */
+	std::vector<String>	allowedMethods;
 
-	std::size_t				clientMaxBodySize;
+	MediaType			MIMEMappings;
 
-	std::map<int,String>	errorPages;
+	/** max size allowed for the incoming request body */
+	std::size_t			clientMaxBodySize;
 
-	bool					acceptUploads;
+	/** whether we should accept uploads */
+	bool				acceptUploads;
 
-	String					uploadDirectory;
+	/** where uploads for our web server is stored */
+	String				uploadDirectory;
 
 	std::set<String>		cgiScripts;
 };

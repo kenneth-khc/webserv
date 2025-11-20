@@ -53,7 +53,9 @@ Location::Location(const Directive& locationBlock):
 							   .value_or(false)),
 
 	uploadDirectory(locationBlock.getParameterOf("upload_directory")
-								 .value_or(""))
+								 .value_or("")),
+
+	redirectHandler(locationBlock)
 {
 	errorPages = locationBlock.generateErrorPagesMapping()
 							  .value_or(std::map<int,String>());

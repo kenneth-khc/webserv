@@ -109,6 +109,11 @@ void	Server::handleRequest(
 	const Location*	location = matchURILocation(request)
 							  .value_or(&Server::defaultLocation);
 	location->checkIfAllowedMethod(request.method);
+	if (location->redirectHandler.shouldRedirect)
+	{
+		location->redirectHandler.executeRedirection(response);
+		return ;
+	}
 
 	const String&	rootDir = pathHandler.resolveWithPrefix(location->root);
 	request.resolvedPath = pathHandler.resolve(rootDir, request.path);

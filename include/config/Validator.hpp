@@ -61,8 +61,6 @@ private:
 	void	(*bodyValidationFunc)(const Directive&, const Directive::Map&);
 };
 
-void	no_op(const Directive&, const Directive::Map&);
-
 /** Validation for block directives */
 
 void	validateServerHeader(const Directive&, const Directive::Map&);

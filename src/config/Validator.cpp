@@ -74,17 +74,6 @@ void	Validator::operator()(const Directive& directive,
 	return function(directive, mappings);
 }
 
-void	no_op(const Directive&, const Directive::Map&)
-{
-}
-
-static size_t	countFrequency(const String& name, const Directive::Map& mappings)
-{
-	Directive::EqualRange	range = mappings.equal_range(name);
-	size_t					count = std::distance(range.first, range.second);
-	return count;
-}
-
 void	validateParameterSize(const Directive& directive, size_t expected)
 {
 	if (directive.parameters.size() != expected)
@@ -93,9 +82,11 @@ void	validateParameterSize(const Directive& directive, size_t expected)
 	}
 }
 
-void	validateParameterSize(const Directive& directive, size_t min, size_t max)
+void	validateParameterSize(const Directive& directive,
+							  size_t min, size_t max)
 {
-	if (directive.parameters.size() < min || directive.parameters.size() > max)
+	if (directive.parameters.size() < min ||
+		directive.parameters.size() > max)
 	{
 		throw InvalidParameterAmount(directive, min, max);
 	}
@@ -155,9 +146,6 @@ void	validateEnclosingContext(const Directive& directive,
 	}
 }
 
-// TODO: right now, directives either allow duplicates or they don't.
-//		 is there a situation where I need to allow a frequency of a certain
-//		 number rather than just 0 or 1?
 void	validateDuplicateDirective(const Directive& currDeclaration,
 								   const Directive::Map& mappings)
 {
@@ -181,14 +169,37 @@ Context: global
 Count  : 1 */
 void	validatePrefix(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(directive, 1);
 	validateEnclosingContext(directive, Context::GLOBAL);
 	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1);
 
 	const Parameter&	path = directive.parameters[0];
 	if (path[0] != '/')
 	{
-		throw InvalidParameter(directive, path, "should be an absolute path");
+		throw InvalidParameter(directive,
+							   path.diagnostic,
+							   "invalid absolute path",
+							   "set an absolute path as the web server root directory");
+	}
+}
+
+/*
+Syntax : http { ... }
+Default: —
+Context: global */
+void	validateHttpHeader(const Directive& directive, const Directive::Map& mappings)
+{
+	validateEnclosingContext(directive, Context::GLOBAL);
+	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 0);
+}
+
+void	validateHttpBody(const Directive& directive, const Directive::Map& mappings)
+{
+	validateHttpHeader(directive, mappings);
+	if (!directive.getDirective("server").exists)
+	{
+		throw MissingDirective(directive, "server");
 	}
 }
 
@@ -252,9 +263,9 @@ std::set<Parameter>	getCommonServerNames(const Directive& serverA, const Directi
 	return commonServerNames;
 }
 
-void	validateServerBody(const Directive& directive, const Directive::Map&)
+void	validateServerBody(const Directive& directive, const Directive::Map& mappings)
 {
-	validateEnclosingContext(directive, Context::HTTP);
+	validateServerHeader(directive, mappings);
 
 	const Directive&		parent = *directive.parent;
 	std::vector<Directive*>	servers = parent.getDirectives("server");
@@ -284,42 +295,18 @@ void	validateServerBody(const Directive& directive, const Directive::Map&)
 }
 
 /*
-Syntax : http { ... }
-Default: —
-Context: global 
-Count  : 1 */
-void	validateHttpHeader(const Directive& directive, const Directive::Map& mappings)
-{
-	validateParameterSize(directive, 0);
-	validateEnclosingContext(directive, Context::GLOBAL);
-	validateDuplicateDirective(directive, mappings);
-}
-
-void	validateHttpBody(const Directive& directive, const Directive::Map&)
-{
-	if (!directive.getDirective("server").exists)
-	{
-		throw MissingDirective(directive, "server");;
-		throw std::runtime_error("missing server");
-	}
-}
-
-/*
 Syntax : location uri { ... }
 Default: —
-Context: server, location */
+Context: server */
 void	validateLocationHeader(const Directive& directive, const Directive::Map&)
 {
 	validateParameterSize(directive, 1);
-	validateEnclosingContext(directive,
-							 vector_of(Context::SERVER)(Context::LOCATION));
-	
+	validateEnclosingContext(directive, Context::SERVER);
 }
 
-void	validateLocationBody(const Directive& directive, const Directive::Map&)
+void	validateLocationBody(const Directive& directive, const Directive::Map& mappings)
 {
-	validateEnclosingContext(directive,
-							 vector_of(Context::SERVER)(Context::LOCATION));
+	validateLocationHeader(directive, mappings);
 }
 
 /*
@@ -329,8 +316,8 @@ Context: server */
 #define MAX_PORTS 0xFFFF
 void	validateListen(const Directive& directive, const Directive::Map&)
 {
-	validateParameterSize(directive, 1);
 	validateEnclosingContext(directive, Context::SERVER);
+	validateParameterSize(directive, 1);
 
 	const Parameter&	param = directive.parameters[0];
 	const String&		str = param.value;
@@ -370,8 +357,8 @@ Default : —
 Context: server */
 void	validateServerName(const Directive& directive, const Directive::Map&)
 {
-	validateParameterSize(directive, 1, std::numeric_limits<size_t>::max());
 	validateEnclosingContext(directive, Context::SERVER);
+	validateParameterSize(directive, 1, std::numeric_limits<size_t>::max());
 }
 
 /*
@@ -380,12 +367,12 @@ Default: root html;
 Context: http, server, location */
 void	validateRoot(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(directive, 1);
 	validateEnclosingContext(directive,
 							 vector_of(Context::HTTP)
 									  (Context::SERVER)
 									  (Context::LOCATION));
 	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1);
 }
 
 /*
@@ -398,8 +385,8 @@ void	validateIndex(const Directive& directive, const Directive::Map& mappings)
 							 vector_of(Context::HTTP)
 							 		  (Context::SERVER)
 							 		  (Context::LOCATION));
-	validateParameterSize(directive, 1, std::numeric_limits<size_t>::max());
 	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1, std::numeric_limits<size_t>::max());
 }
 
 /*
@@ -408,16 +395,19 @@ Default: —
 Context: http, server, location */
 void	validateTypes(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(directive, 1);
 	validateEnclosingContext(directive, Context::HTTP);
 	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1);
 }
 
 void	validateBoolean(const Directive& directive, const Parameter& parameter)
 {
 	if (parameter.value != "on" && parameter.value != "off")
 	{
-		throw InvalidParameter(directive, parameter, "expected `on` or `off`");
+		throw InvalidParameter(directive,
+							   parameter,
+							   "invalid boolean",
+							   "set parameter to `on` or `off`");
 	}
 }
 
@@ -427,40 +417,37 @@ Default: off
 Context: http, server, location */
 void	validateAutoindex(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(directive, 1);
 	validateEnclosingContext(directive,
 							 vector_of(Context::HTTP)
 									  (Context::SERVER)
 									  (Context::LOCATION));
 	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1);
 	validateBoolean(directive, directive.parameters[0]);
-	if (countFrequency("accept_uploads", mappings) > 0)
-	{
-		throw InvalidDirective(directive);
-	}
-}
-
-void	validateFileExtension(const Directive& directive, const Parameter& parameter)
-{
-	if (parameter.value[0] != '.')
-	{
-		throw InvalidParameter(directive, parameter,
-							   "expected file extension beginning with a .");
-	}
 }
 
 /*
 Syntax : allow_method methods ... ;
 Default: —
-Context: location */
+Context: location, cgi_script */
 void	validateAllowMethod(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(directive, 1, 3);
-	validateParameterValues(directive,
-							vector_of<Parameter>("GET")("POST")("DELETE"));
 	validateEnclosingContext(directive,
 							 vector_of(Context::LOCATION)(Context::CGI_SCRIPT));
 	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1, 3);
+	std::vector<Parameter>::const_iterator	iter = directive.parameters.begin();
+	for (; iter != directive.parameters.end(); ++iter)
+	{
+		if (!(iter->value == "GET" ||
+			  iter->value == "POST" ||
+			  iter->value == "DELETE"))
+		{
+			throw InvalidParameter(directive, iter->diagnostic,
+								   "invalid HTTP method",
+								   "set HTTP method to one of `GET`, `POST` or `DELETE`");
+		}
+	}
 }
 
 /*
@@ -469,9 +456,9 @@ Default: —
 Context: location */
 void	validateRedirect(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(directive, 2);
 	validateEnclosingContext(directive, Context::LOCATION);
 	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 2);
 
 	const String&	redirectCode = directive.parameters[0].value;
 	if (!(redirectCode == "301" || redirectCode == "302"))
@@ -489,10 +476,10 @@ Default: 1m
 Context: http, server, location */
 void	validateClientMaxBodySize(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(directive, 1);
 	validateEnclosingContext(directive,
 							vector_of(Context::HTTP)(Context::SERVER)(Context::LOCATION));
 	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1);
 
 	const String&	size = directive.parameters[0];
 	Diagnostic	diagnostic(directive.parameters[0].diagnostic);
@@ -536,29 +523,41 @@ void	validateErrorCode(const Directive& directive, const Parameter& code)
 	}
 }
 
-void	validateUploadDirectory(const Directive& directive, const Directive::Map& mappings)
-{
-	validateParameterSize(directive, 1);
-	validateEnclosingContext(directive, vector_of(Context::LOCATION)(Context::CGI_SCRIPT));
-	validateDuplicateDirective(directive, mappings);
-}
-
 /*
 Syntax : error_page code ... uri;
 Default: —
-Context: server */
+Context: server, location */
 void	validateErrorPage(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(directive, 2, std::numeric_limits<size_t>::max());
-	validateEnclosingContext(directive, vector_of(Context::HTTP)(Context::SERVER)(Context::LOCATION));
+	validateEnclosingContext(directive, vector_of(Context::SERVER)(Context::LOCATION));
 	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 2, std::numeric_limits<size_t>::max());
 
 	const std::vector<Parameter>&	parameters = directive.parameters;
-	for (size_t i = 0; i < parameters.size()-1; ++i)
+	for (size_t i = 0; i < parameters.size() - 1; ++i)
 	{
 		validateErrorCode(directive, parameters[i]);
 	}
-	// TODO: validate file format
+}
+
+/*
+Syntax : upload_directory directory;
+Default: —
+Context: location, cgi_script */
+void	validateUploadDirectory(const Directive& directive, const Directive::Map& mappings)
+{
+	validateEnclosingContext(directive, vector_of(Context::LOCATION)(Context::CGI_SCRIPT));
+	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1);
+}
+
+void	validateFileExtension(const Directive& directive, const Parameter& parameter)
+{
+	if (parameter.value[0] != '.')
+	{
+		throw InvalidParameter(directive, parameter,
+							   "expected file extension beginning with a .");
+	}
 }
 
 /*
@@ -567,9 +566,9 @@ Default: —
 Context: server */
 void	validateCgiScriptHeader(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(directive, 1, std::numeric_limits<size_t>::max());
 	validateEnclosingContext(directive, Context::SERVER);
 	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1, std::numeric_limits<size_t>::max());
 	const std::vector<Parameter>&	parameters = directive.parameters;
 	for (size_t i = 0; i < parameters.size(); ++i)
 	{
@@ -590,10 +589,11 @@ void	validateCgiScriptBody(const Directive& directive, const Directive::Map& map
 Syntax : cgi_bin_directory directory;
 Default: —
 Context: cgi_script */
-void	validateCgiBinDirectory(const Directive& directive, const Directive::Map&)
+void	validateCgiBinDirectory(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(directive, 1);
 	validateEnclosingContext(directive, vector_of(Context::CGI_SCRIPT));
+	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1);
 }
 
 /*
@@ -602,8 +602,7 @@ Default: —
 Context: cgi_script */
 void	validateCgiUploadDirectory(const Directive& directive, const Directive::Map& mappings)
 {
-	validateParameterSize(directive, 1);
 	validateEnclosingContext(directive, Context::CGI_SCRIPT);
 	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1);
 }
-

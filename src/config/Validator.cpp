@@ -23,6 +23,7 @@
 #include "ServerNameConflict.hpp"
 #include "DefaultServerNameConflict.hpp"
 #include "VectorInitializer.hpp"
+#include "host.hpp"
 #include <iterator>
 #include <stdexcept>
 #include <vector>
@@ -337,10 +338,12 @@ void	validateListen(const Directive& directive, const Directive::Map&)
 	{
 		throw InvalidParameter(directive, param, "expected address:port");
 	}
-	// TODO(kecheong): validate ip. inet_pton is not an allowed function
 	const String&	ip = str.substr(0, colon.value);
+	if (!isIPV4(ip))
+	{
+		throw InvalidParameter(directive, param, "invalid IPv4 address");
+	}
 	const String&	port = str.substr(colon.value + 1);
-
 	int	portNum = port.toInt();
 	if (portNum < 0 || portNum > 65535)
 	{
@@ -453,13 +456,25 @@ void	validateAllowMethod(const Directive& directive, const Directive::Map& mappi
 	validateDuplicateDirective(directive, mappings);
 }
 
-void	validateRedirect(const Directive& directive, const Directive::Map&)
+/*
+Syntax : redirect code uri;
+Default: —
+Context: location */
+void	validateRedirect(const Directive& directive, const Directive::Map& mappings)
 {
 	validateParameterSize(directive, 2);
-	validateEnclosingContext(directive,
-	                         vector_of(Context::SERVER)(Context::LOCATION));
-}
+	validateEnclosingContext(directive, Context::LOCATION);
+	validateDuplicateDirective(directive, mappings);
 
+	const String&	redirectCode = directive.parameters[0].value;
+	if (!(redirectCode == "301" || redirectCode == "302"))
+	{
+		throw InvalidParameter(directive,
+							   directive.parameters[0],
+							   "invalid HTTP redirection code",
+							   "set to 301 or 302, the only redirection codes we currently support");
+	}
+}
 
 /*
 Syntax : client_max_body_size size;

@@ -19,7 +19,6 @@
 #include "String.hpp"
 #include "MediaType.hpp"
 #include "Directive.hpp"
-#include "Response.hpp"
 #include "RedirectHandler.hpp"
 
 struct	Location

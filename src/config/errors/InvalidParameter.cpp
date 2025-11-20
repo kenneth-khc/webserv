@@ -19,6 +19,17 @@ reason(reason)
 {
 }
 
+InvalidParameter::InvalidParameter(const Directive& directive,
+								   const Parameter& parameter,
+								   const String& reason,
+								   const String& help):
+directive(directive),
+parameter(parameter),
+reason(reason),
+help(help)
+{
+}
+
 InvalidParameter::~InvalidParameter() throw() { }
 
 const char*	InvalidParameter::what() const throw()
@@ -35,5 +46,9 @@ String	InvalidParameter::format() const
 	errmsg << "invalid parameter at directive `" << directive.name << '`';
 	buf << fmt.formatError(errmsg.str())
 		<< fmt.formatDiagnostic(reason);
+	if (!help.empty())
+	{
+		buf << fmt.formatHelp(help);
+	}
 	return buf.str();
 }

@@ -16,17 +16,6 @@
 /* A Location block, defining how Requests for specific URI paths should be
  * handled and processed. */
 
-/* Precedence: exact matches > prefix matches > regex matches */
-/* Nested locations inherit from parent unless overriden */
-
-/* Directives to focus on:
- * - root, alias, index, autoindex, error_pages for static files
- * - access control like allow, deny, limit_except
- * - redirects with return or rewrite
- * - client max body size
- * - cgi
- */
-
 #include "String.hpp"
 #include "MediaType.hpp"
 #include "Directive.hpp"
@@ -36,25 +25,35 @@ struct	Location
 	Location();
 	Location(const Directive&);
 
-	String					uri; // the uri to match
+	/** URI to match with the incoming request to determine whether this block
+		should handle the request */
+	String				uri;
 
-	String					root; // root directory appended to the front of uri
+	/** root directory of the local filesystem */
+	String				root;
 
-	bool					autoindex;
+	/** a list of index files to try when a directory is requested */
+	std::vector<String>	indexFiles;
 
-	MediaType				MIMEMappings;
+	/** whether to generate directory listings when no index files are found */
+	bool				autoindex;
 
-	std::vector<String>		indexFiles;
+	/** pages to serve when responding with an error code */
+	std::map<int,String>errorPages;
 
-	std::vector<String>		allowedMethods;
+	/** the allowed HTTP request methods */
+	std::vector<String>	allowedMethods;
 
-	std::size_t				clientMaxBodySize;
+	MediaType			MIMEMappings;
 
-	std::map<int,String>	errorPages;
+	/** max size allowed for the incoming request body */
+	std::size_t			clientMaxBodySize;
 
-	bool					acceptUploads;
+	/** whether we should accept uploads */
+	bool				acceptUploads;
 
-	String					uploadDirectory;
+	/** where uploads for our web server is stored */
+	String				uploadDirectory;
 
 	void	checkIfAllowedMethod(const String&) const;
 };

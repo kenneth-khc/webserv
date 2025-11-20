@@ -5,7 +5,7 @@
 InvalidParameter::InvalidParameter(const Directive& directive,
 								   const Parameter& parameter):
 directive(directive),
-parameter(parameter),
+diagnostic(parameter.diagnostic),
 reason("")
 {
 }
@@ -14,7 +14,7 @@ InvalidParameter::InvalidParameter(const Directive& directive,
 								   const Parameter& parameter,
 								   const String& reason):
 directive(directive),
-parameter(parameter),
+diagnostic(parameter.diagnostic),
 reason(reason)
 {
 }
@@ -24,7 +24,18 @@ InvalidParameter::InvalidParameter(const Directive& directive,
 								   const String& reason,
 								   const String& help):
 directive(directive),
-parameter(parameter),
+diagnostic(parameter.diagnostic),
+reason(reason),
+help(help)
+{
+}
+
+InvalidParameter::InvalidParameter(const Directive& directive,
+								   const Diagnostic& diagnostic,
+								   const String& reason,
+								   const String& help):
+directive(directive),
+diagnostic(diagnostic),
 reason(reason),
 help(help)
 {
@@ -41,7 +52,7 @@ String	InvalidParameter::format() const
 {
 	std::stringstream	buf;
 	std::stringstream	errmsg;
-	Fmt					fmt = Fmt(parameter.diagnostic);
+	Fmt					fmt = Fmt(diagnostic);
 
 	errmsg << "invalid parameter at directive `" << directive.name << '`';
 	buf << fmt.formatError(errmsg.str())

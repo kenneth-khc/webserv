@@ -10,6 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <cstdlib>
+#include <limits>
 #include <sstream>
 #include <fstream>
 #include <stdexcept>
@@ -608,6 +610,24 @@ int	String::toInt() const
 	int	num;
 	std::istringstream(str) >> num;
 	return num;
+}
+
+/** Tries to parse a String into an int. If the parsing fails or the resulting
+	number falls out of integer range, None is returned. */
+Optional<int>	String::parseInt(const String& str)
+{
+	char*	end = NULL;
+	long	number = std::strtol(str.c_str(), &end, 0);
+	if (*end != '\0')
+	{
+		return makeNone<int>();
+	}
+	else if (number < std::numeric_limits<int>::min() ||
+			 number > std::numeric_limits<int>::max())
+	{
+		return makeNone<int>();
+	}
+	return makeOptional(static_cast<int>(number));
 }
 
 bool	String::ends_with(const String& suffix) const

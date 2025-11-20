@@ -19,6 +19,7 @@
 #include "String.hpp"
 #include "MediaType.hpp"
 #include "Directive.hpp"
+#include "RedirectHandler.hpp"
 
 struct	Location
 {
@@ -54,6 +55,8 @@ struct	Location
 
 	/** where uploads for our web server is stored */
 	String				uploadDirectory;
+
+	RedirectHandler	redirectHandler;
 
 	void	checkIfAllowedMethod(const String&) const;
 };

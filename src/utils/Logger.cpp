@@ -34,26 +34,6 @@ namespace Logger
 	}
 }
 
-void	Logger::logIPPort(sockaddr* client)
-{
-	if (client->sa_family == AF_INET)
-	{
-		sockaddr_in*	addr = reinterpret_cast<sockaddr_in*>(client);
-		char			ipv4[INET_ADDRSTRLEN];
-		unsigned short	portNum = ntohs(addr->sin_port);
-		inet_ntop(AF_INET, &addr->sin_addr, ipv4, INET_ADDRSTRLEN);
-		std::cout << ipv4 << ":" << portNum;
-	}
-	else if (client->sa_family == AF_INET6)
-	{
-		sockaddr_in6*	addr = reinterpret_cast<sockaddr_in6*>(client);
-		char			ipv6[INET6_ADDRSTRLEN];
-		unsigned short	portNum = ntohs(addr->sin6_port);
-		inet_ntop(AF_INET6, &addr->sin6_addr, ipv6, INET6_ADDRSTRLEN);
-		std::cout << ipv6 << ":" << portNum;
-	}
-}
-
 void	Logger::logRequest(Request& request, Client& client) 
 {
 	std::cout << Colour::YELLOW;

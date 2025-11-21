@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:25:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/19 22:03:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 08:30:57 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@
 # include <exception>
 # include "String.hpp"
 # include "Response.hpp"
+
+# define HTTP_VERSION "1.1"
 
 class ErrorCode : public std::exception, public Response {
 	public:
@@ -61,10 +63,10 @@ class PreconditionFailed412 : public ErrorCode {
 		PreconditionFailed412(const char *title);
 };
 
-class ContentTooLarge413 : public ErrorCode {
+class PayloadTooLarge413 : public ErrorCode {
 	public:
-		ContentTooLarge413(void);
-		ContentTooLarge413(const char *title);
+		PayloadTooLarge413(void);
+		PayloadTooLarge413(const char *title);
 };
 
 class UnsupportedMediaType415 : public ErrorCode {

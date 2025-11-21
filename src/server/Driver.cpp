@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/21 07:29:17 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 09:40:32 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,23 +160,7 @@ void	Driver::processReadyEvents()
 			// If the event originates from a client socket, stores the request
 			// or sends a ready response.
 
-			if (currEvent->events & EPOLLHUP)
-			{
-				closeConnection(clientIt, Logger::PEER_CLOSE);
-				continue ;
-			}
-			if (currEvent->events & EPOLLIN)
-			{
-				receiveMessage(clientIt);
-			}
-			if (currEvent->events & EPOLLOUT)
-			{
-				processRequest(clientIt, activeTimers);
-				if (!clientIt->second.responseQueue.empty())
-				{
-					sendResponse(clientIt, activeTimers);
-				}
-			}
+			processClient(clientIt, activeTimers);
 		}
 		else if (cgiIt != cgis.end())
 		{
@@ -282,6 +266,28 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt,
 	}
 }
 
+void	Driver::processClient(std::map<int, Client>::iterator& clientIt,
+						  	  std::set<Timer*> activeTimers)
+{
+	if (currEvent->events & EPOLLHUP)
+	{
+		closeConnection(clientIt, Logger::PEER_CLOSE);
+		return ;
+	}
+	if (currEvent->events & EPOLLIN)
+	{
+		receiveMessage(clientIt);
+	}
+	if (currEvent->events & EPOLLOUT)
+	{
+		processRequest(clientIt, activeTimers);
+		if (!clientIt->second.responseQueue.empty())
+		{
+			sendResponse(clientIt, activeTimers);
+		}
+	}
+}
+
 void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt,
 						   std::set<Timer*> activeTimers)
 {
@@ -317,8 +323,6 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt,
 	}
 	catch (const ErrorCode &e) {
 		cgi.response = e;
-		cgi.input->close();
-		cgi.output->close();
 		activeTimers.erase(cgi.timer);
 		std::remove(client.cgis.begin(), client.cgis.end(), &cgi);
 		delete &cgi;

@@ -34,6 +34,11 @@ namespace Logger
 	}
 }
 
+void	Logger::log(const String& message)
+{
+	std::cout << Colour::YELLOW << message << '\n' << Colour::RESET;
+}
+
 void	Logger::logRequest(Request& request, Client& client) 
 {
 	std::cout << Colour::YELLOW;

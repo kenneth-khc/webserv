@@ -13,6 +13,8 @@
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
 
+#include "String.hpp"
+
 #include <netdb.h>
 
 /* This namespace is responsible for logging interactions between the servers
@@ -24,6 +26,7 @@ class Response;
 
 namespace	Logger
 {
+	void	log(const String& message);
 	void	logRequest(Request&, Client&);
 	void	logResponse(Response&, Client&);
 	void	logConnection(int, int, Client&);

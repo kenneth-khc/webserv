@@ -15,8 +15,8 @@ public:
 	SetupError(const String& message);
 	~SetupError() throw();
 
-	virtual const char*	what() const throw() = 0;
-	virtual String		format() const = 0;
+	virtual const char*	what() const throw();
+	virtual String		format() const;
 
 protected:
 	String	message;

@@ -18,6 +18,11 @@
 #include "ErrorCode.hpp"
 #include "DoneState.hpp"
 #include "KeepAliveTimer.hpp"
+#include "FileNotFound.hpp"
+#include "FilePermissionDenied.hpp"
+#include "SetupError.hpp"
+#include <cstring>
+#include <sys/stat.h>
 #include <deque>
 #include <cstddef>
 #include <stdexcept>
@@ -47,7 +52,28 @@ clients()
 
 void	Driver::initialize(const Configuration& config)
 {
-	Server::pathHandler.setPrefix(config.get("prefix").parameters[0]);
+	const String&	prefix = config.get("prefix").parameters[0];
+	struct stat		statbuf;
+
+	if (stat(prefix.c_str(), &statbuf) == -1)
+	{
+		switch (errno)
+		{
+			case ENOENT: throw FileNotFound("Cannot access `" + prefix + "`");
+			case EACCES: throw FilePermissionDenied("Cannot access `" + prefix + "`");
+			default: throw SetupError("Cannot access `" + prefix + "` (" +
+									  strerror(errno) + ")");
+		}
+	}
+	if (!S_ISDIR(statbuf.st_mode))
+	{
+		throw SetupError("`" + prefix + "` is not a directory");
+	}
+	if ((statbuf.st_mode & S_IRUSR) == 0)
+	{
+		throw FilePermissionDenied("Cannot read directory `" + prefix + "`");
+	}
+	Server::pathHandler.setPrefix(prefix);
 
 	const Directive&		httpBlock = config.get("http");
 	std::vector<Directive*>	serverBlocks = httpBlock.getDirectives("server");

@@ -11,13 +11,13 @@
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "Defaults.hpp"
 #include "Client.hpp"
 #include "ErrorCode.hpp"
 #include "Socket.hpp"
 #include "connection.hpp"
 #include "Base64.hpp"
 #include "CGI.hpp"
-#include "VectorInitializer.hpp"
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/epoll.h>
@@ -48,28 +48,19 @@ MIMEMappings("mime.types")
 	cgiScript.push_back("php");
 }
 
-Server::Server(const Directive& serverBlock,
+Server::Server(const Directive& block,
 			   std::map<int,Socket>& existingSockets):
 sockets(),
-
-domainNames(serverBlock.getParametersOf("server_name")
-					   .value_or(std::vector<String>())),
+domainNames(block.getInherited("server_name", Defaults::SERVER_NAME)),
 locations(),
-root(serverBlock.recursivelyLookup<String>("root")
-				.value_or("html")),
-indexFiles(serverBlock.recursivelyLookup< std::vector<String> >("index")
-					  .value_or(vector_of<String>("index.html"))),
-autoindex(serverBlock.recursivelyLookup<String>("autoindex")
-					 .transform(String::toBool)
-					 .value_or(false)),
-MIMEMappings(serverBlock.recursivelyLookup<String>("types")
-						.value_or("mime.types")),
-clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
-							 .transform(String::toSize)
-							 .value_or(1000000)),
+root(block.getInherited("root", Defaults::ROOT)),
+indexFiles(block.getInherited("index", Defaults::INDEX)),
+autoindex(block.getInherited("autoindex", Defaults::AUTOINDEX).toBool()),
+MIMEMappings(block.getInherited("types", Defaults::TYPES)),
+clientMaxBodySize(block.getInherited("client_max_body_size", Defaults::CLIENT_MAX_BODY_SIZE).toSize()),
 cgiScript()
 {
-	std::vector<Directive*> listens = serverBlock.getDirectives("listen");
+	std::vector<Directive*> listens = block.getDirectives("listen");
 	if (listens.empty())
 	{
 		assignSocket("0.0.0.0", "8000", existingSockets);
@@ -85,10 +76,10 @@ cgiScript()
 			assignSocket(address, port, existingSockets);
 		}
 	}
-	configureLocations(serverBlock);
-	errorPages = serverBlock.generateErrorPagesMapping()
+	configureLocations(block);
+	errorPages = block.generateErrorPagesMapping()
 							.value_or(std::map<int,String>());
-	Optional<Directive*>	cgiScriptBlock = serverBlock.getDirective("cgi_script");
+	Optional<Directive*>	cgiScriptBlock = block.getDirective("cgi_script");
 	if (cgiScriptBlock.exists)
 	{
 		const std::vector<Parameter>&	extensions =

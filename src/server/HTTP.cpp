@@ -11,7 +11,7 @@
 /* ************************************************************************** */
 
 #include "HTTP.hpp"
-#include "VectorInitializer.hpp"
+#include "Defaults.hpp"
 
 HTTP::HTTP()
 {
@@ -32,31 +32,15 @@ HTTP&	HTTP::operator=(const HTTP& rhs)
 	return *this;
 }
 
-HTTP::HTTP(const Directive& httpBlock):
-	servers(),
-
-	// TODO(kecheong): default mime types file?
-	// TODO(kecheong): mime.types should be relative to where the config file is
-	// and not where the process is ran on?
-	// or should it be appended to prefix?
-	MIMEMappings(httpBlock.getParameterOf("types")
-						  .value_or("mime.types")),
-
-	autoindex(httpBlock.getParameterOf("autoindex")
-					   .transform(String::toBool)
-					   .value_or(false)),
-
-	rootDirectory(httpBlock.getParameterOf("root")
-						   .value_or("html")),
-
-	indexFiles(httpBlock.getParametersOf("index")
-						.value_or(vector_of<String>("index.html"))),
-
-	clientMaxBodySize(httpBlock.getParameterOf("client_max_body_size")
-							   .transform(String::toSize)
-							   .value_or(1000000))
+HTTP::HTTP(const Directive& block):
+servers(),
+MIMEMappings(block.getInherited("types", Defaults::TYPES)),
+autoindex(block.getInherited("autoindex", Defaults::AUTOINDEX).toBool()),
+rootDirectory(block.getInherited("root", Defaults::ROOT)),
+indexFiles(block.getInherited("index", Defaults::INDEX)),
+clientMaxBodySize(block.getInherited("client_max_body_size", Defaults::CLIENT_MAX_BODY_SIZE).toSize())
 {
-	errorPages = httpBlock.generateErrorPagesMapping()
+	errorPages = block.generateErrorPagesMapping()
 						  .value_or(std::map<int, String>());
 }
 

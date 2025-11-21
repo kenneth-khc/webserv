@@ -50,11 +50,11 @@ struct	Location
 	/** max size allowed for the incoming request body */
 	std::size_t			clientMaxBodySize;
 
-	/** whether we should accept uploads */
-	bool				acceptUploads;
-
 	/** where uploads for our web server is stored */
 	String				uploadDirectory;
+
+	/** whether we should accept uploads */
+	bool				acceptUploads;
 
 	/** forwards to redirectHandler to check if should redirect */
 	bool	shouldRedirect() const;

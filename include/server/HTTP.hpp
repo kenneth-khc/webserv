@@ -38,13 +38,13 @@ struct HTTP
 	HTTP(const Directive&);
 	HTTP&	operator=(const HTTP&);
 
-	std::vector<Server>		servers;
-	MediaType				MIMEMappings;
-	bool					autoindex;
-	String					rootDirectory;
-	std::vector<String>		indexFiles;
-	std::size_t				clientMaxBodySize;
-	std::map<int,String>	errorPages;
+	std::vector<Server>	servers;
+	MediaType			MIMEMappings;
+	bool				autoindex;
+	String				rootDirectory;
+	std::vector<String>	indexFiles;
+	std::size_t			clientMaxBodySize;
+	std::map<int,String>errorPages;
 
 	/* Insert a Server into the HTTP scope */
 	void	addServer(const Server&);

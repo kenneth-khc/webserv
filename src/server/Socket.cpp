@@ -35,7 +35,6 @@ Socket::Socket():
 fd(-1),
 ip(),
 port(),
-portNum(),
 _address(),
 _addressLen()
 {
@@ -55,7 +54,6 @@ Socket::Socket(const String& ip, const String& port):
 fd(-1),
 ip(ip),
 port(port),
-portNum(port.toInt()),
 _address(),
 _addressLen(sizeof _address)
 {
@@ -99,7 +97,6 @@ Socket::Socket(int fd, sockaddr_storage acceptedAddress):
 fd(fd),
 ip(),
 port(),
-portNum(),
 _address(acceptedAddress),
 _addressLen(sizeof _address)
 {
@@ -208,23 +205,20 @@ void	Socket::convertAddressToIpAndPort(sockaddr_storage addr)
 
 	if (address->sa_family == AF_INET)
 	{
-		sockaddr_in*	addr = reinterpret_cast<sockaddr_in*>(address);
-		char			ipv4[INET_ADDRSTRLEN];
-
-		inet_ntop(AF_INET, &addr->sin_addr, ipv4, INET_ADDRSTRLEN);
-		ip = ipv4;
-		port = ntohs(addr->sin_port);
+		sockaddr_in*	sin = reinterpret_cast<sockaddr_in*>(address);
+		unsigned char*	byte = reinterpret_cast<unsigned char*>(&sin->sin_addr.s_addr);
+		ip = String(byte[0]) + '.' +
+		     String(byte[1]) + '.' +
+		     String(byte[2]) + '.' +
+		     String(byte[3]);
+		port = String(ntohs(sin->sin_port));
 	}
 	else if (address->sa_family == AF_INET6)
 	{
-		sockaddr_in6*	addr = reinterpret_cast<sockaddr_in6*>(address);
-		char			ipv6[INET6_ADDRSTRLEN];
-
-		inet_ntop(AF_INET6, &addr->sin6_addr, ipv6, INET6_ADDRSTRLEN);
-		ip = ipv6;
-		port = ntohs(addr->sin6_port);
+		// TODO(kecheong): i ain't manually converting ipv6 lol lmao
+		ip = "????:????:????:????:????:????:????:????";
+		port = "?????";
 	}
-	portNum = port.toInt();
 }
 
 addrinfo*	Socket::getAddrInfo(const String& ip, const String& port)

@@ -38,12 +38,11 @@ public:
 	static Socket	wrap(int fd, sockaddr_storage address);
 
 	/** fd of the socket, used by syscalls */
-	int				fd;
+	int		fd;
 	/** IP address string */
-	String			ip;
+	String	ip;
 	/** port number string */
-	String			port;
-	unsigned short	portNum;
+	String	port;
 
 	/** Binds the newly created socket with the address */
 	int		bind() const;

@@ -23,10 +23,13 @@
 class Client;
 class Request;
 class Response;
+struct Socket;
 
 namespace	Logger
 {
 	void	log(const String& message);
+	void	warn(const String& message);
+	void	warn(const Socket&, const String& message);
 	void	logRequest(Request&, Client&);
 	void	logResponse(Response&, Client&);
 	void	logConnection(int, int, Client&);

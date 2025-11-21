@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 18:31:58 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/21 04:34:41 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 09:07:57 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,10 +89,14 @@ RequestState	*MessageBodyState::process(Request &request, Client &client) {
 			if (message.length() < appendableBytes)
 				appendableBytes = message.length();
 
+			this->bodyLength += appendableBytes;
+			this->chunkSize -= appendableBytes;
+
+			if (this->bodyLength > request.location->clientMaxBodySize)
+				throw PayloadTooLarge413();
+
 			request.messageBody.append(message.c_str(), appendableBytes);
 			message.erase(0, appendableBytes);
-			this->chunkSize -= appendableBytes;
-			this->bodyLength += appendableBytes;
 
 			if (this->chunkSize > 0)
 				return (this);

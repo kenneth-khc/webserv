@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 18:25:17 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/21 04:38:18 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 08:42:16 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,10 @@ RequestState	*HeadDoneState::process(Request &request, Client &client) {
 		if (isContentLengthHeader(contentLength.value) == false)
 		{
 			throw BadRequest400();
+		} else if (request.find< Optional<String::size_type> >("Content-Length").value >
+				   request.location->clientMaxBodySize)
+		{
+			throw PayloadTooLarge413();
 		}
 	}
 	else

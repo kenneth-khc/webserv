@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/21 01:29:13 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 07:29:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,6 +105,11 @@ int	Driver::epollWait()
 	return numReadyEvents;
 }
 
+/*
+   Based on the number of ready events returned by epoll_wait(), goes through
+   each event and process them accordingly. Finally, update the timeout values
+   for those event if applicable.
+*/
 void	Driver::processReadyEvents()
 {
 	std::set<Timer*>	activeTimers;
@@ -115,6 +120,8 @@ void	Driver::processReadyEvents()
 		const int	fd = currEvent->data.fd;
 		std::map<int,Socket>::iterator	iter = listeners.find(fd);
 
+		// If the event originates from a listener socket, creates a client
+		// socket.
 		if (iter != listeners.end())
 		{
 			const Socket&	listener = iter->second;
@@ -150,6 +157,9 @@ void	Driver::processReadyEvents()
 
 		if (clientIt != clients.end())
 		{
+			// If the event originates from a client socket, stores the request
+			// or sends a ready response.
+
 			if (currEvent->events & EPOLLHUP)
 			{
 				closeConnection(clientIt, Logger::PEER_CLOSE);
@@ -170,10 +180,14 @@ void	Driver::processReadyEvents()
 		}
 		else if (cgiIt != cgis.end())
 		{
+			// If the event originates from a CGI pipe, sends the necessary CGI
+			// data or store and process its response.
+
 			processCGI(cgiIt, activeTimers);
 		}
 	}
 
+	// Updates timeout values for client or CGI.
 	for (std::set<Timer*>::iterator it = activeTimers.begin(); it != activeTimers.end(); it++)
 	{
 		(*it)->update();
@@ -213,6 +227,11 @@ const Server*	Driver::selectVirtualHost(const std::vector<Server>& servers,
 	return client.defaultServer;
 }
 
+/*
+   Processes each client socket's message as it is incoming. When parts of the
+   HTTP request is determined to be valid, processes that specific section and
+   moves on to the next.
+*/
 void	Driver::processRequest(std::map<int, Client>::iterator& clientIt,
 							   std::set<Timer*> activeTimers)
 {
@@ -306,6 +325,11 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt,
 	}
 }
 
+/*
+	Checks whether a response ready (has status line and headers). For
+	responses with message body, the body will also be appended (this occurs)
+	continuously if the entire body is not ready yet).
+*/
 void	Driver::sendResponse(std::map<int, Client>::iterator& clientIt,
 							 std::set<Timer*> activeTimers)
 {
@@ -349,6 +373,10 @@ void	Driver::sendResponse(std::map<int, Client>::iterator& clientIt,
 	}
 }
 
+/*
+   Finds the timer will expire the soonest and update the epoll timeout to that
+   value.
+*/
 void	Driver::updateEpollTimeout()
 {
 	std::priority_queue<
@@ -399,7 +427,6 @@ void	Driver::closeConnection(std::map<int, Client>::iterator clientIt, int logFl
 	std::vector<CGI *>::iterator cgiIt = client.cgis.begin();
 	while (cgiIt != client.cgis.end())
 	{
-		kill((*cgiIt)->pid, SIGKILL);
 		delete *cgiIt;
 		cgiIt++;
 	}
@@ -407,6 +434,10 @@ void	Driver::closeConnection(std::map<int, Client>::iterator clientIt, int logFl
 	clients.erase(clientIt);
 }
 
+/*
+   Checks each available timer and see if they are timed out. If so, close the
+   connection, or kill the CGI process and return 500 errror.
+*/
 void	Driver::monitorTimers()
 {
 	std::map<int, Client>::iterator	it = clients.begin();

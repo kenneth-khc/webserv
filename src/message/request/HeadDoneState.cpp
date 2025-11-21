@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 18:25:17 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 17:31:44 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 04:38:18 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,14 @@
 #include "DoneState.hpp"
 #include "HeadDoneState.hpp"
 
+/*
+	Before deciding to parse the message body, checks the existence and value
+	of "Content-Length" or "Transfer-Encoding" headers. "Transfer-Encoding"
+	must have the value of "chunked".
+
+	If "Content-Length" or "Transfer-Encoding: chunked" exist, returns the
+	next stage (message body), otherwise returns the final stage (done).
+*/
 RequestState	*HeadDoneState::process(Request &request, Client &client) {
 	Optional<String>	contentLength = request["Content-Length"];
 	Optional<String>	transferEncoding = request["Transfer-Encoding"];

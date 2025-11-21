@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/21 01:41:03 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 07:30:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,6 +88,10 @@ clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
 	}
 }
 
+/*
+	Once a well-formed request is received and parsed, a corresponding response
+	will be generated.
+*/
 void	Server::handleRequest(Request& request, Response& response) const
 {
 	request.isSupportedVersion();

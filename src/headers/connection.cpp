@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/02 23:43:39 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/19 22:04:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 05:20:08 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,10 @@
 #include "Optional.hpp"
 #include "connection.hpp"
 
+/*
+	Appends the connection header depending on whether request specifies to
+	close connection and the HTTP version.
+*/
 void	constructConnectionHeader(const Request &request, Response &response) {
 	Optional<String> connectionOption = request["Connection"];
 

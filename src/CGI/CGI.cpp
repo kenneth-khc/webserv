@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/20 05:30:32 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 07:36:14 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <map>
 #include <iomanip>
 #include <fcntl.h>
+#include <signal.h>
 #include "Optional.hpp"
 #include "Driver.hpp"
 #include "Server.hpp"
@@ -30,6 +31,9 @@ const String	CGI::cgiFields[NUM_OF_CGI_FIELDS] = {
 	"status"
 };
 
+/*
+	Converts the received request data into CGI meta variables.
+*/
 CGI::CGI(Client &client, Request &request, Response &response) :
 	client(client),
 	request(request),
@@ -85,6 +89,7 @@ CGI::CGI(Client &client, Request &request, Response &response) :
 }
 
 CGI::~CGI(void) {
+	kill(this->pid, SIGKILL);
 	for (std::vector<char *>::const_iterator it = this->envp.begin(); it != this->envp.end(); it++) {
 		if (*it != 0)
 			delete [] *it;
@@ -102,6 +107,9 @@ CGI::~CGI(void) {
 	std::remove(this->client.cgis.begin(), this->client.cgis.end(), this);
 }
 
+/*
+	Creates the entire list of meta variables needed for CGI execution.
+*/
 void	CGI::generateEnv(const String &webServerName) {
 	String				host = this->request["Host"].value;
 	std::stringstream	serverPort;
@@ -185,6 +193,14 @@ void	CGI::generateEnv(const String &webServerName) {
 	this->envp.push_back(0);
 }
 
+/*
+	Creates two pipes, one for sending data into CGI and another for receiving
+	results from it.
+
+	The write end of the input pipe, and the read end of the output pipe are
+	added to epoll to allow the server to process other requests during CGI
+	execution.
+*/
 void	CGI::execute(int epollFD, std::map<int, CGI*> &cgis) {
 	int	input[2];
 	int	output[2];

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 21:22:47 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/14 22:09:02 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 06:01:32 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,21 @@
 #include "etag.hpp"
 #include "preconditions.hpp"
 
+/*
+	Allows "conditional" requests, where the server tests certain conditions
+	specified in the request and changes it response based on the results.
+
+	Useful for caching with conditional GET. For example the server does not
+	have to resend the same target resource if it has not changed.
+
+	Also useful state-changing methods such as PUT and DELETE. For example to
+	prevent one client from accidentally overwriting the work of another client
+	that has been acting in parallel.
+
+	Preconditions utilize headers "Last-Modified" and entity-tags (ETag),
+	together with "If-Match", "If-Modified" etc. to compare whether the state
+	of a resource has changed or not.
+*/
 bool	processPreconditions(const Request &request, const struct stat &statbuf) {
 	Optional<String>	value = request["If-None-Match"];
 

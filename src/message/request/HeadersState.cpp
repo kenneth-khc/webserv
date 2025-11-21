@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 18:01:55 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/31 23:29:57 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 04:37:49 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,22 @@
 #include "HeadDoneState.hpp"
 #include "HeadersState.hpp"
 
+/*
+	Checks the client socket's message for "\r\n" (CRLF) which indicates the
+	end a header, for example:
+
+		Host: localhost\r\n
+
+	Parses and stores the header in a map.
+
+	If during parsing "\r\n\r\n" (CRLF CRLF) is encountered, it means the end
+	of header section.
+
+		Host: localhost\r\n
+		Connection: keep-alive\r\n\r\n
+
+	Returns the next stage ("head done").
+*/
 RequestState	*HeadersState::process(Request &request, Client &client) {
 	String	&message = client.message;
 
@@ -86,7 +102,7 @@ bool	isFieldVisibleCharacter(const unsigned char &character) {
 }
 
 bool	isFieldContent(const String &line) {
-	const String	values = " \t";
+	const String		values = " \t";
 	String::size_type	length = line.length();
 
 	if (length == 0 || values.find(line[length - 1]).exists == true)

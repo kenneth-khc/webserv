@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 02:47:52 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 06:08:00 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,10 @@ static void		uploadFiles(const POSTBody& body, const String& uploadsDir, const S
 static String	constructFormPath(const String& uploadsDir, const String& sid);
 static void		uploadForm(const POSTBody& body, const String& uploadsDir, const String& sid);
 
+/*
+	Allows uploading HTML forms and files. Makes use of the cookies set
+	automatically by the server to differentiate the uploaded resources.
+*/
 void	Server::post(Response& response, const Request& request) const
 {
 	POSTBody	msgBody(request);

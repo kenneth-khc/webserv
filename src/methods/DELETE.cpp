@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:14:43 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 02:46:59 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 05:14:32 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,9 @@
 #include "Driver.hpp"
 
 // TODO: consider other status codes. 200 OK? 202 Accepted? 403 Forbidden?
+/*
+	Checks for file or directory existence and removes it.
+*/
 void	Server::delete_(Response& response, const Request& request) const
 {
 	struct stat	filesystem;

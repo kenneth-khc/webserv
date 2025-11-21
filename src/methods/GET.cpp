@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/20 05:20:10 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 05:34:57 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,11 @@ void	Server::get(Response& response, const Request& request) const
 	getFile(resolvedFilepath, response, request);
 }
 
+/*
+	A special handling. When the location block has an "upload_directory"
+	declared within, generates a page listing all the uploads within the
+	specified upload_directory for the exact URI match.
+*/
 static Optional<String>	resolveUploadGET(Response& response, const Request& request)
 {
 	if (request.path == request.location->uri && fileIsDirectory(request.resolvedPath))
@@ -97,6 +102,15 @@ static Optional<String>	resolveUploadGET(Response& response, const Request& requ
 	}
 }
 
+/*
+	If "index" is declared within a location block and "autoindex" is on,
+	returns the index file if it exists, otherwise returns a page listing the
+	file structure for that URI.
+
+	If "autoindex" is off, returns the index file if it exists.
+
+	Returns 404 error if both are not found.
+*/
 static Optional<String>	resolveDirectoryGET(Response &response, const Request& request)
 {
 	Optional<String>	indexFilepath = tryIndexFiles(request.location->indexFiles,

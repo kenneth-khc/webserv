@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/20 02:09:46 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 06:17:18 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,9 +79,10 @@ Response&	Response::operator=(const ErrorCode& obj)
 	return *this;
 }
 
-
-//	Turns the information stored in the Response instance into a complete
-//	HTTP response message
+/*
+	Turns the information stored in the Response instance into a complete
+	HTTP response message.
+*/
 bool	Response::isReady(void) {
 	if (this->messageBody.length() == 0 && !(this->processStage & Response::DONE))
 		return (false);

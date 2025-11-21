@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "Driver.hpp"
+#include "NonFatal.hpp"
 #include "PathHandler.hpp"
 #include "Request.hpp"
 #include "Server.hpp"
@@ -20,6 +21,7 @@
 #include "KeepAliveTimer.hpp"
 #include "FileNotFound.hpp"
 #include "FilePermissionDenied.hpp"
+#include "FileDescriptorLimit.hpp"
 #include "SetupError.hpp"
 #include <cstring>
 #include <sys/stat.h>
@@ -35,6 +37,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <queue>
+#include <cerrno>
 
 Driver::Driver():
 webServerName("42webserv"),
@@ -125,7 +128,10 @@ int	Driver::epollWait()
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, epollTimeout);
 	if (numReadyEvents == -1)
 	{
-		throw std::runtime_error("epoll_wait() failed");
+		if (errno != EINTR)
+		{
+			throw std::runtime_error("epoll_wait() failed");
+		}
 	}
 	return numReadyEvents;
 }
@@ -143,7 +149,22 @@ void	Driver::processReadyEvents()
 		if (iter != listeners.end())
 		{
 			const Socket&	listener = iter->second;
-			Socket			clientSocket = listener.accept();
+			Socket			clientSocket;
+
+			try
+			{
+				clientSocket = listener.accept();
+			}
+			catch (const NonFatal& e)
+			{
+				// INFO: nothing we can do here.
+				// for reaching fd limits, increase the process file
+				// descriptor limit or implement some sleep mechanism.
+				// for other client side errors, don't crash and trudge on forward.
+				// Logger::warn(e.what());
+				Logger::warn(listener, e.what());
+				continue;
+			}
 			int				fd = clientSocket.fd;
 			establishedSockets[fd] = clientSocket;
 			addToEpoll(fd, EPOLL_EVENTS(EPOLLIN | EPOLLOUT));

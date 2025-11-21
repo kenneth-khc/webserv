@@ -98,7 +98,7 @@ private:
 	Server();
 
 	void	checkIfAllowedMethod(const Location&, const Request&);
-	void	configureLocations(const Directive&);
+	std::vector<Location>	configureLocations(const Directive&) const;
 	/** Binds socket if not already bound, otherwise reuse existing sockets */
 	void	assignSocket(const String&, const String&, std::map<int,Socket>&);
 };

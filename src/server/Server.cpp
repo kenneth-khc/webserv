@@ -38,11 +38,13 @@ PathHandler			Server::pathHandler;
 
 Server::Server():
 sockets(),
-domainNames(),
+domainNames(Defaults::SERVER_NAME),
 locations(),
-root(),
-autoindex(true),
-MIMEMappings("mime.types")
+root(Defaults::ROOT),
+indexFiles(Defaults::INDEX),
+autoindex(Defaults::AUTOINDEX.toBool()),
+MIMEMappings(Defaults::TYPES),
+clientMaxBodySize(Defaults::CLIENT_MAX_BODY_SIZE.toSize())
 {
 	cgiScript.push_back("py");
 	cgiScript.push_back("php");
@@ -52,7 +54,7 @@ Server::Server(const Directive& block,
 			   std::map<int,Socket>& existingSockets):
 sockets(),
 domainNames(block.getInherited("server_name", Defaults::SERVER_NAME)),
-locations(),
+locations(configureLocations(block)),
 root(block.getInherited("root", Defaults::ROOT)),
 indexFiles(block.getInherited("index", Defaults::INDEX)),
 autoindex(block.getInherited("autoindex", Defaults::AUTOINDEX).toBool()),
@@ -76,7 +78,6 @@ cgiScript()
 			assignSocket(address, port, existingSockets);
 		}
 	}
-	configureLocations(block);
 	errorPages = block.generateErrorPagesMapping()
 							.value_or(std::map<int,String>());
 	Optional<Directive*>	cgiScriptBlock = block.getDirective("cgi_script");
@@ -210,34 +211,36 @@ void	Server::cgi(
 }
 
 void	Server::assignSocket(const String& ip, const String& port,
-							 std::map<int,Socket>& existingSockets)
+							 std::map<int,Socket>& listeners)
 {
 	unsigned short	portNum = port.toInt();
 	std::map<int, Socket>::iterator	iter =
-		std::find_if(existingSockets.begin(),
-					 existingSockets.end(),
+		std::find_if(listeners.begin(),
+					 listeners.end(),
 					 Socket::IsMatchingAddress(ip, portNum));
 
-	if (iter == existingSockets.end())
+	if (iter == listeners.end())
 	{
 		Socket	listener = Socket::spawn(ip, port);
 		listener.bind();
 		listener.listen(1024);
-		existingSockets[listener.fd] = listener;
-		sockets.push_back(&existingSockets[listener.fd]);
+		listeners[listener.fd] = listener;
+		this->sockets.push_back(&listeners[listener.fd]);
 	}
 	else
 	{
-		sockets.push_back(&iter->second);
+		this->sockets.push_back(&iter->second);
 	}
 }
 
-void	Server::configureLocations(const Directive& directive)
+std::vector<Location>	Server::configureLocations(const Directive& block) const
 {
-	std::vector<Directive*>	locations = directive.getDirectives("location");
+	std::vector<Location>	locations;
+	std::vector<Directive*>	locationBlocks = block.getDirectives("location");
 
-	for (size_t i = 0; i < locations.size(); ++i)
+	for (size_t i = 0; i < locationBlocks.size(); ++i)
 	{
-		this->locations.push_back(*locations[i]);
+		locations.push_back(*locationBlocks[i]);
 	}
+	return locations;
 }

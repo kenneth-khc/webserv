@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/20 05:20:50 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 09:21:53 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,11 +158,13 @@ void	Request::checkIfValidMethod(void) const {
 	while (i < NUM_OF_SUPPORTED_METHODS) {
 		if (this->method == Request::supportedMethods[i])
 			break ;
+		i++;
 	}
 	if (i == NUM_OF_SUPPORTED_METHODS)
 		throw NotImplemented501();
 
-	if (std::find(this->location->allowedMethods.begin(),
+	if (this->location->allowedMethods.size() == 0 ||
+		std::find(this->location->allowedMethods.begin(),
 				  this->location->allowedMethods.end(),
 				  method) == this->location->allowedMethods.end())
 	{

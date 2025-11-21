@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/21 07:30:37 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 09:43:14 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,16 +95,17 @@ clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
 void	Server::handleRequest(Request& request, Response& response) const
 {
 	request.isSupportedVersion();
+
+	request.location = const_cast<Location*>(matchURILocation(request)
+											.value_or(&Server::defaultLocation));
+
+	request.checkIfValidMethod();
+
 	request.parseCookieHeader();
 	processCookies(request, response);
 
-	request.path = pathHandler.normalize(request.path);
-	request.location = const_cast<Location*>(matchURILocation(request)
-											.value_or(&Server::defaultLocation));
-	request.checkIfValidMethod();
-
 	const String&	rootDir = pathHandler.resolveWithPrefix(request.location->root);
-	request.resolvedPath = pathHandler.resolve(rootDir, request.path);
+	request.resolvedPath = pathHandler.resolve(rootDir, request.decodedPath);
 
 	// if (location->execCGI)
 	// {
@@ -139,7 +140,7 @@ Optional<const Location*>	Server::matchURILocation(const Request& request) const
 		 ++it)
 	{
 		const String&	location = it->uri;
-		const String&	target = request.path;
+		const String&	target = request.decodedPath;
 		if (target.starts_with(location) && location.length() > longestMatchSoFar)
 		{
 			longestMatchSoFar = location.length();

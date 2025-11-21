@@ -37,12 +37,12 @@ const Location		Server::defaultLocation = Location();
 PathHandler			Server::pathHandler;
 
 Server::Server():
-	socket(),
-	domainNames(),
-	locations(),
-	root(),
-	autoindex(true),
-	MIMEMappings("mime.types")
+sockets(),
+domainNames(),
+locations(),
+root(),
+autoindex(true),
+MIMEMappings("mime.types")
 {
 	cgiScript.push_back("py");
 	cgiScript.push_back("php");
@@ -50,8 +50,8 @@ Server::Server():
 
 Server::Server(const Directive& serverBlock,
 			   std::map<int,Socket>& existingSockets):
-// TODO(kecheong): allow listen to more than one socket for each server
-socket(),
+sockets(),
+
 domainNames(serverBlock.getParametersOf("server_name")
 					   .value_or(std::vector<String>())),
 locations(),
@@ -69,12 +69,22 @@ clientMaxBodySize(serverBlock.recursivelyLookup<String>("client_max_body_size")
 							 .value_or(1000000)),
 cgiScript()
 {
-	const String&	listenParams = serverBlock.getParameterOf("listen")
-												.value_or("0.0.0.0:8000");
-	const String::size_type	colon = listenParams.find(':').value;
-	const String&	address = listenParams.substr(0, colon);
-	const String&	port = listenParams.substr(colon + 1);
-	assignSocket(address, port, existingSockets);
+	std::vector<Directive*> listens = serverBlock.getDirectives("listen");
+	if (listens.empty())
+	{
+		assignSocket("0.0.0.0", "8000", existingSockets);
+	}
+	else
+	{
+		for (std::size_t i = 0; i < listens.size(); ++i)
+		{
+			const String&	listen = listens[i]->parameters[0];
+			size_t			colon = listen.find(':').value;
+			const String&	address = listen.substr(0, colon);
+			const String&	port = listen.substr(colon + 1);
+			assignSocket(address, port, existingSockets);
+		}
+	}
 	configureLocations(serverBlock);
 	errorPages = serverBlock.generateErrorPagesMapping()
 							.value_or(std::map<int,String>());
@@ -223,23 +233,20 @@ void	Server::assignSocket(const String& ip, const String& port,
 		listener.bind();
 		listener.listen(1024);
 		existingSockets[listener.fd] = listener;
-		socket = &existingSockets[listener.fd];
+		sockets.push_back(&existingSockets[listener.fd]);
 	}
 	else
 	{
-		socket = &iter->second;
+		sockets.push_back(&iter->second);
 	}
 }
 
 void	Server::configureLocations(const Directive& directive)
 {
-	std::vector<Directive*>	locationBlocks = directive.getDirectives("location");
+	std::vector<Directive*>	locations = directive.getDirectives("location");
 
-	for (size_t i = 0; i < locationBlocks.size(); ++i)
+	for (size_t i = 0; i < locations.size(); ++i)
 	{
-		const Directive*	locationBlock = locationBlocks[i];
-		Location			location(*locationBlock);
-
-		this->locations.push_back(location);
+		this->locations.push_back(*locations[i]);
 	}
 }

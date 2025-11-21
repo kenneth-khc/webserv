@@ -122,18 +122,8 @@ void	Driver::processReadyEvents()
 			establishedSockets[fd] = clientSocket;
 			addToEpoll(fd, EPOLL_EVENTS(EPOLLIN | EPOLLOUT));
 
-			Client	newClient(&establishedSockets[fd], &listener);
-			for (size_t i = 0; i < http.servers.size(); ++i)
-			{
-				const Server& server = http.servers[i];
-				// TODO(kecheong):
-				// go through each socket of each server
-				if (&listener == server.socket)
-				{
-					newClient.defaultServer = &server;
-					break;
-				}
-			}
+			Client	newClient = Client(&establishedSockets[fd], &listener);
+			newClient.setDefaultServer(http.servers);
 			clients[fd] = newClient;
 
 			Logger::logConnection(Logger::ESTABLISHED, fd, newClient);
@@ -198,7 +188,9 @@ const Server*	Driver::selectVirtualHost(const std::vector<Server>& servers,
 	std::vector<Server>::const_iterator	server;
 	for (server = servers.begin(); server != servers.end(); ++server)
 	{
-		if (server->socket != client.receivedBy)
+		if (std::find(server->sockets.begin(),
+					  server->sockets.end(),
+					  client.receivedBy) == server->sockets.end())
 		{
 			continue;
 		}

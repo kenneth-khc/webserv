@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/20 02:53:50 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 08:07:30 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ class Request : public Message {
 		static const String	supportedMethods[NUM_OF_SUPPORTED_METHODS];
 		static const String	supportedVersions[NUM_OF_SUPPORTED_VERSIONS];
 
-		Client*						client;
 		Location*					location;
 		String						method;
 		String						requestTarget;

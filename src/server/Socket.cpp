@@ -11,10 +11,12 @@
 /* ************************************************************************** */
 
 #include "Socket.hpp"
+#include "NonFatal.hpp"
 #include "String.hpp"
 #include "AddressInUseError.hpp"
 #include "AddressNotAvailable.hpp"
 #include "AddressProtected.hpp"
+#include "FileDescriptorLimit.hpp"
 
 #include <cerrno>
 #include <netdb.h>
@@ -101,7 +103,6 @@ portNum(),
 _address(acceptedAddress),
 _addressLen(sizeof _address)
 {
-	// TODO:: convert
 	convertAddressToIpAndPort(acceptedAddress);
 
 	int	yes = 1;
@@ -146,7 +147,8 @@ int	Socket::bind() const
 		}
 		else
 		{
-			throw std::runtime_error("bind() failed");
+			throw std::runtime_error("bind() failed (" +
+									 String(strerror(errno)) + ")");
 		}
 	}
 	return retval;
@@ -157,7 +159,8 @@ int	Socket::listen(int connectionCount) const
 	int	retval = ::listen(fd, connectionCount);
 	if (retval == -1)
 	{
-		throw std::runtime_error("listen() failed");
+		throw std::runtime_error("listen() failed (" +
+								 String(strerror(errno)) + ")");
 	}
 	return retval;
 }
@@ -170,7 +173,31 @@ Socket	Socket::accept() const
 	int	newFD = ::accept(fd, reinterpret_cast<sockaddr*>(&addr), &addrLen);
 	if (newFD == -1)
 	{
-		throw std::runtime_error("accept() failed ");
+		String	errmsg = strerror(errno);
+		switch (errno)
+		{
+			case EINTR:
+				throw NonFatal("accept() interrupted by signal");
+
+			case ECONNABORTED:
+				throw NonFatal("accepted() failed (client aborted connection)");
+
+			case ENETDOWN:
+			case EPROTO:
+			case ENOPROTOOPT:
+			case ENONET:
+			case EHOSTUNREACH:
+			case EOPNOTSUPP:
+			case ENETUNREACH:
+				throw NonFatal("Client side protocol error (" + errmsg + ")");
+
+			case EMFILE:
+			case ENFILE:
+				throw FileDescriptorLimit("accept() failed (file descriptor limit reached)");;
+
+			default:
+				throw std::runtime_error("accept() failed (" + errmsg + ")");
+		}
 	}
 	return Socket::wrap(newFD, addr);
 }
@@ -214,7 +241,8 @@ addrinfo*	Socket::getAddrInfo(const String& ip, const String& port)
 	int	retval = ::getaddrinfo(ip.c_str(), port.c_str(), &requirements, &info);
 	if (retval != 0)
 	{
-		throw std::runtime_error("getaddrinfo() failed");
+		String errmsg = gai_strerror(retval);
+		throw std::runtime_error("getaddrinfo() failed (" + errmsg + ")");
 	}
 	return info;
 }

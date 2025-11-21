@@ -37,6 +37,9 @@ public:
 	Client(const Client&);
 	Client	&operator=(const Client&);
 
+	/** Sets the default server for a connected Client.
+		Default server is the first server block with a matching host:port */
+	void	setDefaultServer(const std::vector<Server>&);
 	ssize_t	receiveBytes();
 	ssize_t	sendBytes(String &formattedResponse);
 

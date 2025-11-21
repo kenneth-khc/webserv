@@ -40,16 +40,17 @@ int	main(int argc, char** argv)
 	}
 	catch (const SetupError& e)
 	{
-		std::cout << e.format();
+		std::cerr << e.format();
 		std::exit(1);
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << "Caught exception: " << e.what() << '\n';
+		std::cerr << "Caught exception: " << e.what() << '\n';
 		std::exit(1);
 	}
 
-	std::cout << "Server is running...\n";
+	Logger::log("Server is running with " + String(driver.listeners.size()) +
+				" listening sockets");
 	while (1)
 	{
 		driver.updateEpollTimeout();

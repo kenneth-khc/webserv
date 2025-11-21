@@ -21,6 +21,7 @@
 #include "Response.hpp"
 #include "MediaType.hpp"
 #include "PathHandler.hpp"
+
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -58,16 +59,16 @@ public:
 	static const unsigned int	clientHeaderTimeoutDuration;
 	static const unsigned int	clientBodyTimeoutDuration;
 
-	// TODO: a server can have multiple sockets
-	Socket*					socket;
+	/** List of sockets for this server block */
+	std::vector<Socket*>	sockets;
 
-	/** the domain names served by this virtual host */
+	/** Domain names served by this virtual host */
 	std::vector<String>		domainNames;
 
-	/** locations to match and route a request to */
+	/** Locations to match and route a request to */
 	std::vector<Location>	locations;
 
-	/** information for handling the request and response */
+	/** Information for handling the request and response */
 	String				root;
 	std::vector<String>	indexFiles;
 	bool				autoindex;
@@ -97,7 +98,7 @@ private:
 	Server();
 
 	void	checkIfAllowedMethod(const Location&, const Request&);
-	void	configureLocations(const Directive&);
+	std::vector<Location>	configureLocations(const Directive&) const;
 	/** Binds socket if not already bound, otherwise reuse existing sockets */
 	void	assignSocket(const String&, const String&, std::map<int,Socket>&);
 };

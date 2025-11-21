@@ -11,54 +11,49 @@
 /* ************************************************************************** */
 
 #include "Location.hpp"
-#include "VectorInitializer.hpp"
+#include "Defaults.hpp"
 #include "ErrorCode.hpp"
+#include "RedirectHandler.hpp"
 #include <algorithm>
 
 Location::Location():
-	root("html"),
-	indexFiles(),
-	autoindex(false),
-	MIMEMappings("mime.types")
+uri("/"),
+root(Defaults::ROOT),
+indexFiles(Defaults::INDEX),
+autoindex(Defaults::AUTOINDEX.toBool()),
+allowedMethods(Defaults::ALLOW_METHODS),
+MIMEMappings(Defaults::TYPES),
+clientMaxBodySize(Defaults::CLIENT_MAX_BODY_SIZE.toSize()),
+uploadDirectory(Defaults::UPLOAD_DIRECTORY),
+acceptUploads(!uploadDirectory.empty()),
+redirectHandler()
 {
 }
 
-Location::Location(const Directive& locationBlock):
-	uri(locationBlock.parameters[0].value),
-
-	root(locationBlock.recursivelyLookup<String>("root")
-					  .value_or("html")),
-
-	indexFiles(locationBlock.recursivelyLookup< std::vector<String> >("index")
-							.value_or(vector_of<String>("index.html"))),
-
-	autoindex(locationBlock.recursivelyLookup<String>("autoindex")
-						   .transform(String::toBool)
-						   .value_or(false)),
-
-	allowedMethods(locationBlock.getParametersOf("allow_method")
-								.value_or(vector_of<String>("GET"))),
-
-	MIMEMappings(locationBlock.recursivelyLookup<String>("types")
-							  .value_or("mime.types")),
-
-	clientMaxBodySize(locationBlock.recursivelyLookup<String>("client_max_body_size")
-								   .transform(String::toSize)
-								   .value_or(1000000)),
-
-	// TODO(kecheong): accept_uploads is outdated. check for existence of
-	// "upload_directory" instead
-	acceptUploads(locationBlock.getParameterOf("accept_uploads")
-							   .transform(String::toBool)
-							   .value_or(false)),
-
-	uploadDirectory(locationBlock.getParameterOf("upload_directory")
-								 .value_or("")),
-
-	redirectHandler(locationBlock)
+Location::Location(const Directive& block):
+uri(block.getParameter()),
+root(block.getInherited("root", Defaults::ROOT)),
+indexFiles(block.getInherited("index", Defaults::INDEX)),
+autoindex(block.getInherited("autoindex", Defaults::AUTOINDEX).toBool()),
+allowedMethods(block.getInherited("allow_method", Defaults::ALLOW_METHODS)),
+MIMEMappings(block.getInherited("types", Defaults::TYPES)),
+clientMaxBodySize(block.getInherited("client_max_body_size", Defaults::CLIENT_MAX_BODY_SIZE).toSize()),
+uploadDirectory(block.getInherited("upload_directory", Defaults::UPLOAD_DIRECTORY)),
+acceptUploads(!uploadDirectory.empty()),
+redirectHandler(block)
 {
-	errorPages = locationBlock.generateErrorPagesMapping()
+	errorPages = block.generateErrorPagesMapping()
 							  .value_or(std::map<int,String>());
+}
+
+bool	Location::shouldRedirect() const
+{
+	return redirectHandler.shouldRedirect;
+}
+
+void	Location::executeRedirection(Response& response) const
+{
+	return redirectHandler.executeRedirection(response);
 }
 
 void	Location::checkIfAllowedMethod(const String& method) const

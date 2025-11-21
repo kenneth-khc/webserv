@@ -25,6 +25,7 @@ namespace Logger
 	namespace Colour
 	{
 		const char*	RED = "\e[0;31m";
+		const char* PURPLE ="\e[0;35m";
 		const char*	BOLD_RED = "\e[1;31m";
 		const char*	GREEN = "\e[0;32m";
 		const char*	YELLOW = "\e[0;33m";
@@ -32,6 +33,28 @@ namespace Logger
 		const char*	BOLD_BLUE = "\x1B[1;34m";
 		const char*	RESET = "\e[0m";
 	}
+}
+
+void	Logger::log(const String& message)
+{
+	std::cout << Colour::YELLOW << message << '\n' << Colour::RESET;
+}
+
+void	Logger::warn(const String& message)
+{
+	std::cerr << Colour::PURPLE << "WARN: " << message << '\n' << Colour::RESET;
+}
+
+void	Logger::warn(const Socket& socket, const String& message)
+{
+	std::cerr << Colour::YELLOW
+			  << "?.?.?.?:????? => "
+			  << socket.ip << ":" << socket.port
+			  << Colour::RESET
+			  << " | "
+			  << Colour::PURPLE
+			  << message
+			  << '\n' << Colour::RESET;
 }
 
 void	Logger::logRequest(Request& request, Client& client) 

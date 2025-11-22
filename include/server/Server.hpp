@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/23 01:04:57 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/23 01:28:40 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,10 +77,9 @@ public:
 	std::size_t			clientMaxBodySize;
 
 	static const Location		defaultLocation;
-	static const unsigned int	timeoutValue;
 	static PathHandler			pathHandler;
 
-	void						handleRequest(Request&, Response&) const;
+	void						handleRequest(Driver&, Client&, Request&, Response&) const;
 	void						processCookies(Request&, Response&) const;
 	Optional<const Location*>	matchURILocation(const Request&) const;
 
@@ -92,7 +91,9 @@ public:
 	void				cgi(Driver&, Client&, Response&, Request&) const;
 
 	friend class CGI;
-	std::vector<String>	cgiScript;
+	std::vector<String>	cgiScripts;
+	String				cgiBinDirectory;
+	String				cgiUploadDirectory;
 
 private:
 	Server();

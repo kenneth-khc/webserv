@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/20 05:21:51 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/23 01:10:28 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,8 @@ class CGI {
 		CGIOutput			*output;
 		CGITimer			*timer;
 
-		CGI(Client &client, Request &request, Response &response);
+		CGI(const std::vector<String> &cgiScripts, Client &client,
+				Request &request, Response &response);
 		~CGI(void);
 		void	generateEnv(const String &webServerName);
 		void	execute(int epollFD, std::map<int, CGI*> &cgis);

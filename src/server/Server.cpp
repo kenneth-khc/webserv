@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/23 01:05:12 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/23 01:57:27 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,13 @@ clientMaxBodySize(block.getInherited("client_max_body_size", Defaults::CLIENT_MA
 		{
 			trimmed.push_back(extensions[i].value.substr(1));
 		}
-		cgiScript = trimmed;
+		cgiScripts = trimmed;
+
+		Optional<Directive*>	cgiBinDirectoryDirective = block.getDirective("cgi_bin_directory");
+		Optional<Directive*>	cgiUploadDirectoryDirective = block.getDirective("cgi_upload_directory");
+
+		cgiBinDirectory = cgiBinDirectoryDirective.value->parameters[0];
+		cgiUploadDirectory = cgiUploadDirectoryDirective.value->parameters[0];
 	}
 }
 
@@ -95,7 +101,11 @@ clientMaxBodySize(block.getInherited("client_max_body_size", Defaults::CLIENT_MA
 	Once a well-formed request is received and parsed, a corresponding response
 	will be generated.
 */
-void	Server::handleRequest(Request& request, Response& response) const
+void	Server::handleRequest(
+Driver& driver,
+Client& client,
+Request& request,
+Response& response) const
 {
 	request.isSupportedVersion();
 
@@ -115,11 +125,11 @@ void	Server::handleRequest(Request& request, Response& response) const
 		return request.location->executeRedirection(response);
 	}
 
-	// if (location->execCGI)
-	// {
-	// 	cgi(driver, client, response, request);
-	// 	return ;
-	// }
+	if (cgiScripts.size() != 0 && cgiBinDirectory.starts_with(request.location->uri))
+	{
+		cgi(driver, client, response, request);
+		return ;
+	}
 
 	if (request.method == "GET")
 	{
@@ -188,7 +198,7 @@ void	Server::cgi(
 	Response &response,
 	Request &request) const
 {
-	CGI	*cgi = new CGI(client, request, response);
+	CGI	*cgi = new CGI(cgiScripts, client, request, response);
 
 	cgi->generateEnv(driver.webServerName);
 	cgi->execute(driver.epollFD, driver.cgis);

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/23 00:52:46 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/23 01:29:17 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -287,7 +287,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt,
 			const Server*	server = selectVirtualHost(http.servers,
 													   client,
 													   request);
-			server->handleRequest(request, client.responseQueue.back());
+			server->handleRequest(*this, client, request, client.responseQueue.back());
 		}
 		catch (const ErrorCode &e)
 		{

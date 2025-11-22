@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 22:21:40 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/21 01:28:11 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/23 00:48:15 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@
 #include "String.hpp"
 #include "MediaType.hpp"
 #include "Directive.hpp"
+#include "RedirectHandler.hpp"
 
 struct	Location
 {
@@ -61,13 +62,19 @@ struct	Location
 	/** max size allowed for the incoming request body */
 	std::size_t			clientMaxBodySize;
 
-	/** whether we should accept uploads */
-	bool				acceptUploads;
-
 	/** where uploads for our web server is stored */
 	String				uploadDirectory;
 
-	std::set<String>		cgiScripts;
+	/** whether we should accept uploads */
+	bool				acceptUploads;
+
+	/** forwards to redirectHandler to check if should redirect */
+	bool	shouldRedirect() const;
+	/** forwards to redirectHandler to perform redirection */
+	void	executeRedirection(Response&) const;
+
+private:
+	RedirectHandler	redirectHandler;
 };
 
 #endif

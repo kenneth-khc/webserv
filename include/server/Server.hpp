@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/21 01:38:59 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/23 01:04:57 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include "Response.hpp"
 #include "MediaType.hpp"
 #include "PathHandler.hpp"
+
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -58,16 +59,16 @@ public:
 	static const unsigned int	clientHeaderTimeoutDuration;
 	static const unsigned int	clientBodyTimeoutDuration;
 
-	// TODO: a server can have multiple sockets
-	Socket*					socket;
+	/** List of sockets for this server block */
+	std::vector<Socket*>	sockets;
 
-	/** the domain names served by this virtual host */
+	/** Domain names served by this virtual host */
 	std::vector<String>		domainNames;
 
-	/** locations to match and route a request to */
+	/** Locations to match and route a request to */
 	std::vector<Location>	locations;
 
-	/** information for handling the request and response */
+	/** Information for handling the request and response */
 	String				root;
 	std::vector<String>	indexFiles;
 	bool				autoindex;
@@ -91,11 +92,12 @@ public:
 	void				cgi(Driver&, Client&, Response&, Request&) const;
 
 	friend class CGI;
+	std::vector<String>	cgiScript;
 
 private:
 	Server();
 
-	void	configureLocations(const Directive&);
+	std::vector<Location>	configureLocations(const Directive&) const;
 	/** Binds socket if not already bound, otherwise reuse existing sockets */
 	void	assignSocket(const String&, const String&, std::map<int,Socket>&);
 };

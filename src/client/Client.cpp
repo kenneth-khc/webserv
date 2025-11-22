@@ -14,6 +14,7 @@
 #include "Client.hpp"
 #include "ClientHeaderTimer.hpp"
 #include "Socket.hpp"
+#include "Server.hpp"
 
 Client::Client():
 socket(NULL),
@@ -99,6 +100,26 @@ Client	&Client::operator=(const Client& rhs)
 	requestQueue = rhs.requestQueue;
 	responseQueue = rhs.responseQueue;
 	return *this;
+}
+
+void	Client::setDefaultServer(const std::vector<Server>& servers)
+{
+	std::vector<Server>::const_iterator	server;
+	for (server = servers.begin(); server != servers.end(); ++server)
+	{
+		std::vector<Socket*>::const_iterator	socket;
+		for (socket = server->sockets.begin(); socket != server->sockets.end(); ++socket)
+		{
+			if (*socket == this->receivedBy)
+			{
+				this->defaultServer = &*server;
+				return ;
+			}
+		}
+	}
+	// it should never get here as there MUST be at least one server block
+	// that is bound to this client's listener socket
+	throw std::runtime_error("unable to determine default server");
 }
 
 ssize_t	Client::receiveBytes()

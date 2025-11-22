@@ -6,11 +6,12 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/21 09:40:32 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/23 00:52:46 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Driver.hpp"
+#include "NonFatal.hpp"
 #include "PathHandler.hpp"
 #include "Request.hpp"
 #include "Server.hpp"
@@ -18,6 +19,12 @@
 #include "ErrorCode.hpp"
 #include "DoneState.hpp"
 #include "KeepAliveTimer.hpp"
+#include "FileNotFound.hpp"
+#include "FilePermissionDenied.hpp"
+#include "FileDescriptorLimit.hpp"
+#include "SetupError.hpp"
+#include <cstring>
+#include <sys/stat.h>
 #include <cstddef>
 #include <stdexcept>
 #include <unistd.h>
@@ -31,6 +38,7 @@
 #include <queue>
 #include <vector>
 #include <algorithm>
+#include <cerrno>
 
 Driver::Driver():
 webServerName("42webserv"),
@@ -48,7 +56,28 @@ clients()
 
 void	Driver::initialize(const Configuration& config)
 {
-	Server::pathHandler.setPrefix(config.get("prefix").parameters[0]);
+	const String&	prefix = config.get("prefix").parameters[0];
+	struct stat		statbuf;
+
+	if (stat(prefix.c_str(), &statbuf) == -1)
+	{
+		switch (errno)
+		{
+			case ENOENT: throw FileNotFound("Cannot access `" + prefix + "`");
+			case EACCES: throw FilePermissionDenied("Cannot access `" + prefix + "`");
+			default: throw SetupError("Cannot access `" + prefix + "` (" +
+									  strerror(errno) + ")");
+		}
+	}
+	if (!S_ISDIR(statbuf.st_mode))
+	{
+		throw SetupError("`" + prefix + "` is not a directory");
+	}
+	if ((statbuf.st_mode & S_IRUSR) == 0)
+	{
+		throw FilePermissionDenied("Cannot read directory `" + prefix + "`");
+	}
+	Server::pathHandler.setPrefix(prefix);
 
 	const Directive&		httpBlock = config.get("http");
 	std::vector<Directive*>	serverBlocks = httpBlock.getDirectives("server");
@@ -100,7 +129,10 @@ int	Driver::epollWait()
 	numReadyEvents = epoll_wait(epollFD, readyEvents, maxEvents, epollTimeout);
 	if (numReadyEvents == -1)
 	{
-		throw std::runtime_error("epoll_wait() failed");
+		if (errno != EINTR)
+		{
+			throw std::runtime_error("epoll_wait() failed");
+		}
 	}
 	return numReadyEvents;
 }
@@ -125,23 +157,28 @@ void	Driver::processReadyEvents()
 		if (iter != listeners.end())
 		{
 			const Socket&	listener = iter->second;
-			Socket			clientSocket = listener.accept();
+			Socket			clientSocket;
+
+			try
+			{
+				clientSocket = listener.accept();
+			}
+			catch (const NonFatal& e)
+			{
+				// INFO: nothing we can do here.
+				// for reaching fd limits, increase the process file
+				// descriptor limit or implement some sleep mechanism.
+				// for other client side errors, don't crash and trudge on forward.
+				// Logger::warn(e.what());
+				Logger::warn(listener, e.what());
+				continue;
+			}
 			int				fd = clientSocket.fd;
 			establishedSockets[fd] = clientSocket;
 			addToEpoll(fd, EPOLL_EVENTS(EPOLLIN | EPOLLOUT));
 
-			Client	newClient(&establishedSockets[fd], &listener);
-			for (size_t i = 0; i < http.servers.size(); ++i)
-			{
-				const Server& server = http.servers[i];
-				// TODO(kecheong):
-				// go through each socket of each server
-				if (&listener == server.socket)
-				{
-					newClient.defaultServer = &server;
-					break;
-				}
-			}
+			Client	newClient = Client(&establishedSockets[fd], &listener);
+			newClient.setDefaultServer(http.servers);
 			clients[fd] = newClient;
 
 			Logger::logConnection(Logger::ESTABLISHED, fd, newClient);
@@ -197,7 +234,9 @@ const Server*	Driver::selectVirtualHost(const std::vector<Server>& servers,
 	std::vector<Server>::const_iterator	server;
 	for (server = servers.begin(); server != servers.end(); ++server)
 	{
-		if (server->socket != client.receivedBy)
+		if (std::find(server->sockets.begin(),
+					  server->sockets.end(),
+					  client.receivedBy) == server->sockets.end())
 		{
 			continue;
 		}

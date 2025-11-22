@@ -41,14 +41,15 @@ Validators::Validators()
 	registerDirective("autoindex", validateAutoindex);
 	registerDirective("allow_method", validateAllowMethod);
 	registerDirective("client_max_body_size", validateClientMaxBodySize);
-
 	registerDirective("error_page", validateErrorPage);
 	registerDirective("upload_directory", validateUploadDirectory);
+	registerDirective("redirect", validateRedirect);
+
+	// cgi_script directives
 	registerDirective("cgi_script",
 	                  Validator(validateCgiScriptHeader, validateCgiScriptBody));
 	registerDirective("cgi_bin_directory", validateCgiBinDirectory);
 	registerDirective("cgi_upload_directory", validateCgiUploadDirectory);
-	registerDirective("redirect", validateRedirect);
 }
 
 void	Validators::registerDirective(const String& name,

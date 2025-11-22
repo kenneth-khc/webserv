@@ -89,11 +89,15 @@ clientMaxBodySize(block.getInherited("client_max_body_size", Defaults::CLIENT_MA
 		}
 		cgiScripts = trimmed;
 
-		Optional<Directive*>	cgiBinDirectoryDirective = block.getDirective("cgi_bin_directory");
-		Optional<Directive*>	cgiUploadDirectoryDirective = block.getDirective("cgi_upload_directory");
+		Optional<Directive*>	cgiBinDirectoryDirective = cgiScriptBlock.value->getDirective("cgi_bin_directory");
 
-		cgiBinDirectory = cgiBinDirectoryDirective.value->parameters[0];
-		cgiUploadDirectory = cgiUploadDirectoryDirective.value->parameters[0];
+		if (cgiBinDirectoryDirective.exists)
+			cgiBinDirectory = cgiBinDirectoryDirective.value->getParameter();
+
+		Optional<Directive*>	cgiUploadDirectoryDirective = cgiScriptBlock.value->getDirective("cgi_upload_directory");
+
+		if (cgiUploadDirectoryDirective.exists)
+			cgiUploadDirectory = cgiUploadDirectoryDirective.value->getParameter();
 	}
 }
 
@@ -101,6 +105,7 @@ clientMaxBodySize(block.getInherited("client_max_body_size", Defaults::CLIENT_MA
 	Once a well-formed request is received and parsed, a corresponding response
 	will be generated.
 */
+
 void	Server::handleRequest(
 Driver& driver,
 Client& client,
@@ -111,6 +116,12 @@ Response& response) const
 
 	request.location = const_cast<Location*>(matchURILocation(request)
 											.value_or(&Server::defaultLocation));
+
+	if (request.find< Optional<String::size_type> >("Content-Length").value >
+		request.location->clientMaxBodySize)
+	{
+		throw PayloadTooLarge413();
+	}
 
 	request.checkIfValidMethod();
 
@@ -131,7 +142,7 @@ Response& response) const
 		return ;
 	}
 
-	if (request.method == "GET")
+	if (request.method == "GET" || request.method == "HEAD")
 	{
 		get(response, request);
 	}

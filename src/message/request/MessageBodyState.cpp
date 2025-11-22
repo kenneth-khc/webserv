@@ -91,10 +91,6 @@ RequestState	*MessageBodyState::process(Request &request, Client &client) {
 
 			this->bodyLength += appendableBytes;
 			this->chunkSize -= appendableBytes;
-
-			if (this->bodyLength > request.location->clientMaxBodySize)
-				throw PayloadTooLarge413();
-
 			request.messageBody.append(message.c_str(), appendableBytes);
 			message.erase(0, appendableBytes);
 

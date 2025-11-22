@@ -347,7 +347,7 @@ void	validateListen(const Directive& directive, const Directive::Map&)
 		throw InvalidParameter(directive, diagnostic,
 							   "invalid port number",
 							   "port number can only be between 0-65535");
-		
+
 	}
 }
 
@@ -440,12 +440,13 @@ void	validateAllowMethod(const Directive& directive, const Directive::Map& mappi
 	for (; iter != directive.parameters.end(); ++iter)
 	{
 		if (!(iter->value == "GET" ||
+			  iter->value == "HEAD" ||
 			  iter->value == "POST" ||
 			  iter->value == "DELETE"))
 		{
 			throw InvalidParameter(directive, iter->diagnostic,
 								   "invalid HTTP method",
-								   "set HTTP method to one of `GET`, `POST` or `DELETE`");
+								   "set HTTP method to one of `GET`, `HEAD`, `POST` or `DELETE`");
 		}
 	}
 }

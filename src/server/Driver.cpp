@@ -385,6 +385,7 @@ void	Driver::sendResponse(std::map<int, Client>::iterator& clientIt,
 		return ;
 	}
 
+	// A very inefficient way of processing HEAD requests.
 	if (request.method != "HEAD")
 	{
 		response.appendMessageBody();

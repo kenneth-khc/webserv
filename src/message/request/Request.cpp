@@ -20,7 +20,8 @@
 const String	Request::supportedMethods[NUM_OF_SUPPORTED_METHODS] = {
 	"GET",
 	"POST",
-	"DELETE"
+	"DELETE",
+	"HEAD"
 };
 
 const String	Request::supportedVersions[NUM_OF_SUPPORTED_VERSIONS] = {

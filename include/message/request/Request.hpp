@@ -22,7 +22,7 @@
 # include "RequestState.hpp"
 # include "Location.hpp"
 
-# define NUM_OF_SUPPORTED_METHODS 3
+# define NUM_OF_SUPPORTED_METHODS 4
 # define NUM_OF_SUPPORTED_VERSIONS 2
 
 class Client;

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/23 01:28:40 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 04:59:39 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include "Response.hpp"
 #include "MediaType.hpp"
 #include "PathHandler.hpp"
+#include "CGIScriptBlock.hpp"
 
 #include <sys/epoll.h>
 #include <sys/socket.h>
@@ -80,6 +81,7 @@ public:
 	static PathHandler			pathHandler;
 
 	void						handleRequest(Driver&, Client&, Request&, Response&) const;
+	bool						handleCGI(Driver&, Client&, Request&, Response&) const;
 	void						processCookies(Request&, Response&) const;
 	Optional<const Location*>	matchURILocation(const Request&) const;
 
@@ -88,12 +90,9 @@ public:
 	void				post(Response&, const Request&) const;
 	void				delete_(Response&, const Request&) const;
 
-	void				cgi(Driver&, Client&, Response&, Request&) const;
 
 	friend class CGI;
-	std::vector<String>	cgiScripts;
-	String				cgiBinDirectory;
-	String				cgiUploadDirectory;
+	std::vector<CGIScriptBlock>	cgiScriptBlocks;
 
 private:
 	Server();

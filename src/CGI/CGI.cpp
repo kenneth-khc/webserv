@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/23 01:11:01 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 05:02:08 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include "Server.hpp"
 #include "ErrorCode.hpp"
 #include "connection.hpp"
+#include "CGIScriptBlock.hpp"
 #include "CGI.hpp"
 
 const String	CGI::cgiFields[NUM_OF_CGI_FIELDS] = {
@@ -35,48 +36,42 @@ const String	CGI::cgiFields[NUM_OF_CGI_FIELDS] = {
 	Converts the received request data into CGI meta variables.
 */
 CGI::CGI(
-const std::vector<String> &cgiScripts,
 Client &client,
 Request &request,
-Response &response) :
+Response &response,
+String &extension,
+String &pathInfo,
+String &scriptName,
+std::vector<CGIScriptBlock>::const_iterator &block) :
 	client(client),
 	request(request),
 	response(response),
+	extension(extension),
+	scriptName(scriptName),
+	pathInfo(pathInfo),
 	pid(0),
 	input(0),
 	output(0),
 	timer(0)
 {
-	Optional<String::size_type>	extPos = request.path.find(".");
-
-	if (extPos.exists == false)
-		throw NotFound404();
-
-	Optional<String::size_type>	pathInfoPos = request.path.find("/", extPos.value);
-
-	if (pathInfoPos.exists == true)
-		this->extension = request.path.substr(extPos.value, pathInfoPos.value - extPos.value);
-	else
-		this->extension = request.path.substr(extPos.value);
-
-	String								pathInfo;
-	std::vector<String>::const_iterator	it = cgiScripts.begin();
-
-	while (it != cgiScripts.end()) {
-		if (this->extension == ("." + *it)) {
-			if (pathInfoPos.exists == true) {
-				this->scriptName = request.path.substr(1, pathInfoPos.value - 1);
-				pathInfo = request.path.substr(pathInfoPos.value);
-			}
-			else
-				this->scriptName = request.path.substr(1);
-			break ;
+	if (block->scriptAlias.exists && this->scriptName.starts_with(block->scriptAlias.value.first))
+	{
+		if (block->scriptAlias.value.second.back() == '/')
+		{
+			this->execPath = this->scriptName.replace(0, block->scriptAlias.value.first.size(),
+														block->scriptAlias.value.second);
 		}
-		it++;
+		else
+		{
+			this->execPath = block->scriptAlias.value.second;
+		}
 	}
-	this->execPath = this->scriptName;
+	else
+	{
+		this->execPath = this->scriptName.substr(1);
+	}
 
-	if (it == cgiScripts.end() || access(this->execPath.c_str(), X_OK) != 0)
+	if (access(this->execPath.c_str(), X_OK) != 0)
 		throw NotFound404();
 
 	String						cgiName;

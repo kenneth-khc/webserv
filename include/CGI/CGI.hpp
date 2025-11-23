@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/23 01:10:28 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 04:55:09 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include "CGIInput.hpp"
 # include "CGIOutput.hpp"
 # include "CGITimer.hpp"
+# include "CGIScriptBlock.hpp"
 
 # define NUM_OF_CGI_FIELDS 3
 # define NUM_OF_META_VARIABLES 13
@@ -52,8 +53,9 @@ class CGI {
 		CGIOutput			*output;
 		CGITimer			*timer;
 
-		CGI(const std::vector<String> &cgiScripts, Client &client,
-				Request &request, Response &response);
+		CGI(Client &client, Request &request, Response &response,
+				String &extension, String &pathInfo, String &scriptName,
+					std::vector<CGIScriptBlock>::const_iterator &block);
 		~CGI(void);
 		void	generateEnv(const String &webServerName);
 		void	execute(int epollFD, std::map<int, CGI*> &cgis);

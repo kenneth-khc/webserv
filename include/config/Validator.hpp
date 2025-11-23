@@ -88,7 +88,7 @@ void	validateClientMaxBodySize(const Directive&, const Directive::Map&);
 void	validateErrorPage(const Directive&, const Directive::Map&);
 void	validateUploadDirectory(const Directive&, const Directive::Map&);
 void	validateRedirect(const Directive&, const Directive::Map&);
-void	validateCgiUploadDirectory(const Directive&, const Directive::Map&);
-void	validateCgiBinDirectory(const Directive&, const Directive::Map&);
+void	validateScriptAlias(const Directive&, const Directive::Map&);
+void	validateScriptHandler(const Directive&, const Directive::Map&);
 
 #endif

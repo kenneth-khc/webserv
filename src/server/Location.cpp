@@ -33,6 +33,7 @@ redirectHandler()
 Location::Location(const Directive& block):
 uri(block.getParameter()),
 root(block.getInherited("root", Defaults::ROOT)),
+alias(block.getInherited("alias", Defaults::ALIAS)),
 indexFiles(block.getInherited("index", Defaults::INDEX)),
 autoindex(block.getInherited("autoindex", Defaults::AUTOINDEX).toBool()),
 allowedMethods(block.getInherited("allow_method", Defaults::ALLOW_METHODS)),

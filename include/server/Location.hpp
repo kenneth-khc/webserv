@@ -27,7 +27,6 @@
  * - cgi
  */
 
-#include <set>
 #include "String.hpp"
 #include "MediaType.hpp"
 #include "Directive.hpp"
@@ -44,6 +43,8 @@ struct	Location
 
 	/** root directory of the local filesystem */
 	String				root;
+
+	String				alias;
 
 	/** a list of index files to try when a directory is requested */
 	std::vector<String>	indexFiles;

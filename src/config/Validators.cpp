@@ -37,6 +37,7 @@ Validators::Validators()
 
 	// location directives
 	registerDirective("root", validateRoot);
+	registerDirective("alias", validateAlias);
 	registerDirective("index", validateIndex);
 	registerDirective("autoindex", validateAutoindex);
 	registerDirective("allow_method", validateAllowMethod);

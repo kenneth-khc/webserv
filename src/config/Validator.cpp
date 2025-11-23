@@ -376,6 +376,17 @@ void	validateRoot(const Directive& directive, const Directive::Map& mappings)
 }
 
 /*
+Syntax : alias path;
+Default: —
+Context: location */
+void	validateAlias(const Directive& directive, const Directive::Map& mappings)
+{
+	validateEnclosingContext(directive,Context::LOCATION);
+	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1);
+}
+
+/*
 Syntax : index file ...;
 Default: index index.html;
 Context: http, server, location */

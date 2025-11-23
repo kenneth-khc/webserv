@@ -124,17 +124,29 @@ Response& response) const
 	}
 
 	request.checkIfValidMethod();
+	if (request.location->shouldRedirect())
+	{
+		request.location->executeRedirection(response);
+		constructConnectionHeader(request, response);
+		return;
+	}
 
 	request.parseCookieHeader();
 	processCookies(request, response);
 
 	const String&	rootDir = pathHandler.resolveWithPrefix(request.location->root);
+	const String&	alias = request.location->alias;
+	if (!alias.empty())
+	{
+		request.decodedPath= request.decodedPath.replace(0,
+								request.location->uri.size(), alias);
+		if (request.decodedPath[0] != '/')
+		{
+			request.decodedPath = "/" + request.decodedPath;
+		}
+	}
 	request.resolvedPath = pathHandler.resolve(rootDir, request.decodedPath);
 
-	if (request.location->shouldRedirect())
-	{
-		return request.location->executeRedirection(response);
-	}
 
 	if (cgiScripts.size() != 0 && cgiBinDirectory.starts_with(request.location->uri))
 	{

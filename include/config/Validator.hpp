@@ -79,6 +79,7 @@ void	validateListen(const Directive&, const Directive::Map&);
 void	validateHTTP(const Directive&, const Directive::Map&);
 void	validateServerName(const Directive&, const Directive::Map&);
 void	validateRoot(const Directive&, const Directive::Map&);
+void	validateAlias(const Directive&, const Directive::Map&);
 void	validateIndex(const Directive&, const Directive::Map&);
 void	validateTypes(const Directive&, const Directive::Map&);
 void	validateAutoindex(const Directive&, const Directive::Map&);

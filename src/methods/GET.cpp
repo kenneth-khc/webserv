@@ -173,6 +173,13 @@ void	getFile(const String& filepath, Response& response, const Request& request)
 	struct stat	status;
 	if (stat(filepath.c_str(), &status) == 0 && access(filepath.c_str(), R_OK) == 0)
 	{
+		if (S_ISDIR(status.st_mode))
+		{
+			response.setStatusCode(Response::MOVED_PERMANENTLY);
+			response.insert("Location",request.path + "/");
+			response.insert("Content-Length", 0);
+			return ;
+		}
 		if (processPreconditions(request, status) == false)
 		{
 			response.setStatusCode(Response::NOT_MODIFIED);

@@ -33,5 +33,6 @@ void	RedirectHandler::executeRedirection(Response& response) const
 	response.setStatusCode(redirectCode);
 	response.insert("Location", redirectUri);
 	response.insert("Date", Time::printHTTPDate());
+	response.insert("Content-Length", 0);
 	response.processStage |= Response::DONE;
 }

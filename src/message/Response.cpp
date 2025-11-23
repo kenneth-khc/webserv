@@ -150,6 +150,8 @@ void	Response::setStatusCode(int statusCode) {
 		case 301:
 			this->reasonPhrase = "Moved Permanently";
 			break ;
+		case 302:
+			this->reasonPhrase = "Found";
 		case 303:
 			this->reasonPhrase = "See Other";
 			break ;

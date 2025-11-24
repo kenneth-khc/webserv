@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/24 07:20:45 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 13:02:03 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,10 +132,6 @@ void	CGI::generateEnv(const String &webServerName) {
 		"SERVER_SOFTWARE=" + webServerName,
 	};
 
-	const String	extMetaVariables[NUM_OF_EXT_META_VARIABLES] = {
-		"X_UPLOADS_DIR=" + this->request.location->uploadDirectory
-	};
-
 	int 		i = 0;
 	std::size_t	len = 0;
 	for (int j = 0; j < NUM_OF_META_VARIABLES; j++) {
@@ -143,14 +139,6 @@ void	CGI::generateEnv(const String &webServerName) {
 
 		this->envp.push_back(new char[len]);
 		std::memcpy(this->envp[i], metaVariables[j].c_str(), len);
-		i++;
-	}
-
-	for (int j = 0; j < NUM_OF_EXT_META_VARIABLES; j++) {
-		len = extMetaVariables[j].length() + 1;
-
-		this->envp.push_back(new char[len]);
-		std::memcpy(this->envp[i], extMetaVariables[j].c_str(), len);
 		i++;
 	}
 

@@ -105,7 +105,7 @@ def getMethod() -> None:
 if __name__ == "__main__":
 	method = os.environ.get('REQUEST_METHOD')
 	c = cookies.SimpleCookie(os.environ.get('HTTP_COOKIE'))
-	uploadsDir = os.environ.get('X_UPLOADS_DIR')
+	uploadsDir = "uploads"
 
 	if (method == "GET"):
 		getMethod()

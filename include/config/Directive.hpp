@@ -24,6 +24,7 @@
 struct	Directive
 {
 public:
+	~Directive();
 
 /** A key-value mapping of DirectiveName -> Directive */
 typedef std::multimap<String,Directive*>	Map;
@@ -106,10 +107,7 @@ typedef std::pair<MapConstIter, MapConstIter>	EqualRange;
 	Context::Context	getContext() const;
 
 	/** Get the diagnostic information for this Directive */
-	const Diagnostic&	getDiagnostic() const;
-
-	/** Cleans up the children Directives before cleaning up this Directive */
-	void	cleanUp();
+	Diagnostic	getDiagnostic() const;
 
 	/** Name of the current Directive */
 	String	name;
@@ -125,8 +123,6 @@ typedef std::pair<MapConstIter, MapConstIter>	EqualRange;
 private:
 	/** Not expected to construct a bare Directive */
 	Directive();
-	/** Not expected to copy a Directive */
-	Directive(const Directive&);
 
 	/** The child directives within this block */
 	std::multimap<String,Directive*>	directives;

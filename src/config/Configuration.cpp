@@ -28,7 +28,6 @@ Configuration::~Configuration()
 		 ++iter)
 	{
 		Directive*	directive = iter->second;
-		directive->cleanUp();
 		delete directive;
 	}
 }
@@ -62,6 +61,18 @@ Optional<Directive*>	Configuration::getDirective(const String& key) const
 	{
 		return makeOptional(iter->second);
 	}
+}
+
+Configuration*	Configuration::release()
+{
+	Configuration*	config = new Configuration;
+	DirectiveMappings::iterator iter;
+	for (iter = directives.begin(); iter != directives.end(); ++iter)
+	{
+		config->add(iter->second);
+	}
+	directives.clear();
+	return config;
 }
 
 void	Configuration::display() const

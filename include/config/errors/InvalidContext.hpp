@@ -17,9 +17,10 @@ public:
 	String		format() const;
 
 private:
-	const Directive&				directive;
-	const Directive*				parent;
-	std::vector<Context::Context>	expectedContexts;
+	const Directive*	directive;
+	const bool			declaredGlobally;
+	const Directive*	parent;
+	const std::vector<Context::Context>	expectedContexts;
 };
 
 #endif

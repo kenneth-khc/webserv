@@ -38,6 +38,7 @@ public:
 	void					add(Directive*);
 	const Directive&		get(const String&) const;
 	Optional<Directive*>	getDirective(const String&) const;
+	Configuration*			release();
 	void					display() const;
 
 	DirectiveMappings	directives;

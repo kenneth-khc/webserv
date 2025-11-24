@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/19 17:04:00 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/01 22:59:27 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 07:50:45 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 #include "Response.hpp"
 #include "MediaType.hpp"
 #include "PathHandler.hpp"
+#include "CGI.hpp"
+#include "CGIScriptBlock.hpp"
 
 #include <sys/epoll.h>
 #include <sys/socket.h>
@@ -77,27 +79,26 @@ public:
 	std::size_t			clientMaxBodySize;
 
 	static const Location		defaultLocation;
-	static const unsigned int	timeoutValue;
 	static PathHandler			pathHandler;
 
-	void						handleRequest(Driver&, Client&, Request&, Response&) const;
+	void						handleRequest(Driver&, Client&, Request&,
+												Response&, std::set<Timer*>&) const;
+	CGI*						handleCGI(Driver&, Client&, Request&, Response&) const;
 	void						processCookies(Request&, Response&) const;
 	Optional<const Location*>	matchURILocation(const Request&) const;
 
 	/* Handling HTTP methods */
-	void		get(Response&, Request&, const Location&) const;
-	void		post(Response&, Request&) const;
-	void		delete_(Response&, Request&) const;
+	void				get(Response&, const Request&) const;
+	void				post(Response&, const Request&) const;
+	void				delete_(Response&, const Request&) const;
 
-	void		cgi(Driver&, Client&, Response&, Request&) const;
 
 	friend class CGI;
-	std::vector<String>	cgiScript;
+	std::vector<CGIScriptBlock>	cgiScriptBlocks;
 
 private:
 	Server();
 
-	void	checkIfAllowedMethod(const Location&, const Request&);
 	std::vector<Location>	configureLocations(const Directive&) const;
 	/** Binds socket if not already bound, otherwise reuse existing sockets */
 	void	assignSocket(const String&, const String&, std::map<int,Socket>&);

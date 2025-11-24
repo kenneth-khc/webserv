@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 21:37:04 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/05 10:24:09 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 03:12:59 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,13 +21,10 @@
 #include "CGIOutputState.hpp"
 #include "CGIHeadersState.hpp"
 
-CGIOutput::CGIOutput(
-Driver &driver,
-CGI &cgi,
-int fd) :
+CGIOutput::CGIOutput(CGI &cgi, int epollFD, std::map<int, CGI*> &cgis, int fd) :
 	cgi(cgi),
-	epollFD(driver.epollFD),
-	cgis(driver.cgis),
+	epollFD(epollFD),
+	cgis(cgis),
 	fd(fd),
 	pipeSize(fcntl(fd, F_GETPIPE_SZ)),
 	output(),
@@ -37,7 +34,7 @@ int fd) :
 	ev.events = EPOLLIN;
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 	ev.data.fd = fd;
-	epoll_ctl(driver.epollFD, EPOLL_CTL_ADD, fd, &ev);
+	epoll_ctl(epollFD, EPOLL_CTL_ADD, fd, &ev);
 }
 
 CGIOutput::~CGIOutput(void) {

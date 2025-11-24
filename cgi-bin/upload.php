@@ -108,7 +108,7 @@
 	}
 
 	$method = $_ENV['REQUEST_METHOD'];
-	$uploadsDir = "{$_ENV['DOCUMENT_ROOT']}/{$_ENV['X_UPLOADS_DIR']}";
+	$uploadsDir = "{$_ENV['DOCUMENT_ROOT']}/uploads";
 
 	if ($method === "GET")
 		getMethod($uploadsDir);

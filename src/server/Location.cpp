@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 22:41:03 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 21:00:48 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/11/23 00:59:08 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ redirectHandler()
 Location::Location(const Directive& block):
 uri(block.getParameter()),
 root(block.getInherited("root", Defaults::ROOT)),
+alias(block.getInherited("alias", Defaults::ALIAS)),
 indexFiles(block.getInherited("index", Defaults::INDEX)),
 autoindex(block.getInherited("autoindex", Defaults::AUTOINDEX).toBool()),
 allowedMethods(block.getInherited("allow_method", Defaults::ALLOW_METHODS)),
@@ -54,14 +55,4 @@ bool	Location::shouldRedirect() const
 void	Location::executeRedirection(Response& response) const
 {
 	return redirectHandler.executeRedirection(response);
-}
-
-void	Location::checkIfAllowedMethod(const String& method) const
-{
-	if (std::find(allowedMethods.begin(),
-				  allowedMethods.end(),
-				  method) == allowedMethods.end())
-	{
-		throw MethodNotAllowed405();
-	}
 }

@@ -10,6 +10,7 @@ const String				Defaults::TYPES = "mime.types";
 const std::vector<String>	Defaults::SERVER_NAME = std::vector<String>();
 const String				Defaults::LISTEN = "0.0.0.0:8000";
 const String				Defaults::ROOT = "html";
+const String				Defaults::ALIAS = "";
 const std::vector<String>	Defaults::INDEX = vector_of<String>("index.html");
 const String				Defaults::AUTOINDEX = "off";
 const String				Defaults::CLIENT_MAX_BODY_SIZE = MEGABYTE;

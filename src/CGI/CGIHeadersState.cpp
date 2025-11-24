@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 22:03:16 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/02 22:47:41 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 07:43:36 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,17 @@
 #include "CGIHeadersState.hpp"
 #include "CGIMessageBodyState.hpp"
 
+/*
+	Checks the CGI output for "\r\n\r\n" (CRLF CRLF) or "\n\n" (NL NL) which
+	indicates the end of header, for example:
+
+		Content-Type:text/html\n
+		Status:200\n\n
+
+	Parses and stores the header in a map.
+
+	Returns the next stage (message body) for processing if parsing completes.
+*/
 CGIOutputState	*CGIHeadersState::parse(
 Response &response,
 String &output,

@@ -37,6 +37,7 @@ Validators::Validators()
 
 	// location directives
 	registerDirective("root", validateRoot);
+	registerDirective("alias", validateAlias);
 	registerDirective("index", validateIndex);
 	registerDirective("autoindex", validateAutoindex);
 	registerDirective("allow_method", validateAllowMethod);
@@ -48,8 +49,8 @@ Validators::Validators()
 	// cgi_script directives
 	registerDirective("cgi_script",
 	                  Validator(validateCgiScriptHeader, validateCgiScriptBody));
-	registerDirective("cgi_bin_directory", validateCgiBinDirectory);
-	registerDirective("cgi_upload_directory", validateCgiUploadDirectory);
+	registerDirective("script_alias", validateScriptAlias);
+	registerDirective("script_handler", validateScriptHandler);
 }
 
 void	Validators::registerDirective(const String& name,

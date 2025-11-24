@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PathHandler.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/28 21:32:54 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 21:54:08 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/11/21 08:23:04 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@ public:
 	PathHandler(const String&);
 	void		setPrefix(const String&);
 
-	String		normalize(const String&) const;
 	String		resolve(const String&, const String&) const;
 	String		resolveWithPrefix(const String&) const;
 

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 21:33:38 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 17:23:47 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 03:13:15 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ class CGIOutput {
 		String				output;
 		CGIOutputState		*state;
 
-		CGIOutput(Driver &driver, CGI &cgi, int fd);
+		CGIOutput(CGI &cgi, int epollFD, std::map<int, CGI*> &cgis, int fd);
 		~CGIOutput(void);
 
 		void	fetch(std::set<Timer*>& activeTimers);

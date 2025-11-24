@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 21:13:25 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 17:24:06 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/20 05:31:00 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,13 +17,10 @@
 #include "CGI.hpp"
 #include "CGIInput.hpp"
 
-CGIInput::CGIInput(
-Driver &driver,
-CGI &cgi,
-int fd) :
+CGIInput::CGIInput(CGI &cgi, int epollFD, std::map<int, CGI*> &cgis, int fd) :
+	epollFD(epollFD),
 	cgi(cgi),
-	epollFD(driver.epollFD),
-	cgis(driver.cgis),
+	cgis(cgis),
 	fd(fd),
 	inputLength(0),
 	contentLength(cgi.request.find< Optional<String::size_type> >("Content-Length").value)
@@ -32,7 +29,7 @@ int fd) :
 	ev.events = EPOLLOUT;
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 	ev.data.fd = fd;
-	epoll_ctl(driver.epollFD, EPOLL_CTL_ADD, fd, &ev);
+	epoll_ctl(epollFD, EPOLL_CTL_ADD, fd, &ev);
 }
 
 CGIInput::~CGIInput(void) {

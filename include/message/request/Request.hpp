@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/01 16:51:07 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 07:23:30 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,18 +20,19 @@
 # include "Message.hpp"
 # include "Cookie.hpp"
 # include "RequestState.hpp"
+# include "Location.hpp"
 
-# define NUM_OF_METHODS 4
-# define NUM_OF_VERSIONS 1
+# define NUM_OF_SUPPORTED_METHODS 4
+# define NUM_OF_SUPPORTED_VERSIONS 2
 
 class Client;
 
 class Request : public Message {
 	public:
-		static const String	methods[NUM_OF_METHODS];
-		static const float	supportedVersions[NUM_OF_VERSIONS];
+		static const String	supportedMethods[NUM_OF_SUPPORTED_METHODS];
+		static const String	supportedVersions[NUM_OF_SUPPORTED_VERSIONS];
 
-		Client*						client;
+		Location*					location;
 		String						method;
 		String						requestTarget;
 		String						path;
@@ -56,8 +57,8 @@ class Request : public Message {
 		const Optional<String>	operator[](const String &key) const;
 		void					erase(const String &key);
 
-		bool					isValidMethod(void);
-		bool					isSupportedVersion(void);
+		void					checkIfValidMethod(const std::vector<String> &allowedMethods) const;
+		void					isSupportedVersion(void) const;
 		void					parseCookieHeader(void);
 
 		RequestState			*state;

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 22:21:40 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 19:03:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/23 00:48:15 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,17 @@
 
 /* A Location block, defining how Requests for specific URI paths should be
  * handled and processed. */
+
+/* Precedence: exact matches > prefix matches > regex matches */
+/* Nested locations inherit from parent unless overriden */
+
+/* Directives to focus on:
+ * - root, alias, index, autoindex, error_pages for static files
+ * - access control like allow, deny, limit_except
+ * - redirects with return or rewrite
+ * - client max body size
+ * - cgi
+ */
 
 #include "String.hpp"
 #include "MediaType.hpp"
@@ -32,6 +43,8 @@ struct	Location
 
 	/** root directory of the local filesystem */
 	String				root;
+
+	String				alias;
 
 	/** a list of index files to try when a directory is requested */
 	std::vector<String>	indexFiles;
@@ -60,8 +73,6 @@ struct	Location
 	bool	shouldRedirect() const;
 	/** forwards to redirectHandler to perform redirection */
 	void	executeRedirection(Response&) const;
-
-	void	checkIfAllowedMethod(const String&) const;
 
 private:
 	RedirectHandler	redirectHandler;

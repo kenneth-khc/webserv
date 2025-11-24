@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PathHandler.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/28 21:37:36 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 21:55:21 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/11/21 08:22:49 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,25 +44,6 @@ bool	PathHandler::isAbsolute(const String& path) const
 bool	PathHandler::isRelative(const String& path) const
 {
 	return !isAbsolute(path);
-}
-
-String	PathHandler::normalize(const String& path) const
-{
-	String			normalized;
-	Optional<char>	previous;
-	for (size_t i = 0; i < path.size(); ++i)
-	{
-		if (path[i] == '/' && previous.exists && previous.value == '/')
-		{
-			continue ;
-		}
-		else
-		{
-			normalized += path[i];
-			previous = makeOptional(path[i]);
-		}
-	}
-	return normalized;
 }
 
 String	PathHandler::resolveWithPrefix(const String& path) const

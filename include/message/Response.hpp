@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 18:44:02 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/27 02:51:23 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 16:42:25 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include "Message.hpp"
 
 class ErrorCode;
+class Request;
 
 class Response : public Message {
 	public:
@@ -36,6 +37,7 @@ class Response : public Message {
 		void	appendMessageBody(void);
 		void	setStatusCode(int statusCode);
 		void	getFileContents(const String &file);
+		void	generateErrorPage(const Request &request);
 
 		enum ProcessStage {
 			SEND_READY = 0x001,
@@ -44,6 +46,7 @@ class Response : public Message {
 
 		enum StatusCodes {
 			OK = 200,
+			NO_CONTENT = 204,
 			MOVED_PERMANENTLY = 301,
 			SEE_OTHER = 303,
 			NOT_MODIFIED = 304,

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 17:09:36 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/01 21:15:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 03:50:06 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,21 @@
 #include "HeadersState.hpp"
 #include "RequestLineState.hpp"
 
+/*
+	Resolves dot segments by looping forward and backward the URI and extract
+	the relevant path segment. Example:
+
+		Stage:
+		0) /hello/.././there
+		1) hello/.././there (Output: /)
+		2) /.././there (Output: /hello)
+		3) .././there (Output: /hello/)
+		4) /./there (Output: )
+		5) ./there (Output: /)
+		6) there (Output: /)
+
+		Output: /there
+*/
 String	RequestLineState::removeDotSegments(String input) {
 	String				output;
 	Optional<String>	temp;
@@ -59,6 +74,9 @@ String	RequestLineState::removeDotSegments(String input) {
 	return (output);
 }
 
+/*
+	Removes two or more adjacent slashes.
+*/
 String	RequestLineState::normalize(const String& path)
 {
 	String			normalized;
@@ -78,6 +96,13 @@ String	RequestLineState::normalize(const String& path)
 	return normalized;
 }
 
+/*
+	Decodes percent-encoded values, which are used for representing characters
+	that are outside the allowed ones for HTTP, such as ' ' (space). Example:
+
+		%20 where "20" is a hexadecimal value, where converted into decimal
+		becomes "32", which corresponds to the ASCII value of ' '.
+*/
 String	RequestLineState::percentDecodeString(const String &line) {
 	String	decodedString;
 
@@ -98,6 +123,18 @@ String	RequestLineState::percentDecodeString(const String &line) {
 	return (decodedString);
 }
 
+/*
+	Checks the client socket's message for "\r\n" (CRLF) which indicates the
+	end of request line, for example:
+
+		GET /hello?this=that HTTP/1.1\r\n
+
+	Parses and stores each section of the request line. Additionally, decodes
+	percent-encoded values, resolves dot segments (relative path), and
+	normalizes/compresses two or more adjacent slashes into one.
+
+	Returns the next stage (headers) for processing if parsing completes.
+*/
 RequestState	*RequestLineState::process(Request &request, Client &client) {
 	String						&message = client.message;
 	Optional<String::size_type>	terminatorPos = message.find("\r\n");
@@ -148,7 +185,7 @@ RequestState	*RequestLineState::process(Request &request, Client &client) {
 		throw BadRequest400();
 	if (std::isdigit(str[0]) == 0 || str[1] != '.' || std::isdigit(str[2]) == 0)
 		throw BadRequest400();
-	std::stringstream(str) >> request.httpVersion;
+	request.httpVersion = str;
 
 	message.erase(0, terminatorPos.value);
 	return (new HeadersState());

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/26 16:54:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 16:42:38 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,18 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <sys/stat.h>
+#include <unistd.h>
+#include "contentType.hpp"
 #include "ErrorCode.hpp"
+#include "Request.hpp"
 #include "Response.hpp"
 
 Response::Response(void) :
 	Message(),
 	closeConnection(false)
 {
-	this->httpVersion = 1.1;
+	this->httpVersion = "1.1";
 }
 
 Response::~Response(void) {}
@@ -50,13 +54,32 @@ Response&	Response::operator=(const ErrorCode& obj)
 		return (*this);
 
 	std::multimap<String, String>::const_iterator	it = this->headers.find("Server");
-	String											serverName = it != this->headers.end() ? it->second : "server";
+	String											serverName = it != this->headers.end() ? it->second : "42webserv";
 
 	Message::operator=(obj);
 	this->statusCode = obj.statusCode;
 	this->reasonPhrase = obj.reasonPhrase;
 	this->closeConnection = obj.closeConnection;
 	this->insert("Server", serverName);
+	return *this;
+}
+
+void	Response::generateErrorPage(const Request &request) {
+	struct stat	status;
+
+	if (request.location->errorPages.find(this->statusCode) != request.location->errorPages.end()) {
+		const String filepath = request.location->errorPages[this->statusCode];
+
+		if (stat(filepath.c_str(), &status) == 0 && access(filepath.c_str(), R_OK) == 0) {
+			this->getFileContents(filepath);
+			this->insert("Content-Length", status.st_size);
+			constructContentTypeHeader(*this, filepath, request.location->MIMEMappings);
+			return ;
+		} else {
+			this->statusCode = 500;
+			this->reasonPhrase = "Internal Server Error";
+		}
+	}
 
 	std::stringstream	stream;
 	stream << "<html>\n"
@@ -70,18 +93,18 @@ Response&	Response::operator=(const ErrorCode& obj)
 		   << 			this->statusCode << " " + this->reasonPhrase + "\n"
 		   << 		"</h1></center>\n"
 		   << 		"<hr><center>\n"
-		   << 			serverName + "\n"
+		   << 			this->find< Optional<String> >("server").value + "\n"
 		   << 		"</center>\n"
 		   << 	"</body>\n"
 		   << "</html>";
 	this->messageBody = stream.str();
 	this->insert("Content-Length", stream.str().length());
-	return *this;
 }
 
-
-//	Turns the information stored in the Response instance into a complete
-//	HTTP response message
+/*
+	Turns the information stored in the Response instance into a complete
+	HTTP response message.
+*/
 bool	Response::isReady(void) {
 	if (this->messageBody.length() == 0 && !(this->processStage & Response::DONE))
 		return (false);
@@ -143,9 +166,14 @@ void	Response::setStatusCode(int statusCode) {
 		case 200:
 			this->reasonPhrase = "OK";
 			break ;
+		case 204:
+			this->reasonPhrase = "No Content";
+			break ;
 		case 301:
 			this->reasonPhrase = "Moved Permanently";
 			break ;
+		case 302:
+			this->reasonPhrase = "Found";
 		case 303:
 			this->reasonPhrase = "See Other";
 			break ;

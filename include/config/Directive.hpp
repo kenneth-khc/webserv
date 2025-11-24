@@ -143,11 +143,11 @@ private:
 		const String&		key;
 
 		LookupEnclosing(const Directive*, const String&);
+		LookupEnclosing(const LookupEnclosing&);
 		Optional<ReturnType>	operator()() const;
 
 	private:
 		LookupEnclosing();
-		LookupEnclosing(const LookupEnclosing&);
 		LookupEnclosing&	operator=(const LookupEnclosing&);
 	};
 };

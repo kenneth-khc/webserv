@@ -174,6 +174,7 @@ void	Response::setStatusCode(int statusCode) {
 			break ;
 		case 302:
 			this->reasonPhrase = "Found";
+			break ;
 		case 303:
 			this->reasonPhrase = "See Other";
 			break ;

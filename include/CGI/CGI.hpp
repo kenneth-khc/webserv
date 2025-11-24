@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 15:45:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/24 04:55:09 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 13:01:52 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@
 
 # define NUM_OF_CGI_FIELDS 3
 # define NUM_OF_META_VARIABLES 13
-# define NUM_OF_EXT_META_VARIABLES 1
 # define PHP_META_VARIABLES 3
 
 struct Driver;

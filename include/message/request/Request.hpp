@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 16:03:07 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/21 08:07:30 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 07:23:30 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ class Request : public Message {
 		const Optional<String>	operator[](const String &key) const;
 		void					erase(const String &key);
 
-		void					checkIfValidMethod(void) const;
+		void					checkIfValidMethod(const std::vector<String> &allowedMethods) const;
 		void					isSupportedVersion(void) const;
 		void					parseCookieHeader(void);
 

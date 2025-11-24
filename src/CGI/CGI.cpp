@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/24 05:02:08 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 07:20:45 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,6 @@ CGI::~CGI(void) {
 		delete this->output;
 	if (this->timer != 0)
 		delete this->timer;
-	std::remove(this->client.cgis.begin(), this->client.cgis.end(), this);
 }
 
 /*

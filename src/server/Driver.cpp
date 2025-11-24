@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/23 01:29:17 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 07:48:43 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,7 +256,7 @@ const Server*	Driver::selectVirtualHost(const std::vector<Server>& servers,
    moves on to the next.
 */
 void	Driver::processRequest(std::map<int, Client>::iterator& clientIt,
-							   std::set<Timer*> activeTimers)
+							   std::set<Timer*> &activeTimers)
 {
 	Client&	client = clientIt->second;
 
@@ -287,7 +287,8 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt,
 			const Server*	server = selectVirtualHost(http.servers,
 													   client,
 													   request);
-			server->handleRequest(*this, client, request, client.responseQueue.back());
+			server->handleRequest(*this, client, request,
+									client.responseQueue.back(), activeTimers);
 		}
 		catch (const ErrorCode &e)
 		{
@@ -306,7 +307,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt,
 }
 
 void	Driver::processClient(std::map<int, Client>::iterator& clientIt,
-						  	  std::set<Timer*> activeTimers)
+						  	  std::set<Timer*> &activeTimers)
 {
 	if (currEvent->events & EPOLLHUP)
 	{
@@ -328,7 +329,7 @@ void	Driver::processClient(std::map<int, Client>::iterator& clientIt,
 }
 
 void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt,
-						   std::set<Timer*> activeTimers)
+						   std::set<Timer*> &activeTimers)
 {
 	CGI&	cgi = *(cgiIt->second);
 	Client&	client = cgi.client;
@@ -354,7 +355,7 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt,
 			if (cgi.response.processStage & Response::DONE)
 			{
 				activeTimers.erase(cgi.timer);
-				std::remove(client.cgis.begin(), client.cgis.end(), &cgi);
+				client.cgis.erase(std::find(client.cgis.begin(), client.cgis.end(), &cgi));
 				delete &cgi;
 				return ;
 			}
@@ -363,7 +364,7 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt,
 	catch (const ErrorCode &e) {
 		cgi.response = e;
 		activeTimers.erase(cgi.timer);
-		std::remove(client.cgis.begin(), client.cgis.end(), &cgi);
+		client.cgis.erase(std::find(client.cgis.begin(), client.cgis.end(), &cgi));
 		delete &cgi;
 	}
 }
@@ -374,7 +375,7 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt,
 	continuously if the entire body is not ready yet).
 */
 void	Driver::sendResponse(std::map<int, Client>::iterator& clientIt,
-							 std::set<Timer*> activeTimers)
+							 std::set<Timer*> &activeTimers)
 {
 	Client&		client = clientIt->second;
 	Request&	request = client.requestQueue.front();

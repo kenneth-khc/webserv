@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/24 05:06:55 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 12:49:57 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 #include "Socket.hpp"
 #include "connection.hpp"
 #include "Base64.hpp"
-#include "CGI.hpp"
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/epoll.h>
@@ -82,31 +81,7 @@ clientMaxBodySize(block.getInherited("client_max_body_size", Defaults::CLIENT_MA
 	{
 		for (std::vector<Directive*>::const_iterator it = cgiScriptBlocks.begin(); it != cgiScriptBlocks.end(); it++)
 		{
-			CGIScriptBlock	newBlock;
-			const std::vector<Parameter>&	extensions = (*it)->getParameters();
-
-			std::vector<String>	trimmed;
-			for (size_t i = 0; i < extensions.size(); ++i)
-			{
-				trimmed.push_back(extensions[i].value.substr(1));
-			}
-			newBlock.cgiScripts = trimmed;
-
-			Optional<Directive*>	scriptAlias = (*it)->getDirective("script_alias");
-
-			if (scriptAlias.exists)
-			{
-				const std::vector<Parameter>&	paths = scriptAlias.value->getParameters();
-				newBlock.scriptAlias = makeOptional(std::make_pair(paths[0].value, paths[1].value));
-			}
-
-			Optional<Directive*>	scriptHandler = (*it)->getDirective("script_handler");
-
-			if (scriptHandler.exists)
-			{
-				const std::vector<Parameter>&	paths = scriptHandler.value->getParameters();
-				newBlock.scriptHandler = makeOptional(std::make_pair(paths[0].value, paths[1].value));
-			}
+			this->cgiScriptBlocks.push_back(*(*it));
 		}
 	}
 }
@@ -115,29 +90,36 @@ clientMaxBodySize(block.getInherited("client_max_body_size", Defaults::CLIENT_MA
 	Once a well-formed request is received and parsed, a corresponding response
 	will be generated.
 */
-
 void	Server::handleRequest(
 Driver& driver,
 Client& client,
 Request& request,
-Response& response) const
+Response& response,
+std::set<Timer*>& activeTimers
+) const
 {
 	request.isSupportedVersion();
 
 	request.location = const_cast<Location*>(matchURILocation(request)
 											.value_or(&Server::defaultLocation));
 
+	if (request.path.find(".").exists)
+	{
+		CGI*	cgi = handleCGI(driver, client, request, response);
+
+		if (cgi)
+		{
+			activeTimers.insert(cgi->timer);
+			return ;
+		}
+	}
+
+	request.checkIfValidMethod(request.location->allowedMethods);
+
 	if (request.find< Optional<String::size_type> >("Content-Length").value >
 		request.location->clientMaxBodySize)
 	{
 		throw PayloadTooLarge413();
-	}
-
-	request.checkIfValidMethod();
-
-	if (request.path.find(".").exists && handleCGI(driver, client, request, response))
-	{
-		return ;
 	}
 
 	if (request.location->shouldRedirect())
@@ -224,7 +206,7 @@ void	Server::processCookies(Request& request, Response& response) const
 	}
 }
 
-bool	Server::handleCGI(
+CGI	*Server::handleCGI(
 Driver& driver,
 Client& client,
 Request &request,
@@ -255,7 +237,7 @@ Response &response
 					pathInfo = request.path.substr(pathInfoPos.value);
 				}
 				else
-					scriptName = request.path.substr(1);
+					scriptName = request.path;
 				stop = true;
 			}
 			if (stop)
@@ -268,7 +250,8 @@ Response &response
 	}
 
 	if (block == cgiScriptBlocks.end())
-		return (false);
+		return (NULL);
+	request.checkIfValidMethod(block->allowedMethods);
 
 	CGI	*cgi = new CGI(client, request, response, extension,
 							pathInfo, scriptName, block);
@@ -276,7 +259,7 @@ Response &response
 	cgi->generateEnv(driver.webServerName);
 	cgi->execute(driver.epollFD, driver.cgis);
 	client.cgis.push_back(cgi);
-	return (true);
+	return (cgi);
 }
 
 void	Server::assignSocket(const String& ip, const String& port,

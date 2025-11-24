@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:11:52 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/21 09:21:53 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 07:28:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,8 @@
 const String	Request::supportedMethods[NUM_OF_SUPPORTED_METHODS] = {
 	"GET",
 	"POST",
-	"DELETE"
+	"DELETE",
+	"HEAD"
 };
 
 const String	Request::supportedVersions[NUM_OF_SUPPORTED_VERSIONS] = {
@@ -152,7 +153,7 @@ void	Request::parseCookieHeader(void) {
 	isCookieString(this->cookies, cookieHeader.value);
 }
 
-void	Request::checkIfValidMethod(void) const {
+void	Request::checkIfValidMethod(const std::vector<String> &allowedMethods) const {
 	int	i = 0;
 
 	while (i < NUM_OF_SUPPORTED_METHODS) {
@@ -163,10 +164,10 @@ void	Request::checkIfValidMethod(void) const {
 	if (i == NUM_OF_SUPPORTED_METHODS)
 		throw NotImplemented501();
 
-	if (this->location->allowedMethods.size() == 0 ||
-		std::find(this->location->allowedMethods.begin(),
-				  this->location->allowedMethods.end(),
-				  method) == this->location->allowedMethods.end())
+	if (allowedMethods.size() == 0 ||
+		std::find(allowedMethods.begin(),
+				  allowedMethods.end(),
+				  method) == allowedMethods.end())
 	{
 		throw MethodNotAllowed405();
 	}

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 20:15:12 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/21 08:19:30 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 07:49:12 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,10 +56,10 @@ struct	Driver
 
 	void		processReadyEvents();
 	void		receiveMessage(std::map<int, Client>::iterator&);
-	void		processRequest(std::map<int, Client>::iterator&, std::set<Timer*>);
-	void		processClient(std::map<int, Client>::iterator&, std::set<Timer*>);
-	void		processCGI(std::map<int, CGI*>::iterator&, std::set<Timer*>);
-	void		sendResponse(std::map<int, Client>::iterator&, std::set<Timer*>);
+	void		processRequest(std::map<int, Client>::iterator&, std::set<Timer*>&);
+	void		processClient(std::map<int, Client>::iterator&, std::set<Timer*>&);
+	void		processCGI(std::map<int, CGI*>::iterator&, std::set<Timer*>&);
+	void		sendResponse(std::map<int, Client>::iterator&, std::set<Timer*>&);
 
 	void		updateEpollTimeout();
 

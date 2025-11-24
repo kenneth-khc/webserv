@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/23 01:57:27 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 12:49:57 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 #include "Socket.hpp"
 #include "connection.hpp"
 #include "Base64.hpp"
-#include "CGI.hpp"
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/epoll.h>
@@ -77,23 +76,13 @@ clientMaxBodySize(block.getInherited("client_max_body_size", Defaults::CLIENT_MA
 	}
 	errorPages = block.generateErrorPagesMapping()
 							.value_or(std::map<int,String>());
-	Optional<Directive*>	cgiScriptBlock = block.getDirective("cgi_script");
-	if (cgiScriptBlock.exists)
+	std::vector<Directive*>	cgiScriptBlocks = block.getDirectives("cgi_script");
+	if (!cgiScriptBlocks.empty())
 	{
-		const std::vector<Parameter>&	extensions =
-			cgiScriptBlock.value->getParameters();
-		std::vector<String>	trimmed;
-		for (size_t i = 0; i < extensions.size(); ++i)
+		for (std::vector<Directive*>::const_iterator it = cgiScriptBlocks.begin(); it != cgiScriptBlocks.end(); it++)
 		{
-			trimmed.push_back(extensions[i].value.substr(1));
+			this->cgiScriptBlocks.push_back(*(*it));
 		}
-		cgiScripts = trimmed;
-
-		Optional<Directive*>	cgiBinDirectoryDirective = block.getDirective("cgi_bin_directory");
-		Optional<Directive*>	cgiUploadDirectoryDirective = block.getDirective("cgi_upload_directory");
-
-		cgiBinDirectory = cgiBinDirectoryDirective.value->parameters[0];
-		cgiUploadDirectory = cgiUploadDirectoryDirective.value->parameters[0];
 	}
 }
 
@@ -105,33 +94,58 @@ void	Server::handleRequest(
 Driver& driver,
 Client& client,
 Request& request,
-Response& response) const
+Response& response,
+std::set<Timer*>& activeTimers
+) const
 {
 	request.isSupportedVersion();
 
 	request.location = const_cast<Location*>(matchURILocation(request)
 											.value_or(&Server::defaultLocation));
 
-	request.checkIfValidMethod();
+	if (request.path.find(".").exists)
+	{
+		CGI*	cgi = handleCGI(driver, client, request, response);
+
+		if (cgi)
+		{
+			activeTimers.insert(cgi->timer);
+			return ;
+		}
+	}
+
+	request.checkIfValidMethod(request.location->allowedMethods);
+
+	if (request.find< Optional<String::size_type> >("Content-Length").value >
+		request.location->clientMaxBodySize)
+	{
+		throw PayloadTooLarge413();
+	}
+
+	if (request.location->shouldRedirect())
+	{
+		request.location->executeRedirection(response);
+		constructConnectionHeader(request, response);
+		return;
+	}
 
 	request.parseCookieHeader();
 	processCookies(request, response);
 
 	const String&	rootDir = pathHandler.resolveWithPrefix(request.location->root);
+	const String&	alias = request.location->alias;
+	if (!alias.empty())
+	{
+		request.decodedPath= request.decodedPath.replace(0,
+								request.location->uri.size(), alias);
+		if (request.decodedPath[0] != '/')
+		{
+			request.decodedPath = "/" + request.decodedPath;
+		}
+	}
 	request.resolvedPath = pathHandler.resolve(rootDir, request.decodedPath);
 
-	if (request.location->shouldRedirect())
-	{
-		return request.location->executeRedirection(response);
-	}
-
-	if (cgiScripts.size() != 0 && cgiBinDirectory.starts_with(request.location->uri))
-	{
-		cgi(driver, client, response, request);
-		return ;
-	}
-
-	if (request.method == "GET")
+	if (request.method == "GET" || request.method == "HEAD")
 	{
 		get(response, request);
 	}
@@ -192,17 +206,60 @@ void	Server::processCookies(Request& request, Response& response) const
 	}
 }
 
-void	Server::cgi(
-	Driver& driver,
-	Client& client,
-	Response &response,
-	Request &request) const
+CGI	*Server::handleCGI(
+Driver& driver,
+Client& client,
+Request &request,
+Response &response
+) const
 {
-	CGI	*cgi = new CGI(cgiScripts, client, request, response);
+	Optional<String::size_type>	extPos = request.path.find(".");
+	Optional<String::size_type>	pathInfoPos = request.path.find("/", extPos.value);
+	String						extension;
+
+	if (pathInfoPos.exists == true)
+		extension = request.path.substr(extPos.value, pathInfoPos.value - extPos.value);
+	else
+		extension = request.path.substr(extPos.value);
+
+	String										pathInfo;
+	String										scriptName;
+	std::vector<CGIScriptBlock>::const_iterator	block = cgiScriptBlocks.begin();
+	bool										stop = false;
+
+	while (block != cgiScriptBlocks.end()) {
+		std::vector<String>::const_iterator cgiScript = block->cgiScripts.begin();
+
+		while (cgiScript != block->cgiScripts.end()) {
+			if (extension == ("." + *cgiScript)) {
+				if (pathInfoPos.exists == true) {
+					scriptName = request.path.substr(0, pathInfoPos.value - 1);
+					pathInfo = request.path.substr(pathInfoPos.value);
+				}
+				else
+					scriptName = request.path;
+				stop = true;
+			}
+			if (stop)
+				break ;
+			cgiScript++;
+		}
+		if (stop)
+			break ;
+		block++;
+	}
+
+	if (block == cgiScriptBlocks.end())
+		return (NULL);
+	request.checkIfValidMethod(block->allowedMethods);
+
+	CGI	*cgi = new CGI(client, request, response, extension,
+							pathInfo, scriptName, block);
 
 	cgi->generateEnv(driver.webServerName);
 	cgi->execute(driver.epollFD, driver.cgis);
 	client.cgis.push_back(cgi);
+	return (cgi);
 }
 
 void	Server::assignSocket(const String& ip, const String& port,

@@ -20,6 +20,7 @@ public:
 	static const std::vector<String>	SERVER_NAME;
 	static const String					LISTEN;
 	static const String					ROOT;
+	static const String					ALIAS;
 	static const std::vector<String>	INDEX;
 	static const String					AUTOINDEX;
 	static const String					CLIENT_MAX_BODY_SIZE;

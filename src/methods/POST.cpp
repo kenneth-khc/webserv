@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 04:33:58 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/21 06:08:00 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 11:12:40 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,8 @@ void	Server::post(Response& response, const Request& request) const
 	}
 	else
 	{
-		throw NotFound404();
+		response.setStatusCode(Response::OK);
+		response.insert("Content-Length", 0);
 	}
 }
 

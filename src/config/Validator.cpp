@@ -13,6 +13,7 @@
 #include "Context.hpp"
 #include "Directive.hpp"
 #include "Validator.hpp"
+#include "DuplicateParameter.hpp"
 #include "MissingDirective.hpp"
 #include "String.hpp"
 #include "InvalidParameter.hpp"
@@ -347,7 +348,7 @@ void	validateListen(const Directive& directive, const Directive::Map&)
 		throw InvalidParameter(directive, diagnostic,
 							   "invalid port number",
 							   "port number can only be between 0-65535");
-		
+
 	}
 }
 
@@ -371,6 +372,17 @@ void	validateRoot(const Directive& directive, const Directive::Map& mappings)
 							 vector_of(Context::HTTP)
 									  (Context::SERVER)
 									  (Context::LOCATION));
+	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 1);
+}
+
+/*
+Syntax : alias path;
+Default: —
+Context: location */
+void	validateAlias(const Directive& directive, const Directive::Map& mappings)
+{
+	validateEnclosingContext(directive,Context::LOCATION);
 	validateDuplicateDirective(directive, mappings);
 	validateParameterSize(directive, 1);
 }
@@ -440,12 +452,13 @@ void	validateAllowMethod(const Directive& directive, const Directive::Map& mappi
 	for (; iter != directive.parameters.end(); ++iter)
 	{
 		if (!(iter->value == "GET" ||
+			  iter->value == "HEAD" ||
 			  iter->value == "POST" ||
 			  iter->value == "DELETE"))
 		{
 			throw InvalidParameter(directive, iter->diagnostic,
 								   "invalid HTTP method",
-								   "set HTTP method to one of `GET`, `POST` or `DELETE`");
+								   "set HTTP method to one of `GET`, `HEAD`, `POST` or `DELETE`");
 		}
 	}
 }
@@ -477,7 +490,10 @@ Context: http, server, location */
 void	validateClientMaxBodySize(const Directive& directive, const Directive::Map& mappings)
 {
 	validateEnclosingContext(directive,
-							vector_of(Context::HTTP)(Context::SERVER)(Context::LOCATION));
+							vector_of(Context::HTTP)
+							(Context::SERVER)
+							(Context::LOCATION)
+							(Context::CGI_SCRIPT));
 	validateDuplicateDirective(directive, mappings);
 	validateParameterSize(directive, 1);
 
@@ -560,49 +576,68 @@ void	validateFileExtension(const Directive& directive, const Parameter& paramete
 	}
 }
 
+void	validateDuplicateParameters(const std::vector<Parameter>& list1,
+									const std::vector<Parameter>& list2)
+{
+	for (size_t i = 0; i < list1.size(); ++i)
+	{
+		const Parameter& p1  = list1[i];
+			for (size_t j = 0; j < list2.size(); ++j)
+		{
+			const Parameter& p2 = list2[j];
+			if (p1 == p2)
+			{
+				throw DuplicateParameter(p1, p2);
+			}
+		}
+	}
+}
+
 /*
 Syntax : cgi_script file-extension ... ;
 Default: —
 Context: server */
 void	validateCgiScriptHeader(const Directive& directive, const Directive::Map& mappings)
 {
+	(void)mappings;
 	validateEnclosingContext(directive, Context::SERVER);
-	validateDuplicateDirective(directive, mappings);
 	validateParameterSize(directive, 1, std::numeric_limits<size_t>::max());
 	const std::vector<Parameter>&	parameters = directive.parameters;
 	for (size_t i = 0; i < parameters.size(); ++i)
 	{
 		validateFileExtension(directive, parameters[i]);
 	}
+	const Directive* parent = directive.parent;
+	const std::vector<Parameter>&	newExtensions = directive.getParameters();
+	std::vector<Directive*> cgiScripts = parent->getDirectives("cgi_script");
+	for (size_t i = 0; i < cgiScripts.size(); ++i)
+	{
+		const Directive*	cgiScript = cgiScripts[i];
+		validateDuplicateParameters(newExtensions, cgiScript->getParameters());
+	}
 }
 
 void	validateCgiScriptBody(const Directive& directive, const Directive::Map& mappings)
 {
 	validateCgiScriptHeader(directive, mappings);
-	if (!directive.getDirective("cgi_bin_directory").exists)
+	bool hasScriptAlias = directive.getDirective("script_alias").exists;
+	bool hasScriptHandler = directive.getDirective("script_handler").exists;
+	if (!(hasScriptAlias || hasScriptHandler))
 	{
-		throw MissingDirective(directive, "cgi_bin_directory");
+		throw MissingDirective(directive, "script_alias");
 	}
 }
 
-/*
-Syntax : cgi_bin_directory directory;
-Default: —
-Context: cgi_script */
-void	validateCgiBinDirectory(const Directive& directive, const Directive::Map& mappings)
-{
-	validateEnclosingContext(directive, vector_of(Context::CGI_SCRIPT));
-	validateDuplicateDirective(directive, mappings);
-	validateParameterSize(directive, 1);
-}
-
-/*
-Syntax : cgi_upload_directory directory;
-Default: —
-Context: cgi_script */
-void	validateCgiUploadDirectory(const Directive& directive, const Directive::Map& mappings)
+void	validateScriptAlias(const Directive& directive, const Directive::Map& mappings)
 {
 	validateEnclosingContext(directive, Context::CGI_SCRIPT);
 	validateDuplicateDirective(directive, mappings);
-	validateParameterSize(directive, 1);
+	validateParameterSize(directive, 2);
+}
+
+void	validateScriptHandler(const Directive& directive, const Directive::Map& mappings)
+{
+	validateEnclosingContext(directive, Context::CGI_SCRIPT);
+	validateDuplicateDirective(directive, mappings);
+	validateParameterSize(directive, 2);
 }

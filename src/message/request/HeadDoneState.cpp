@@ -49,10 +49,6 @@ RequestState	*HeadDoneState::process(Request &request, Client &client) {
 		if (isContentLengthHeader(contentLength.value) == false)
 		{
 			throw BadRequest400();
-		} else if (request.find< Optional<String::size_type> >("Content-Length").value >
-				   request.location->clientMaxBodySize)
-		{
-			throw PayloadTooLarge413();
 		}
 	}
 	else

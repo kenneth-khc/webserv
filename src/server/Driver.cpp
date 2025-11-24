@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/24 07:48:43 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 16:45:26 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -296,6 +296,7 @@ void	Driver::processRequest(std::map<int, Client>::iterator& clientIt,
 			request.state = new DoneState();
 			request.processState(client);
 			client.responseQueue.back() = e;
+			client.responseQueue.back().generateErrorPage(request);
 		}
 
 		client.requestQueue.push_back(Request());
@@ -363,6 +364,7 @@ void	Driver::processCGI(std::map<int, CGI*>::iterator& cgiIt,
 	}
 	catch (const ErrorCode &e) {
 		cgi.response = e;
+		cgi.response.generateErrorPage(cgi.request);
 		activeTimers.erase(cgi.timer);
 		client.cgis.erase(std::find(client.cgis.begin(), client.cgis.end(), &cgi));
 		delete &cgi;

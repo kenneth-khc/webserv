@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/21 08:31:26 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 15:33:15 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,6 @@ ErrorCode::ErrorCode(
 	this->statusCode = statusCode;
 	this->reasonPhrase = reasonPhrase;
 	this->insert("Date", Time::printHTTPDate());
-	this->insert("Content-Type", "text/html");
 	this->processStage |= Response::DONE;
 }
 

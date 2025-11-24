@@ -29,6 +29,8 @@
               php
               python314
               inetutils
+              valgrind
+              siege
             ];
             hardeningDisable = [ "all" ];
           };

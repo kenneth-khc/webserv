@@ -25,7 +25,6 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <stdexcept>
 
 Parser::Parser(const char *filename):
@@ -42,36 +41,26 @@ Parser::~Parser()
 {
 }
 
-Configuration	Parser::parseConfig()
+Configuration*	Parser::parseConfig()
 {
-	try
+	token = lexer.advance();
+	while (token != Token::END_OF_FILE)
 	{
-		token = lexer.advance();
-		while (token != Token::END_OF_FILE)
-		{
-			Directive*	directive = parseDirective();
-			config.add(directive);
-		}
-		if (!config.getDirective("prefix").exists)
-		{
-			throw MissingGlobalDirective(filename, "prefix");
-		}
-		if (!config.getDirective("http").exists)
-		{
-			throw MissingGlobalDirective(filename, "http");
-		}
+		parseDirective();
 	}
-	catch (const ConfigError& e)
+	if (!config.getDirective("prefix").exists)
 	{
-		std::cerr << e.format();
-		std::exit(1);
+		throw MissingGlobalDirective(filename, "prefix");
 	}
-	return config;
+	if (!config.getDirective("http").exists)
+	{
+		throw MissingGlobalDirective(filename, "http");
+	}
+	return config.release();
 }
 
-Directive*	Parser::parseDirective()
+void	Parser::parseDirective()
 {
-	Directive*			directive = NULL;
 	const String		name = token.lexeme;
 	const Diagnostic	diagnostics = token.diagnostic;
 	const Token			nameToken = token;
@@ -82,18 +71,16 @@ Directive*	Parser::parseDirective()
 
 	if (token == Token::LCURLY)
 	{
-		directive = parseBlock(name, parameters, diagnostics);
+		parseBlock(name, parameters, diagnostics);
 	}
 	else if (token == Token::SEMICOLON)
 	{
-		directive = parseSimple(name, parameters, diagnostics);
+		parseSimple(name, parameters, diagnostics);
 	}
 	else
 	{
 		throw UnexpectedToken(token, nameToken, vector_of(Token(Token::LCURLY, "{"))(Token(Token::SEMICOLON, ";")));
 	}
-
-	return directive;
 }
 
 
@@ -119,75 +106,66 @@ std::vector<Parameter>	Parser::parseParameters()
 	return parameters;
 }
 
-Directive*	Parser::parseSimple(const String& name,
+void	Parser::parseSimple(const String& name,
 								const std::vector<Parameter>& parameters,
 								const Diagnostic& diagnostic)
 {
 	expect(Token::SEMICOLON);
 
-	Directive*	parent = parents.empty() ?
-						 NULL :
-						 parents.top();
-	Directive*	directive = new Directive(name,
-										  parameters,
-										  parent,
-										  diagnostic);
+	Directive*	parent = parents.empty() ? NULL : parents.top();
+	Directive*	directive = new Directive(name, parameters, parent, diagnostic);
+	if (parent)
+	{
+		parent->addDirective(directive);
+	}
+	else
+	{
+		config.add(directive);
+	}
 	validators.validate(directive,
 						directive->parent ?
 						directive->parent->getDirectives() :
 						config.directives);
 
-	return directive;
 }
 
-Directive*	Parser::parseBlock(const String& name,
+void	Parser::parseBlock(const String& name,
 							   const std::vector<Parameter>& params,
 							   const Diagnostic& diagnostic)
 {
 	expect(Token::LCURLY);
 
 	Directive*	parent = parents.size() == 0 ? NULL : parents.top();
-	Directive*	block;
-
+	Directive*	block = new Directive(name, params, parent, diagnostic);
+	if (parent)
+	{
+		parent->addDirective(block);
+	}
+	else
+	{
+		config.add(block);
+	}
+	const Validator&	validator = validators.getValidator(block);
 	try
 	{
-		block = new Directive(name,
-							  params,
-							  parent,
-							  diagnostic);
+		validator.validateHeader(block, block->parent ?
+										block->parent->getDirectives() :
+										config.directives);
 	}
-	catch (const std::invalid_argument& e)
+	catch (const std::runtime_error&)
 	{
-
-		/* TODO(kecheong):
-		   there needs to be a way to get the intended blocks
-		   for the directive here */
 		throw InvalidContext(*block);
 	}
-
-	const Validator&	validator = validators.getValidator(block);
-
-	validator.validateHeader(block, block->parent ?
-									block->parent->getDirectives() :
-									config.directives);
-	// validators.validate(block,
-	// 					block->parent ?
-	// 					block->parent->getDirectives() :
-	// 					config.directives);
 	parents.push(block);
 	while (token != Token::RCURLY)
 	{
-		Directive* directive = parseDirective();
-		block->addDirective(directive);
+		parseDirective();
 	}
 	expect(Token::RCURLY);
 	parents.pop();
-
 	validator.validateBody(block, block->parent ?
 								  block->parent->getDirectives() :
 								  config.directives);
-
-	return block;
 }
 
 void	Parser::expect(Token::TokenType expected)

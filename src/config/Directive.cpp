@@ -14,16 +14,6 @@
 #include "Context.hpp"
 #include <stdexcept>
 
-/* Privated */
-Directive::Directive()
-{
-}
-
-/* Privated */
-Directive::Directive(const Directive&)
-{
-}
-
 Directive::Directive(const String& name,
 					 const std::vector<Parameter>& parameters,
 					 const Directive* parent,
@@ -36,6 +26,18 @@ Directive::Directive(const String& name,
 	directives(),
 	diagnostic(diagnostic)
 {
+}
+
+Directive::~Directive()
+{
+	std::multimap<String, Directive*>::const_iterator iter;
+	for (iter = this->directives.begin();
+		 iter != this->directives.end();
+		 ++iter)
+	{
+		Directive*	child = iter->second;
+		delete child;
+	}
 }
 
 void	Directive::addDirective(Directive* directive)
@@ -81,8 +83,7 @@ Directive::getDirectives() const
 	return this->directives;
 }
 
-const Diagnostic&
-Directive::getDiagnostic() const
+Diagnostic	Directive::getDiagnostic() const
 {
 	return this->diagnostic;
 }
@@ -207,17 +208,5 @@ Optional<ErrorPageMapping>	Directive::generateErrorPagesMapping() const
 	else
 	{
 		return makeOptional(errorPages);
-	}
-}
-
-void	Directive::cleanUp()
-{
-	for (MapIter iter = this->directives.begin();
-		 iter != this->directives.end();
-		 ++iter)
-	{
-		Directive*	child = iter->second;
-		child->cleanUp();
-		delete child;
 	}
 }

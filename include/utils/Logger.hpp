@@ -53,6 +53,6 @@ namespace	Logger
 		extern const char*	BOLD_BLUE;
 		extern const char*	RESET;
 	}
-};
+}
 
 #endif

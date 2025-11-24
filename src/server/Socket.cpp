@@ -82,7 +82,9 @@ _addressLen(sizeof _address)
 	{
 		throw std::runtime_error("setsockopt() failed");
 	}
-	linger	linger = {.l_onoff = 1, .l_linger = 5};
+	linger	linger;
+	linger.l_onoff = 1;
+	linger.l_linger = 5;
 	retval = setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
 	if (retval == -1)
 	{
@@ -111,7 +113,9 @@ _addressLen(sizeof _address)
 	{
 		throw std::runtime_error("setsockopt() failed");
 	}
-	linger	linger = {.l_onoff = 1, .l_linger = 5};
+	linger	linger;
+	linger.l_onoff = 1;
+	linger.l_linger = 5;
 	retval = setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
 	if (retval == -1)
 	{
@@ -229,15 +233,17 @@ void	Socket::convertAddressToIpAndPort(sockaddr_storage addr)
 
 addrinfo*	Socket::getAddrInfo(const String& ip, const String& port)
 {
-	addrinfo	requirements = {.ai_flags = AI_PASSIVE,
-								.ai_family = AF_INET,
-								.ai_socktype = SOCK_STREAM,
-								.ai_protocol = 0,
-								.ai_addrlen = 0,
-								.ai_addr = NULL,
-								.ai_canonname = NULL,
-								.ai_next = NULL};
+	addrinfo	requirements;
 	addrinfo*	info = NULL;
+
+	requirements.ai_flags = AI_PASSIVE;
+	requirements.ai_family = AF_INET;
+	requirements.ai_socktype = SOCK_STREAM;
+	requirements.ai_protocol = 0;
+	requirements.ai_addrlen = 0;
+	requirements.ai_addr = NULL;
+	requirements.ai_canonname = NULL;
+	requirements.ai_next = NULL;
 	int	retval = ::getaddrinfo(ip.c_str(), port.c_str(), &requirements, &info);
 	if (retval != 0)
 	{

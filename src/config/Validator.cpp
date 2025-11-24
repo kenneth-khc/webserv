@@ -18,7 +18,6 @@
 #include "String.hpp"
 #include "InvalidParameter.hpp"
 #include "InvalidParameterAmount.hpp"
-#include "InvalidDirective.hpp"
 #include "InvalidContext.hpp"
 #include "DuplicateDirective.hpp"
 #include "ServerNameConflict.hpp"
@@ -147,19 +146,19 @@ void	validateEnclosingContext(const Directive& directive,
 	}
 }
 
-void	validateDuplicateDirective(const Directive& currDeclaration,
+void	validateDuplicateDirective(const Directive& curr,
 								   const Directive::Map& mappings)
 {
-	Directive::EqualRange	range = mappings.equal_range(currDeclaration.name);
+	Directive::EqualRange	range = mappings.equal_range(curr.name);
 	if (range.first == mappings.end())
 	{
 		return ;
 	}
 	size_t	count = std::distance(range.first, range.second);
-	if (count > 0)
+	if (count > 1)
 	{
-		const Directive&	prevDeclaration = *range.first->second;
-		throw DuplicateDirective(prevDeclaration, currDeclaration);
+		const Directive&	prev = *range.first->second;
+		throw DuplicateDirective(prev, curr);
 	}
 }
 
@@ -174,10 +173,27 @@ void	validatePrefix(const Directive& directive, const Directive::Map& mappings)
 	validateDuplicateDirective(directive, mappings);
 	validateParameterSize(directive, 1);
 
-	const Parameter&	path = directive.parameters[0];
+	Directive			copy = directive;
+	const Parameter&	path = copy.parameters[0];
 	if (path[0] != '/')
 	{
-		throw InvalidParameter(directive,
+		throw InvalidParameter(copy,
+							   path.diagnostic,
+							   "invalid absolute path",
+							   "set an absolute path as the web server root directory");
+	}
+}
+
+void	validatePrefix(const Directive* directive, const Directive::Map& mappings)
+{
+	validateEnclosingContext(*directive, Context::GLOBAL);
+	validateDuplicateDirective(*directive, mappings);
+	validateParameterSize(*directive, 1);
+
+	const Parameter&	path = directive->parameters[0];
+	if (path[0] != '/')
+	{
+		throw InvalidParameter(*directive,
 							   path.diagnostic,
 							   "invalid absolute path",
 							   "set an absolute path as the web server root directory");
@@ -228,10 +244,16 @@ std::set<Parameter>	getCommonListens(const Directive& serverA, const Directive& 
 	{
 		b.insert(listenB[i]->getParameter());
 	}
-
 	std::set<Parameter>	commonListens;
-	std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
-						  std::inserter(commonListens, commonListens.begin()));
+	if (a.empty() && b.empty())
+	{
+		commonListens.insert("0.0.0.0:8000");
+	}
+	else
+	{
+		std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
+							  std::inserter(commonListens, commonListens.begin()));
+	}
 	return commonListens;
 }
 
@@ -274,6 +296,10 @@ void	validateServerBody(const Directive& directive, const Directive::Map& mappin
 	for (size_t i = 0; i < servers.size(); ++i)
 	{
 		const Directive&	otherServer = *servers[i];
+		if (&directive == &otherServer)
+		{
+			continue;
+		}
 		std::set<Parameter> commonListens = getCommonListens(otherServer, directive);
 		if (!commonListens.empty())
 		{
@@ -301,8 +327,8 @@ Default: —
 Context: server */
 void	validateLocationHeader(const Directive& directive, const Directive::Map&)
 {
-	validateParameterSize(directive, 1);
 	validateEnclosingContext(directive, Context::SERVER);
+	validateParameterSize(directive, 1);
 }
 
 void	validateLocationBody(const Directive& directive, const Directive::Map& mappings)
@@ -572,22 +598,24 @@ void	validateFileExtension(const Directive& directive, const Parameter& paramete
 	if (parameter.value[0] != '.')
 	{
 		throw InvalidParameter(directive, parameter,
-							   "expected file extension beginning with a .");
+							   "invalid file extension",
+							   "set a file extension beginning with a .");
 	}
 }
 
-void	validateDuplicateParameters(const std::vector<Parameter>& list1,
+void	validateDuplicateParameters(const Directive& directive,
+    	                            const std::vector<Parameter>& list1,
 									const std::vector<Parameter>& list2)
 {
 	for (size_t i = 0; i < list1.size(); ++i)
 	{
 		const Parameter& p1  = list1[i];
-			for (size_t j = 0; j < list2.size(); ++j)
+		for (size_t j = 0; j < list2.size(); ++j)
 		{
 			const Parameter& p2 = list2[j];
 			if (p1 == p2)
 			{
-				throw DuplicateParameter(p1, p2);
+				throw DuplicateParameter(directive, p1, p2);
 			}
 		}
 	}
@@ -597,9 +625,8 @@ void	validateDuplicateParameters(const std::vector<Parameter>& list1,
 Syntax : cgi_script file-extension ... ;
 Default: —
 Context: server */
-void	validateCgiScriptHeader(const Directive& directive, const Directive::Map& mappings)
+void	validateCgiScriptHeader(const Directive& directive, const Directive::Map&)
 {
-	(void)mappings;
 	validateEnclosingContext(directive, Context::SERVER);
 	validateParameterSize(directive, 1, std::numeric_limits<size_t>::max());
 	const std::vector<Parameter>&	parameters = directive.parameters;
@@ -608,12 +635,17 @@ void	validateCgiScriptHeader(const Directive& directive, const Directive::Map& m
 		validateFileExtension(directive, parameters[i]);
 	}
 	const Directive* parent = directive.parent;
-	const std::vector<Parameter>&	newExtensions = directive.getParameters();
 	std::vector<Directive*> cgiScripts = parent->getDirectives("cgi_script");
 	for (size_t i = 0; i < cgiScripts.size(); ++i)
 	{
 		const Directive*	cgiScript = cgiScripts[i];
-		validateDuplicateParameters(newExtensions, cgiScript->getParameters());
+		if (cgiScript == &directive)
+		{
+			continue ;
+		}
+		validateDuplicateParameters(directive,
+		                            cgiScript->getParameters(),
+									directive.getParameters());
 	}
 }
 
@@ -621,21 +653,18 @@ void	validateCgiScriptBody(const Directive& directive, const Directive::Map& map
 {
 	validateCgiScriptHeader(directive, mappings);
 	bool hasScriptAlias = directive.getDirective("script_alias").exists;
-	bool hasScriptHandler = directive.getDirective("script_handler").exists;
-	if (!(hasScriptAlias || hasScriptHandler))
+	if (!hasScriptAlias)
 	{
 		throw MissingDirective(directive, "script_alias");
 	}
 }
 
+/*
+Syntax : script_alias uri alias;
+Default: —
+Context: cgi_script
+*/
 void	validateScriptAlias(const Directive& directive, const Directive::Map& mappings)
-{
-	validateEnclosingContext(directive, Context::CGI_SCRIPT);
-	validateDuplicateDirective(directive, mappings);
-	validateParameterSize(directive, 2);
-}
-
-void	validateScriptHandler(const Directive& directive, const Directive::Map& mappings)
 {
 	validateEnclosingContext(directive, Context::CGI_SCRIPT);
 	validateDuplicateDirective(directive, mappings);

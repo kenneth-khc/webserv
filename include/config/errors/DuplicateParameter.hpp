@@ -2,22 +2,21 @@
 #define DUPLICATE_PARAMETER_HPP
 
 #include "ConfigError.hpp"
+#include "Directive.hpp"
 #include "Parameter.hpp"
 
 class	DuplicateParameter : public ConfigError
 {
 public:
-	// DuplicateParameter(const Directive& prevDeclaration,
-	//                    const Directive& newDeclaration);
-	DuplicateParameter(const Parameter& prev, const Parameter& curr);
+	DuplicateParameter(const Directive& directive,
+	                   const Parameter& prev,
+	                   const Parameter& curr);
 	~DuplicateParameter() throw();
 
 	const char*	what() const throw();
 	String		format() const;
 
-	// const Directive&	prevDeclaration;
-	// const Directive&	newDeclaration;
-
+	Directive	directive;
 	Parameter	prev;
 	Parameter	curr;
 };

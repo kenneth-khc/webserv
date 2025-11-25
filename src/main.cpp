@@ -66,7 +66,6 @@ int	main(int argc, char** argv)
 		std::cerr << "Caught unhandled exception: " << e.what() << '\n';
 		return EXIT_FAILURE;
 	}
-	config->display();
 
 	Driver	driver;
 	try

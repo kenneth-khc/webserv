@@ -69,6 +69,8 @@ struct	Location
 	/** whether we should accept uploads */
 	bool				acceptUploads;
 
+	static const Location&	defaultLocation();
+
 	/** forwards to redirectHandler to check if should redirect */
 	bool	shouldRedirect() const;
 	/** forwards to redirectHandler to perform redirection */

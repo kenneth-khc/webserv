@@ -12,9 +12,7 @@
 
 #include "Location.hpp"
 #include "Defaults.hpp"
-#include "ErrorCode.hpp"
 #include "RedirectHandler.hpp"
-#include <algorithm>
 
 Location::Location():
 uri("/"),
@@ -28,6 +26,11 @@ uploadDirectory(Defaults::UPLOAD_DIRECTORY),
 acceptUploads(!uploadDirectory.empty()),
 redirectHandler()
 {
+}
+const Location&	Location::defaultLocation()
+{
+	static const Location	defaultLoc = Location();
+	return defaultLoc;
 }
 
 Location::Location(const Directive& block):

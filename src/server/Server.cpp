@@ -14,7 +14,6 @@
 #include "Server.hpp"
 #include "Defaults.hpp"
 #include "Client.hpp"
-#include "ErrorCode.hpp"
 #include "Socket.hpp"
 #include "connection.hpp"
 #include "Base64.hpp"
@@ -33,7 +32,6 @@ const unsigned int	Server::keepAliveTimeoutDuration = 5;
 const unsigned int	Server::cgiTimeoutDuration = 5;
 const unsigned int	Server::clientHeaderTimeoutDuration = 5;
 const unsigned int	Server::clientBodyTimeoutDuration = 5;
-const Location		Server::defaultLocation = Location();
 PathHandler			Server::pathHandler;
 
 Server::Server():
@@ -101,7 +99,7 @@ std::set<Timer*>& activeTimers
 	request.isSupportedVersion();
 
 	request.location = const_cast<Location*>(matchURILocation(request)
-											.value_or(&Server::defaultLocation));
+											.value_or(&Location::defaultLocation()));
 
 	if (request.path.find(".").exists)
 	{

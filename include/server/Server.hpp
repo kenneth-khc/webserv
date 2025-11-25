@@ -78,7 +78,6 @@ public:
 	MediaType			MIMEMappings;
 	std::size_t			clientMaxBodySize;
 
-	static const Location		defaultLocation;
 	static PathHandler			pathHandler;
 
 	void						handleRequest(Driver&, Client&, Request&,

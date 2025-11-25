@@ -57,8 +57,9 @@ class Request : public Message {
 		const Optional<String>	operator[](const String &key) const;
 		void					erase(const String &key);
 
-		void					checkIfValidMethod(const std::vector<String> &allowedMethods) const;
+		void					isValidMethod(const std::vector<String> &allowedMethods) const;
 		void					isSupportedVersion(void) const;
+		void					isWithinBodySizeLimit(const String::size_type &bodySize) const;
 		void					parseCookieHeader(void);
 
 		RequestState			*state;

@@ -26,14 +26,27 @@
 */
 void	Server::delete_(Response& response, const Request& request) const
 {
-	struct stat	filesystem;
+	struct stat					filesystem;
+	const String&				sid = request.cookies.find("sid")->second.value;
+	Optional<String::size_type>	delimiter = request.resolvedPath.find_last_of("/");
+	String						target;
 
-	if (!stat(request.location->uri.c_str(), &filesystem))
+	if (delimiter.exists)
+		target = request.resolvedPath.substr(delimiter.value + 1);
+	else
+		target = request.resolvedPath;
+
+	target = sid + "_" + target;
+
+	if (delimiter.exists)
+		target = request.resolvedPath.substr(0, delimiter.value + 1) + target;
+
+	if (stat(target.c_str(), &filesystem))
 	{
 		throw NotFound404();
 	}
 
-	if (!std::remove(request.location->uri.c_str()))
+	if (!std::remove(target.c_str()))
 	{
 		response.setStatusCode(Response::NO_CONTENT);
 		response.insert("Content-Length", 0);

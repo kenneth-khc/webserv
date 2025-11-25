@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 22:03:16 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/21 07:43:36 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/25 06:19:41 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ ssize_t bytes)
 		delimiterPos = output.find(delimiter);
 		if (delimiterPos.exists == false && bytes == 0)
 			throw InternalServerError500();
-		else
+		else if (delimiterPos.exists == false)
 			return (this);
 	}
 

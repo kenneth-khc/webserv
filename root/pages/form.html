@@ -29,14 +29,14 @@
 						</div>
 					</div>
 
-					<button type="submit">Server</button>
+					<button type="submit" formaction="/uploads/">Server</button>
 					<button type="submit" formaction="/cgi-bin/upload.py">CGI (Python)</button>
 					<button type="submit" formaction="/cgi-bin/upload.php">CGI (PHP)</button>
 				</form>
 			</div>
 			<div id="file-uploads-container">
 				<h2>File uploads (POST: multipart/form-data)</h2>
-				<form method="post" enctype="multipart/form-data" autocomplete="off">
+				<form action="/uploads/" method="post" enctype="multipart/form-data" autocomplete="off">
 					<div class="form-inputs">
 						<div class="form-input">
 							<input type="file" name="filename[]" required>
@@ -46,7 +46,7 @@
 						</div>
 					</div>
 
-					<button type="submit">Server</button>
+					<button type="submit" formaction="/uploads/">Server</button>
 					<button type="submit" formaction="/cgi-bin/upload.py">CGI (Python)</button>
 					<button type="submit" formaction="/cgi-bin/upload.php">CGI (PHP)</button>
 				</form>

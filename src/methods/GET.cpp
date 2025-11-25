@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/21 05:34:57 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 23:42:39 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ getFile(const String&, Response&, const Request&);
 
 static void		generateUploadsListing(const String& uploadsDir, Response& response, const Request& request);
 static String	getUploadsReference(const Request &request);
-static void		generateDirectoryListing(Response& response, std::string dirName, const std::string& uri);
+static void		generateDirectoryListing(Response& response, std::string dirName, std::string uri);
 static bool		fileIsDirectory(const String& filepath);
 static Optional<String>	tryIndexFiles(const std::vector<String>& indexFiles, const String& filepath);
 
@@ -233,9 +233,7 @@ static String	getUploadsReference(const Request &request)
 #define FILE_NAME_LEN 45
 #define FILE_SIZE_LEN 20
 
-void	generateDirectoryListing(Response& response,
-    	                         std::string path,
-    	                         const std::string& uri)
+void	generateDirectoryListing(Response& response, std::string path, std::string uri)
 {
 	DIR*	dir = opendir(path.c_str());
 
@@ -249,6 +247,8 @@ void	generateDirectoryListing(Response& response,
 
 	if (path[path.length() - 1] != '/')
 		path += "/";
+	if (uri[uri.length() - 1] != '/')
+		uri += "/";
 
 	stream << "<html>\n"
 		   << 	"<head>\n"

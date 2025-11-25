@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <sstream>
+#include "SetupError.hpp"
 #include "terminalValues.hpp"
 #include "contentType.hpp"
 #include "MediaType.hpp"
@@ -88,6 +89,7 @@ const Optional<String>	MediaType::operator[](const String &key) const {
 }
 
 MediaType::MIMETypesFileError::MIMETypesFileError(const String &message) :
+	SetupError(message),
 	message(message)
 {}
 

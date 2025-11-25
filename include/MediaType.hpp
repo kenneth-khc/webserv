@@ -14,6 +14,7 @@
 # define MEDIATYPE_HPP
 
 # include <map>
+#include "SetupError.hpp"
 # include "String.hpp"
 # include "Optional.hpp"
 
@@ -28,7 +29,7 @@
 //	construct the 'Content-Type' header.
 class MediaType {
 
-		class MIMETypesFileError : public std::exception {
+		class MIMETypesFileError : public SetupError {
 				String	message;
 			public:
 				MIMETypesFileError(const String &message);

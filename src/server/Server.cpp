@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 16:48:10 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/24 12:49:57 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 23:45:54 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,9 @@
 #include <algorithm>
 
 const unsigned int	Server::keepAliveTimeoutDuration = 5;
-const unsigned int	Server::cgiTimeoutDuration = 3;
-const unsigned int	Server::clientHeaderTimeoutDuration = 2;
-const unsigned int	Server::clientBodyTimeoutDuration = 2;
+const unsigned int	Server::cgiTimeoutDuration = 5;
+const unsigned int	Server::clientHeaderTimeoutDuration = 5;
+const unsigned int	Server::clientBodyTimeoutDuration = 5;
 const Location		Server::defaultLocation = Location();
 PathHandler			Server::pathHandler;
 

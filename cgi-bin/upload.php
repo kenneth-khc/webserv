@@ -1,4 +1,4 @@
-#!/nix/store/d7cf70kmr5j9p2mpyz65wxbxkp94fvsr-php-with-extensions-8.2.27/bin/php-cgi
+#!/nix/store/rszkpqlnv4w81r3139ixy3rd66hm1bjw-php-with-extensions-8.4.14/bin/php-cgi
 <?php
 	function printError($errorCode, $reasonPhrase) {
 		echo "Content-Type:text/html";
@@ -108,8 +108,7 @@
 	}
 
 	$method = $_ENV['REQUEST_METHOD'];
-	$uploadsDir = "{$_ENV['DOCUMENT_ROOT']}/uploads";
-
+	$uploadsDir = "../uploads";
 	if ($method === "GET")
 		getMethod($uploadsDir);
 	elseif ($method === "POST")

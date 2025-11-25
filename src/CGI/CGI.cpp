@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/28 16:36:15 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/24 13:02:03 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/25 07:10:00 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ void	CGI::generateEnv(const String &webServerName) {
 		"CONTENT_LENGTH=" + contentLength.str(),
 		"CONTENT_TYPE=" + (this->request)["Content-Type"].value,
 		"GATEWAY_INTERFACE=CGI/1.1",
-		"PATH_INFO=" + this->request.path,
+		"PATH_INFO=" + this->pathInfo,
 		"QUERY_STRING=" + this->request.query.value,
 		"REMOTE_ADDR=" + this->client.socket->ip,
 		"REMOTE_HOST=" + String(host).consumeUntil(":").value_or(host),
@@ -143,12 +143,19 @@ void	CGI::generateEnv(const String &webServerName) {
 	}
 
 	if (extension == ".php") {
+		String						documentRoot;
+		Optional<String::size_type>	boundary = this->execPath.find_last_of("/");
+
+		if (boundary.exists)
+			documentRoot = this->execPath.substr(0, boundary.value);
+		else
+			documentRoot = ".";
+
 		const String	phpMetaVariables[PHP_META_VARIABLES] = {
 			"REDIRECT_STATUS=200",
 			"SCRIPT_FILENAME=" + this->execPath,
-			"DOCUMENT_ROOT=" + this->request.location->root
+			"DOCUMENT_ROOT=" + documentRoot
 		};
-
 		for (int j = 0; j < PHP_META_VARIABLES; j++) {
 			len = phpMetaVariables[j].length() + 1;
 

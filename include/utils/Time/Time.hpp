@@ -25,6 +25,6 @@ namespace Time {
 	String		printHTTPDate(const struct timespec &time);
 	double		difftime(const std::time_t timeOne, const std::time_t timeTwo);
 	String		printAutoindexDate(const struct timespec &time);
-};
+}
 
 #endif

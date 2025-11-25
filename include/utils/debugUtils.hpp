@@ -35,7 +35,7 @@ namespace DebuggingTools
 
 	// HTTP
 	void	printHTTPHeaders(const std::map<std::string,std::string>& headers);
-};
+}
 
 namespace dbg = DebuggingTools;
 

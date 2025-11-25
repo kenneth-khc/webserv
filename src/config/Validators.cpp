@@ -50,7 +50,6 @@ Validators::Validators()
 	registerDirective("cgi_script",
 	                  Validator(validateCgiScriptHeader, validateCgiScriptBody));
 	registerDirective("script_alias", validateScriptAlias);
-	registerDirective("script_handler", validateScriptHandler);
 }
 
 void	Validators::registerDirective(const String& name,
@@ -81,7 +80,7 @@ void	Validators::validate(const Directive* directive,
 		const Validator&	validator = operator[](directive->name);
 		validator(*directive, mappings);
 	}
-	catch (const std::out_of_range& e)
+	catch (const std::out_of_range&)
 	{
 		throw InvalidDirective(directive);
 	}

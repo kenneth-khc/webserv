@@ -114,13 +114,8 @@ std::set<Timer*>& activeTimers
 		}
 	}
 
-	request.checkIfValidMethod(request.location->allowedMethods);
-
-	if (request.find< Optional<String::size_type> >("Content-Length").value >
-		request.location->clientMaxBodySize)
-	{
-		throw PayloadTooLarge413();
-	}
+	request.isValidMethod(request.location->allowedMethods);
+	request.isWithinBodySizeLimit(request.location->clientMaxBodySize);
 
 	if (request.location->shouldRedirect())
 	{
@@ -251,7 +246,11 @@ Response &response
 
 	if (block == cgiScriptBlocks.end())
 		return (NULL);
-	request.checkIfValidMethod(block->allowedMethods);
+	request.isValidMethod(block->allowedMethods);
+	request.isWithinBodySizeLimit(block->clientMaxBodySize);
+
+	if (pathInfo.length() == 0)
+		pathInfo = "/";
 
 	CGI	*cgi = new CGI(client, request, response, extension,
 							pathInfo, scriptName, block);

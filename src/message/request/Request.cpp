@@ -153,7 +153,7 @@ void	Request::parseCookieHeader(void) {
 	isCookieString(this->cookies, cookieHeader.value);
 }
 
-void	Request::checkIfValidMethod(const std::vector<String> &allowedMethods) const {
+void	Request::isValidMethod(const std::vector<String> &allowedMethods) const {
 	int	i = 0;
 
 	while (i < NUM_OF_SUPPORTED_METHODS) {
@@ -179,4 +179,11 @@ void	Request::isSupportedVersion(void) const {
 			return ;
 	}
 	throw VersionNotSupported505();
+}
+
+void	Request::isWithinBodySizeLimit(const String::size_type &bodySize) const {
+	if (this->find< Optional<String::size_type> >("Content-Length").value > bodySize)
+	{
+		throw PayloadTooLarge413();
+	}
 }

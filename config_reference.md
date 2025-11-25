@@ -23,6 +23,7 @@
 | Directive | Syntax | Default | Context | Description |
 |:----------|:-------|:--------|:--------|:------------|
 | root | root *path*; | root html | http, server, location | Sets the root directory for handling requests. This will be appended to the prefix and the URI of a request will be appended to this to construct the final file path. |
+| alias | alias *path*; | — | location | Replaces the incoming uri with the specified location. |
 | index | index *file* ... ; | index index.html | http, server, location | Sets files that will be used as an index. Files will be tried from left to right. |
 | autoindex | autoindex on\|off;| autoindex off | http, server, location | Turning this on will enable directory listings. |
 | redirect | redirect *URI* *replacement*; | — | location | If the specified URI matches the request URI, the request URI is changed as specified in the replacement string, and that URI is returned to the user.
@@ -35,5 +36,4 @@
 | Directive | Syntax | Default | Context | Description |
 |:----------|:-------|:--------|:--------|:------------|
 | cgi_script | cgi_script *file_extension* ... { ... } | — | server | Configures CGI execution for specific file extensions. Files with these extensions will be executed as CGI scripts. |
-| cgi_bin_directory | cgi_bin_directory *path*; | — | cgi_script | Sets the directory where executable CGI scripts are stored. |
-| cgi_upload_directory | cgi_upload_directory *path*; | — | cgi_script | Sets the directory for where uploads through a CGI script are to be stored. |
+| script_alias | script_alias *uri* *path*; | — | cgi_script | If a directory is given, sets the directory where executable CGI scripts are stored. If a file is given, sets the file to handle incoming CGI script requests. |

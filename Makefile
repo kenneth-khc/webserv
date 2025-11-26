@@ -27,13 +27,13 @@ dirs := $(src_dir) \
 		$(src_dir)/client \
 		$(src_dir)/server/errors \
 		$(src_dir)/methods \
-		$(src_dir)/URI \
+		$(src_dir)/uri \
 		$(src_dir)/message \
 		$(src_dir)/message/request \
 		$(src_dir)/headers \
 		$(src_dir)/utils \
 		$(src_dir)/utils/Time \
-		$(src_dir)/CGI \
+		$(src_dir)/cgi \
 		$(src_dir)/debug
 
 srcs := $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))
@@ -43,13 +43,13 @@ includes := -I $(inc_dir)/ \
 			-I $(inc_dir)/config \
 			-I $(inc_dir)/config/errors \
 			-I $(inc_dir)/client \
-			-I $(inc_dir)/URI \
+			-I $(inc_dir)/uri \
 			-I $(inc_dir)/message \
 			-I $(inc_dir)/message/request \
 			-I $(inc_dir)/headers \
 			-I $(inc_dir)/utils \
 			-I $(inc_dir)/utils/Time \
-			-I $(inc_dir)/CGI \
+			-I $(inc_dir)/cgi \
 			-I $(inc_dir)/server \
 			-I $(inc_dir)/server/errors
 

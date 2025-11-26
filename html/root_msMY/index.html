@@ -1,45 +1,49 @@
 <!DOCTYPE html>
 <html lang="ms">
-	<head>
-		<meta charset="UTF-8">
-		<link rel="stylesheet" href="/css/index_styles.css">
-	</head>
-	<body>
-		<div id="container">
-			<div class="image-container">
-				<img src="/img/cat1.png">
-				<img src="/img/cat2.png">
-				<img src="/img/cat3.png">
-				<img src="/img/cat4.png">
+
+<head>
+	<title>Meow</title>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="/css/index_styles.css">
+</head>
+
+<body>
+	<div id="container">
+		<div class="image-container">
+			<img src="/img/cat1.png" alt="cat1">
+			<img src="/img/cat2.png" alt="cat2">
+			<img src="/img/cat3.png" alt="cat3">
+			<img src="/img/cat4.png" alt="cat4">
+		</div>
+		<div id="main-container">
+			<div id="title-container">
+				<h1>INI IALAH INDEX.HTML</h1>
 			</div>
-			<div id="main-container">
-				<div id="title-container">
-					<h1>INI IALAH INDEX.HTML</h1>
-				</div>
-				<a href="/pages/form.html" class="main-element pseudo-button">
-					<h3>Borang</h3>
-				</a>
-				<a href="/uploads" class="main-element pseudo-button">
-					<h3>Fail</h3>
-				</a>
-				<div id="language-container" class="main-element">
-					<h3>Bahasa:</h3>
-					<form method="get">
-						<select name="lang">
-							<option value="en">English</option>
-							<option value="msMY" selected>Bahasa Melayu</option>
-							<option value="zhCN">简体中文</option>
-						</select>
-						<input type="Submit" value="Change Language">
-					</form>
-				</div>
+			<div class="main-element pseudo-button">
+				<h3>Borang</h3>
 			</div>
-			<div class="image-container">
-				<img src="/img/cat5.png">
-				<img src="/img/cat6.png">
-				<img src="/img/cat7.png">
-				<img src="/img/cat8.png">
+			<div class="main-element pseudo-button">
+				<h3>Fail</h3>
+			</div>
+			<div id="language-container" class="main-element">
+				<h3>Bahasa:</h3>
+				<form method="get">
+					<select name="lang">
+						<option value="en">English</option>
+						<option value="msMY" selected>Bahasa Melayu</option>
+						<option value="zhCN">简体中文</option>
+					</select>
+					<input disabled type="Submit" value="Change Language">
+				</form>
 			</div>
 		</div>
-	</body>
+		<div class="image-container">
+			<img src="/img/cat5.png" alt="cat5">
+			<img src="/img/cat6.png" alt="cat6">
+			<img src="/img/cat7.png" alt="cat7">
+			<img src="/img/cat8.png" alt="cat8">
+		</div>
+	</div>
+</body>
+
 </html>

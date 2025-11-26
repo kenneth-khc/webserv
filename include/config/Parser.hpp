@@ -33,9 +33,9 @@ public:
 	Parser(const char* fileName);
 	~Parser();
 
-	Configuration	parseConfig();
+	Configuration*	parseConfig();
 
-	Configuration			config;
+	Configuration*			config;
 	Validators				validators;
 	Lexer					lexer;
 	Token					token;
@@ -46,12 +46,12 @@ private:
 	Parser();
 	Parser(const Parser&);
 
-	Directive*				parseDirective();
+	void					parseDirective();
 	std::vector<Parameter>	parseParameters();
-	Directive*				parseSimple(const String&,
+	void					parseSimple(const String&,
 										const std::vector<Parameter>&,
 										const Diagnostic&);
-	Directive*				parseBlock(const String&,
+	void					parseBlock(const String&,
 									   const std::vector<Parameter>&,
 									   const Diagnostic&);
 	void					expect(Token::TokenType);

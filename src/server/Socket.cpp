@@ -11,10 +11,12 @@
 /* ************************************************************************** */
 
 #include "Socket.hpp"
+#include "NonFatal.hpp"
 #include "String.hpp"
 #include "AddressInUseError.hpp"
 #include "AddressNotAvailable.hpp"
 #include "AddressProtected.hpp"
+#include "FileDescriptorLimit.hpp"
 
 #include <cerrno>
 #include <netdb.h>
@@ -27,9 +29,17 @@
 #include <fcntl.h>
 #include <cstring>
 
-Socket::Socket()
+/** This is only for default constructing within containers, do not manually
+	construct a Socket through this. Use the named constructors instead */
+Socket::Socket():
+fd(-1),
+ip(),
+port(),
+portNum(),
+_address(),
+_addressLen()
 {
-};
+}
 
 Socket	Socket::spawn(const String& ip, const String& port)
 {
@@ -64,7 +74,6 @@ _addressLen(sizeof _address)
 		info = info->ai_next;
 	}
 	std::memcpy(&_address, info->ai_addr, info->ai_addrlen);
-	convertAddressToIpAndPort(_address);
 	freeaddrinfo(info);
 
 	int	yes = 1;
@@ -73,7 +82,9 @@ _addressLen(sizeof _address)
 	{
 		throw std::runtime_error("setsockopt() failed");
 	}
-	linger	linger = {.l_onoff = 1, .l_linger = 5};
+	linger	linger;
+	linger.l_onoff = 1;
+	linger.l_linger = 5;
 	retval = setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
 	if (retval == -1)
 	{
@@ -102,7 +113,9 @@ _addressLen(sizeof _address)
 	{
 		throw std::runtime_error("setsockopt() failed");
 	}
-	linger	linger = {.l_onoff = 1, .l_linger = 5};
+	linger	linger;
+	linger.l_onoff = 1;
+	linger.l_linger = 5;
 	retval = setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger, sizeof linger);
 	if (retval == -1)
 	{
@@ -138,7 +151,8 @@ int	Socket::bind() const
 		}
 		else
 		{
-			throw std::runtime_error("bind() failed");
+			throw std::runtime_error("bind() failed (" +
+									 String(strerror(errno)) + ")");
 		}
 	}
 	return retval;
@@ -149,7 +163,8 @@ int	Socket::listen(int connectionCount) const
 	int	retval = ::listen(fd, connectionCount);
 	if (retval == -1)
 	{
-		throw std::runtime_error("listen() failed");
+		throw std::runtime_error("listen() failed (" +
+								 String(strerror(errno)) + ")");
 	}
 	return retval;
 }
@@ -157,20 +172,43 @@ int	Socket::listen(int connectionCount) const
 Socket	Socket::accept() const
 {
 	sockaddr_storage	addr;
-	socklen_t			addrLen;
+	socklen_t			addrLen = sizeof addr;
 
-	addrLen = static_cast<socklen_t>(sizeof addr);
-	int	newFD = ::accept(this->fd, (sockaddr*)&addr, &addrLen);
+	int	newFD = ::accept(fd, reinterpret_cast<sockaddr*>(&addr), &addrLen);
 	if (newFD == -1)
 	{
-		throw std::runtime_error("accept() failed");
+		String	errmsg = strerror(errno);
+		switch (errno)
+		{
+			case EINTR:
+				throw NonFatal("accept() interrupted by signal");
+
+			case ECONNABORTED:
+				throw NonFatal("accepted() failed (client aborted connection)");
+
+			case ENETDOWN:
+			case EPROTO:
+			case ENOPROTOOPT:
+			case ENONET:
+			case EHOSTUNREACH:
+			case EOPNOTSUPP:
+			case ENETUNREACH:
+				throw NonFatal("Client side protocol error (" + errmsg + ")");
+
+			case EMFILE:
+			case ENFILE:
+				throw FileDescriptorLimit("accept() failed (file descriptor limit reached)");;
+
+			default:
+				throw std::runtime_error("accept() failed (" + errmsg + ")");
+		}
 	}
 	return Socket::wrap(newFD, addr);
 }
 
-void	Socket::convertAddressToIpAndPort(sockaddr_storage add)
+void	Socket::convertAddressToIpAndPort(sockaddr_storage addr)
 {
-	sockaddr*	address = reinterpret_cast<sockaddr*>(&add);
+	sockaddr*	address = reinterpret_cast<sockaddr*>(&addr);
 
 	if (address->sa_family == AF_INET)
 	{
@@ -195,20 +233,22 @@ void	Socket::convertAddressToIpAndPort(sockaddr_storage add)
 
 addrinfo*	Socket::getAddrInfo(const String& ip, const String& port)
 {
-	addrinfo	requirements = {.ai_flags = AI_PASSIVE,
-								.ai_family = AF_INET,
-								.ai_socktype = SOCK_STREAM,
-								.ai_protocol = 0,
-								.ai_addrlen = 0,
-								.ai_addr = NULL,
-								.ai_canonname = NULL,
-								.ai_next = NULL};
+	addrinfo	requirements;
 	addrinfo*	info = NULL;
+
+	requirements.ai_flags = AI_PASSIVE;
+	requirements.ai_family = AF_INET;
+	requirements.ai_socktype = SOCK_STREAM;
+	requirements.ai_protocol = 0;
+	requirements.ai_addrlen = 0;
+	requirements.ai_addr = NULL;
+	requirements.ai_canonname = NULL;
+	requirements.ai_next = NULL;
 	int	retval = ::getaddrinfo(ip.c_str(), port.c_str(), &requirements, &info);
 	if (retval != 0)
 	{
-		throw std::runtime_error("getaddrinfo() failed");
+		String errmsg = gai_strerror(retval);
+		throw std::runtime_error("getaddrinfo() failed (" + errmsg + ")");
 	}
 	return info;
 }
-

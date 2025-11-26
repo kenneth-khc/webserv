@@ -61,8 +61,6 @@ private:
 	void	(*bodyValidationFunc)(const Directive&, const Directive::Map&);
 };
 
-void	no_op(const Directive&, const Directive::Map&);
-
 /** Validation for block directives */
 
 void	validateServerHeader(const Directive&, const Directive::Map&);
@@ -71,6 +69,8 @@ void	validateHttpHeader(const Directive&, const Directive::Map&);
 void	validateHttpBody(const Directive&, const Directive::Map&);
 void	validateLocationHeader(const Directive&, const Directive::Map&);
 void	validateLocationBody(const Directive&, const Directive::Map&);
+void	validateCgiScriptHeader(const Directive&, const Directive::Map&);
+void	validateCgiScriptBody(const Directive&, const Directive::Map&);
 
 /** Validation for simple directives */
 
@@ -79,16 +79,15 @@ void	validateListen(const Directive&, const Directive::Map&);
 void	validateHTTP(const Directive&, const Directive::Map&);
 void	validateServerName(const Directive&, const Directive::Map&);
 void	validateRoot(const Directive&, const Directive::Map&);
+void	validateAlias(const Directive&, const Directive::Map&);
 void	validateIndex(const Directive&, const Directive::Map&);
 void	validateTypes(const Directive&, const Directive::Map&);
 void	validateAutoindex(const Directive&, const Directive::Map&);
 void	validateAllowMethod(const Directive&, const Directive::Map&);
 void	validateClientMaxBodySize(const Directive&, const Directive::Map&);
 void	validateErrorPage(const Directive&, const Directive::Map&);
-void	validateExecCGI(const Directive&, const Directive::Map&);
-void	validateCGIScript(const Directive&, const Directive::Map&);
-void	validateAcceptUploads(const Directive&, const Directive::Map&);
 void	validateUploadDirectory(const Directive&, const Directive::Map&);
-void	validateCGIDirectory(const Directive&, const Directive::Map&);
+void	validateRedirect(const Directive&, const Directive::Map&);
+void	validateScriptAlias(const Directive&, const Directive::Map&);
 
 #endif

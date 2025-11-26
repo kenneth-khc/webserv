@@ -24,6 +24,6 @@
 namespace Base64 {
 	String	encode(const String &str);
 	bool	decode(const String &str, String &output);
-};
+}
 
 #endif

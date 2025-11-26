@@ -16,9 +16,7 @@
 #include <sys/socket.h>
 #include <deque>
 #include <vector>
-#include "Time.hpp"
 #include "String.hpp"
-#include "Socket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Timer.hpp"
@@ -39,12 +37,15 @@ public:
 	Client(const Client&);
 	Client	&operator=(const Client&);
 
+	/** Sets the default server for a connected Client.
+		Default server is the first server block with a matching host:port */
+	void	setDefaultServer(const std::vector<Server>&);
 	ssize_t	receiveBytes();
 	ssize_t	sendBytes(String &formattedResponse);
 
 	Socket*				socket;
 	const Socket*		receivedBy;
-	Server*				server;
+	const Server*		defaultServer;
 	String				message;
 	Timer*				timer;
 	std::vector<CGI*>	cgis;

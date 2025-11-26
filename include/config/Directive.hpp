@@ -24,6 +24,7 @@
 struct	Directive
 {
 public:
+	~Directive();
 
 /** A key-value mapping of DirectiveName -> Directive */
 typedef std::multimap<String,Directive*>	Map;
@@ -95,6 +96,9 @@ typedef std::pair<MapConstIter, MapConstIter>	EqualRange;
 	Optional<ReturnType>
 	recursivelyLookup(const String&) const;
 
+	template <typename T>
+	T	getInherited(const String& key, const T& defaultValue) const;
+
 	Optional< std::map<int,String> >
 	generateErrorPagesMapping() const;
 
@@ -103,10 +107,7 @@ typedef std::pair<MapConstIter, MapConstIter>	EqualRange;
 	Context::Context	getContext() const;
 
 	/** Get the diagnostic information for this Directive */
-	const Diagnostic&	getDiagnostic() const;
-
-	/** Cleans up the children Directives before cleaning up this Directive */
-	void	cleanUp();
+	Diagnostic	getDiagnostic() const;
 
 	/** Name of the current Directive */
 	String	name;
@@ -122,8 +123,6 @@ typedef std::pair<MapConstIter, MapConstIter>	EqualRange;
 private:
 	/** Not expected to construct a bare Directive */
 	Directive();
-	/** Not expected to copy a Directive */
-	Directive(const Directive&);
 
 	/** The child directives within this block */
 	std::multimap<String,Directive*>	directives;
@@ -140,11 +139,11 @@ private:
 		const String&		key;
 
 		LookupEnclosing(const Directive*, const String&);
+		LookupEnclosing(const LookupEnclosing&);
 		Optional<ReturnType>	operator()() const;
 
 	private:
 		LookupEnclosing();
-		LookupEnclosing(const LookupEnclosing&);
 		LookupEnclosing&	operator=(const LookupEnclosing&);
 	};
 };
@@ -194,6 +193,12 @@ Directive::recursivelyLookup< std::vector<String> >(const String& key) const
 {
 	return getParametersOf(key)
 		  .or_else(LookupEnclosing< std::vector<String> >(this, key));
+}
+
+template <typename T>
+T	Directive::getInherited(const String& key, const T& defaultValue) const
+{
+	return this->recursivelyLookup<T>(key).value_or(defaultValue);
 }
 
 #endif

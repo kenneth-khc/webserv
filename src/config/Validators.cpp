@@ -17,33 +17,39 @@
 #include <stdexcept>
 #include <utility>
 
-/* TODO: this is where all the supported directives go, being mapped to a
- * Validator that determines how to parse/validate the parameters of each
- * Directive */
 Validators::Validators()
 {
+	// global directives
 	registerDirective("prefix", validatePrefix);
 	registerDirective("http",
 					 Validator(validateHttpHeader, validateHttpBody));
+
+	// http directives
+	registerDirective("types", validateTypes);
 	registerDirective("server",
 					  Validator(validateServerHeader, validateServerBody));
+
+	// server directives
+	registerDirective("server_name", validateServerName);
 	registerDirective("listen", validateListen);
 	registerDirective("location",
 					  Validator(validateLocationHeader, validateLocationBody));
+
+	// location directives
 	registerDirective("root", validateRoot);
+	registerDirective("alias", validateAlias);
 	registerDirective("index", validateIndex);
-	registerDirective("types", validateTypes);
-	registerDirective("server_name", validateServerName);
-	registerDirective("alias", no_op);
 	registerDirective("autoindex", validateAutoindex);
 	registerDirective("allow_method", validateAllowMethod);
 	registerDirective("client_max_body_size", validateClientMaxBodySize);
 	registerDirective("error_page", validateErrorPage);
-	registerDirective("exec_CGI", validateExecCGI);
-	registerDirective("CGI_script", validateCGIScript);
-	registerDirective("accept_uploads", validateAcceptUploads);
 	registerDirective("upload_directory", validateUploadDirectory);
-	registerDirective("CGI_directory", validateCGIDirectory);
+	registerDirective("redirect", validateRedirect);
+
+	// cgi_script directives
+	registerDirective("cgi_script",
+	                  Validator(validateCgiScriptHeader, validateCgiScriptBody));
+	registerDirective("script_alias", validateScriptAlias);
 }
 
 void	Validators::registerDirective(const String& name,
@@ -74,7 +80,7 @@ void	Validators::validate(const Directive* directive,
 		const Validator&	validator = operator[](directive->name);
 		validator(*directive, mappings);
 	}
-	catch (const std::out_of_range& e)
+	catch (const std::out_of_range&)
 	{
 		throw InvalidDirective(directive);
 	}

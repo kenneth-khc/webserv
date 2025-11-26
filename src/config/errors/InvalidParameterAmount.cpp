@@ -5,7 +5,7 @@
 InvalidParameterAmount::InvalidParameterAmount(const Directive& directive,
 											   size_t expectedAmount):
 ConfigError(directive.getDiagnostic().filename),
-directive(directive),
+directive(&directive),
 expectedMin(expectedAmount),
 expectedMax(expectedAmount)
 {
@@ -15,7 +15,7 @@ InvalidParameterAmount::InvalidParameterAmount(const Directive& directive,
 											   size_t expectedMin,
 											   size_t expectedMax):
 ConfigError(directive.getDiagnostic().filename),
-directive(directive),
+directive(&directive),
 expectedMin(expectedMin),
 expectedMax(expectedMax)
 {
@@ -32,7 +32,7 @@ String	InvalidParameterAmount::format() const
 {
 	std::stringstream				buf;
 	std::stringstream				errmsg;
-	const std::vector<Parameter>&	parameters = directive.parameters;
+	const std::vector<Parameter>&	parameters = directive->parameters;
 	const size_t					amount = parameters.size();
 
 	if (amount > expectedMax)
@@ -41,13 +41,13 @@ String	InvalidParameterAmount::format() const
 		{
 			errmsg << "invalid amount of parameters: got " << amount << ", "
 				   << "expected " << expectedMax << " for `"
-				   << directive.name << '`';
+				   << directive->name << '`';
 		}
 		else
 		{
 			errmsg << "invalid amount of parameters: got " << amount << ", "
 				   << "expected at most " << expectedMax << " for `"
-				   << directive.name << '`';
+				   << directive->name << '`';
 		}
 		std::vector<Diagnostic>	extraParameters;
 		for (size_t i = expectedMax; i < amount; ++i)
@@ -72,18 +72,18 @@ String	InvalidParameterAmount::format() const
 		{
 			errmsg << "invalid amount of parameters: got " << amount << ", "
 				   << "expected " << expectedMax << " for `"
-				   << directive.name << '`';
+				   << directive->name << '`';
 		}
 		else
 		{
 			errmsg << "invalid amount of parameters: got " << amount << ", "
 				   << "expected at least " << expectedMin << " for `"
-				   << directive.name << '`';
+				   << directive->name << '`';
 		}
 		if (parameters.size() == 0)
 		{
-			word = directive.name;
-			missingParam = directive.getDiagnostic();
+			word = directive->name;
+			missingParam = directive->getDiagnostic();
 		}
 		else
 		{

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/01 23:03:02 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/24 23:42:39 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,34 +24,33 @@
 #include "contentType.hpp"
 #include "Server.hpp"
 #include "etag.hpp"
-#include <iostream>
 
 #define FILE_NAME_LEN 45
 
 static
 Optional<String>
-resolveUploadGET(Response&, const Request&, const Location&);
+resolveUploadGET(Response&, const Request&);
 
 static
 Optional<String>
-resolveDirectoryGET(Response&, const Request&, const Location&);
+resolveDirectoryGET(Response&, const Request&);
 
 static
 void
-getFile(const String&, Response&, const Request&, const Location&);
+getFile(const String&, Response&, const Request&);
 
 static void		generateUploadsListing(const String& uploadsDir, Response& response, const Request& request);
-static String	getUploadsReference(const String& uploadsDir, const Request &request);
-static void		generateDirectoryListing(Response& response, std::string dirName, const std::string& uri);
+static String	getUploadsReference(const Request &request);
+static void		generateDirectoryListing(Response& response, std::string dirName, std::string uri);
 static bool		fileIsDirectory(const String& filepath);
-static Optional<String>	tryIndexFiles(const Location&, const String& filepath);
+static Optional<String>	tryIndexFiles(const std::vector<String>& indexFiles, const String& filepath);
 
-void	Server::get(Response& response, Request& request, const Location& location) const
+void	Server::get(Response& response, const Request& request) const
 {
 	String	resolvedFilepath;
-	if (location.acceptUploads)
+	if (request.location->acceptUploads)
 	{
-		Optional<String>	uploadedFilepath = resolveUploadGET(response, request, location);
+		Optional<String>	uploadedFilepath = resolveUploadGET(response, request);
 		if (uploadedFilepath.exists)
 		{
 			resolvedFilepath = uploadedFilepath.value;
@@ -63,7 +62,7 @@ void	Server::get(Response& response, Request& request, const Location& location)
 	}
 	else if (request.path.back() == '/')
 	{
-		Optional<String>	indexFilepath = resolveDirectoryGET(response, request, location);
+		Optional<String>	indexFilepath = resolveDirectoryGET(response, request);
 		if (indexFilepath.exists)
 		{
 			resolvedFilepath = indexFilepath.value;
@@ -78,15 +77,19 @@ void	Server::get(Response& response, Request& request, const Location& location)
 		resolvedFilepath = request.resolvedPath;
 	}
 
-	getFile(resolvedFilepath, response, request, location);
+	getFile(resolvedFilepath, response, request);
 }
 
-static Optional<String>	resolveUploadGET(Response& response, 
-		const Request& request, const Location& location)
+/*
+	A special handling. When the location block has an "upload_directory"
+	declared within, generates a page listing all the uploads within the
+	specified upload_directory for the exact URI match.
+*/
+static Optional<String>	resolveUploadGET(Response& response, const Request& request)
 {
-	if (request.path == location.uri && fileIsDirectory(request.resolvedPath))
+	if (request.path == request.location->uri && fileIsDirectory(request.resolvedPath))
 	{
-		generateUploadsListing("uploads", response, request);
+		generateUploadsListing(request.location->uploadDirectory, response, request);
 		response.setStatusCode(Response::OK);
 		response.insert("Content-Length", response.messageBody.length());
 		response.insert("Content-Type", "text/html");
@@ -94,20 +97,30 @@ static Optional<String>	resolveUploadGET(Response& response,
 	}
 	else
 	{
-		String	uploadedFilepath = getUploadsReference("uploads", request);
+		String	uploadedFilepath = getUploadsReference(request);
 		return makeOptional(uploadedFilepath);
 	}
 }
 
-static Optional<String>	resolveDirectoryGET(Response &response,
-		const Request& request, const Location& location)
+/*
+	If "index" is declared within a location block and "autoindex" is on,
+	returns the index file if it exists, otherwise returns a page listing the
+	file structure for that URI.
+
+	If "autoindex" is off, returns the index file if it exists.
+
+	Returns 404 error if both are not found.
+*/
+static Optional<String>	resolveDirectoryGET(Response &response, const Request& request)
 {
-	Optional<String>	indexFilepath = tryIndexFiles(location, request.resolvedPath);
+	Optional<String>	indexFilepath = tryIndexFiles(request.location->indexFiles,
+														request.resolvedPath);
+
 	if (!indexFilepath.exists)
 	{
-		if (location.autoindex)
+		if (request.location->autoindex)
 		{
-			generateDirectoryListing(response, request.resolvedPath, location.uri);
+			generateDirectoryListing(response, request.resolvedPath, request.location->uri);
 			response.setStatusCode(Response::OK);
 			response.insert("Content-Length", response.messageBody.length());
 			response.insert("Content-Type", "text/html");
@@ -115,7 +128,7 @@ static Optional<String>	resolveDirectoryGET(Response &response,
 		}
 		else
 		{
-			return makeOptional(location.indexFiles.back());
+			return makeOptional(request.location->indexFiles.back());
 		}
 	}
 	else
@@ -130,8 +143,6 @@ static bool	fileIsDirectory(const String& filepath)
 
 	if (stat(filepath.c_str(), &filestatus) == -1)
 	{
-		// TODO: wat to do in case of errors?
-		std::cerr << "stat(" << filepath << ") failed\n";
 		return false;
 	}
 	else
@@ -140,12 +151,15 @@ static bool	fileIsDirectory(const String& filepath)
 	}
 }
 
-static Optional<String>	tryIndexFiles(const Location& location, const String& filepath)
+static Optional<String>	tryIndexFiles(
+	const std::vector<String>& indexFiles,
+	const String& filepath
+)
 {
 	size_t	i;
-	for (i = 0; i < location.indexFiles.size(); ++i)
+	for (i = 0; i < indexFiles.size(); ++i)
 	{
-		const String&	indexFile = filepath + location.indexFiles[i];
+		const String&	indexFile = filepath + indexFiles[i];
 		if (access(indexFile.c_str(), R_OK) == 0)
 		{
 			return makeOptional(indexFile);
@@ -154,12 +168,18 @@ static Optional<String>	tryIndexFiles(const Location& location, const String& fi
 	return makeNone<String>();
 }
 
-void	getFile(const String& filepath, Response& response,
-				const Request& request, const Location& location)
+void	getFile(const String& filepath, Response& response, const Request& request)
 {
 	struct stat	status;
 	if (stat(filepath.c_str(), &status) == 0 && access(filepath.c_str(), R_OK) == 0)
 	{
+		if (S_ISDIR(status.st_mode))
+		{
+			response.setStatusCode(Response::MOVED_PERMANENTLY);
+			response.insert("Location",request.path + "/");
+			response.insert("Content-Length", 0);
+			return ;
+		}
 		if (processPreconditions(request, status) == false)
 		{
 			response.setStatusCode(Response::NOT_MODIFIED);
@@ -169,7 +189,7 @@ void	getFile(const String& filepath, Response& response,
 			response.setStatusCode(Response::OK);
 			response.getFileContents(filepath);
 			response.insert("Content-Length", status.st_size);
-			constructContentTypeHeader(response, filepath, location.MIMEMappings);
+			constructContentTypeHeader(response, filepath, request.location->MIMEMappings);
 		}
 		response.insert("ETag", constructETagHeader(status.st_mtim, status.st_size));
 		response.insert("Last-Modified", Time::printHTTPDate(status.st_mtim));
@@ -180,13 +200,11 @@ void	getFile(const String& filepath, Response& response,
 	}
 }
 
-static String	getUploadsReference(
-	const String& uploadsDir,
-	const Request &request)
+static String	getUploadsReference(const Request &request)
 {
-	DIR*	dir = opendir(uploadsDir.c_str());
+	DIR*	uploadsDir = opendir(request.location->uploadDirectory.c_str());
 
-	if (!dir)
+	if (!uploadsDir)
 	{
 		throw NotFound404();
 	}
@@ -195,13 +213,13 @@ static String	getUploadsReference(
 	String						fileName = request.path.substr(pos.value + 1);
 	String						sid = request.cookies.find("sid")->second.value;
 
-	for (dirent* entry = readdir(dir); entry != 0; entry = readdir(dir))
+	for (dirent* entry = readdir(uploadsDir); entry != 0; entry = readdir(uploadsDir))
 	{
 		String	d_name(entry->d_name);
 
 		if (d_name.find(sid).exists == true && d_name.find(fileName).exists == true)
 		{
-			return (uploadsDir + "/" + d_name);
+			return (request.location->uploadDirectory + "/" + d_name);
 		}
 	}
 	throw NotFound404();
@@ -214,22 +232,23 @@ static String	getUploadsReference(
 
 #define FILE_NAME_LEN 45
 #define FILE_SIZE_LEN 20
-#include <iostream>
 
-void	generateDirectoryListing(Response& response,
-    	                         std::string path,
-    	                         const std::string& uri)
+void	generateDirectoryListing(Response& response, std::string path, std::string uri)
 {
 	DIR*	dir = opendir(path.c_str());
 
 	if (!dir)
+	{
 		throw NotFound404();
+	}
 
 	struct stat			statbuf;
 	std::stringstream	stream;
 
 	if (path[path.length() - 1] != '/')
 		path += "/";
+	if (uri[uri.length() - 1] != '/')
+		uri += "/";
 
 	stream << "<html>\n"
 		   << 	"<head>\n"
@@ -323,13 +342,18 @@ void	generateDirectoryListing(Response& response,
 	std::sort(regularFiles.begin(), regularFiles.end());
 
 	response.messageBody += parentDir;
-	for (std::vector<std::string>::const_iterator it = directories.begin(); it != directories.end(); it++)
+
+	std::vector<std::string>::const_iterator it = directories.begin();
+	while (it != directories.end())
 	{
 		response.messageBody += *it;
+		it++;
 	}
-	for (std::vector<std::string>::const_iterator it = regularFiles.begin(); it != regularFiles.end(); it++)
+	it = regularFiles.begin();
+	while (it != regularFiles.end())
 	{
 		response.messageBody += *it;
+		it++;
 	}
 
 	stream.str("");
@@ -399,9 +423,11 @@ static void	generateUploadsListing(
 
 	std::sort(uploadsList.begin(), uploadsList.end());
 
-	for (std::vector<String>::const_iterator it = uploadsList.begin(); it != uploadsList.end(); it++)
+	std::vector<String>::const_iterator it = uploadsList.begin();
+	while (it != uploadsList.end())
 	{
 		response.messageBody += *it;
+		it++;
 	}
 
 	stream.str("");

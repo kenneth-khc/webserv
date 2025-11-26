@@ -8,10 +8,10 @@
 class AddressInUseError : public SetupError
 {
 public:
-	AddressInUseError(const String& msg);
+	AddressInUseError(const String& message);
 
-	const char*	what() const throw();
-	String		format() const;
+	const char*	what() const throw(); // override
+	String		format() const; // override
 };
 
 #endif

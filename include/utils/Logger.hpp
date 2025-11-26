@@ -13,6 +13,8 @@
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
 
+#include "String.hpp"
+
 #include <netdb.h>
 
 /* This namespace is responsible for logging interactions between the servers
@@ -21,13 +23,16 @@
 class Client;
 class Request;
 class Response;
+struct Socket;
 
 namespace	Logger
 {
+	void	log(const String& message);
+	void	warn(const String& message);
+	void	warn(const Socket&, const String& message);
 	void	logRequest(Request&, Client&);
 	void	logResponse(Response&, Client&);
 	void	logConnection(int, int, Client&);
-	void	logIPPort(sockaddr*);
 
 	enum CONNECTION {
 		ESTABLISHED,
@@ -48,6 +53,6 @@ namespace	Logger
 		extern const char*	BOLD_BLUE;
 		extern const char*	RESET;
 	}
-};
+}
 
 #endif

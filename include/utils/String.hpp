@@ -159,6 +159,8 @@ public:
 	std::size_t			toSize() const;
 	static std::size_t	toSize(const String&);
 
+	static Optional<int>	parseInt(const String&);
+
 	// Checks if the string starts with the given prefix
 	bool				starts_with(const String&) const;
 

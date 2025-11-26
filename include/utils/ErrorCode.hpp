@@ -1,0 +1,100 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ErrorCode.hpp                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/27 19:25:04 by cteoh             #+#    #+#             */
+/*   Updated: 2025/11/21 08:30:57 by cteoh            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+
+#ifndef ERRORCODE_HPP
+# define ERRORCODE_HPP
+
+# include <exception>
+# include "String.hpp"
+# include "Response.hpp"
+
+# define HTTP_VERSION "1.1"
+
+class ErrorCode : public std::exception, public Response {
+	public:
+		ErrorCode(void);
+		ErrorCode(String httpVersion, int statusCode, String reasonPhrase);
+		ErrorCode(String httpVersion, int statusCode, String reasonPhrase, const char *title);
+		~ErrorCode(void) throw();
+		ErrorCode(const ErrorCode &obj);
+		ErrorCode	&operator=(const ErrorCode &obj);
+};
+
+/********************/
+/* Client Error 4XX */
+/********************/
+class BadRequest400 : public ErrorCode {
+	public:
+		BadRequest400(void);
+		BadRequest400(const char *title);
+};
+
+class Forbidden403 : public ErrorCode {
+	public:
+		Forbidden403(void);
+		Forbidden403(const char *title);
+};
+
+class NotFound404 : public ErrorCode {
+	public:
+		NotFound404(void);
+		NotFound404(const char *title);
+};
+
+class MethodNotAllowed405 : public ErrorCode {
+	public:
+		MethodNotAllowed405(void);
+		MethodNotAllowed405(const char *title);
+};
+
+class PreconditionFailed412 : public ErrorCode {
+	public:
+		PreconditionFailed412(void);
+		PreconditionFailed412(const char *title);
+};
+
+class PayloadTooLarge413 : public ErrorCode {
+	public:
+		PayloadTooLarge413(void);
+		PayloadTooLarge413(const char *title);
+};
+
+class UnsupportedMediaType415 : public ErrorCode {
+	public:
+		UnsupportedMediaType415(void);
+		UnsupportedMediaType415(const char *title);
+		UnsupportedMediaType415(const char *header, const char *value);
+};
+
+/********************/
+/* Server Error 5XX */
+/********************/
+class InternalServerError500 : public ErrorCode {
+	public:
+		InternalServerError500(void);
+		InternalServerError500(const char *title);
+};
+
+class NotImplemented501 : public ErrorCode {
+	public:
+		NotImplemented501(void);
+		NotImplemented501(const char *title);
+};
+
+class VersionNotSupported505 : public ErrorCode {
+	public:
+		VersionNotSupported505(void);
+		VersionNotSupported505(const char *title);
+};
+
+#endif

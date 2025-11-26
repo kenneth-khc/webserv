@@ -9,7 +9,7 @@
  * the error to the user, allowing them to correct the config file if they
  * so desire. */
 
-class	ConfigError : public std::runtime_error
+class	ConfigError : std::runtime_error
 {
 public:
 	ConfigError();

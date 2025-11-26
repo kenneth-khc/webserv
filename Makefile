@@ -6,19 +6,18 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/04/03 17:30:27 by cteoh            ###   ########.fr        #
+#    Updated: 2025/11/20 05:15:02 by cteoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-.DEFAULT_GOAL := debug
-
 NAME := webserv
-DEBUG_BUILD := webserv_debug
-FSAN_BUILD := webserv_fsan
-RELEASE_BUILD := webserv_release
+BUILD := $(NAME)
+DEBUG_BUILD := $(BUILD)_debug
+FSAN_BUILD := $(BUILD)_fsan
+RELEASE_BUILD := $(BUILD)_release
 
 CXX := c++
-CXXFLAGS = -Wall -Werror -Wextra -MMD -std=c++98
+CXXFLAGS = -Wall -Werror -Wextra -MMD -std=c++98 -pedantic
 
 src_dir := src
 dirs := $(src_dir) \
@@ -28,13 +27,13 @@ dirs := $(src_dir) \
 		$(src_dir)/client \
 		$(src_dir)/server/errors \
 		$(src_dir)/methods \
-		$(src_dir)/URI \
+		$(src_dir)/uri \
 		$(src_dir)/message \
 		$(src_dir)/message/request \
 		$(src_dir)/headers \
 		$(src_dir)/utils \
 		$(src_dir)/utils/Time \
-		$(src_dir)/CGI \
+		$(src_dir)/cgi \
 		$(src_dir)/debug
 
 srcs := $(foreach dir, $(dirs), $(wildcard $(dir)/*.cpp))
@@ -44,69 +43,99 @@ includes := -I $(inc_dir)/ \
 			-I $(inc_dir)/config \
 			-I $(inc_dir)/config/errors \
 			-I $(inc_dir)/client \
-			-I $(inc_dir)/URI \
+			-I $(inc_dir)/uri \
 			-I $(inc_dir)/message \
 			-I $(inc_dir)/message/request \
 			-I $(inc_dir)/headers \
 			-I $(inc_dir)/utils \
 			-I $(inc_dir)/utils/Time \
-			-I $(inc_dir)/CGI \
+			-I $(inc_dir)/cgi \
 			-I $(inc_dir)/server \
 			-I $(inc_dir)/server/errors
 
 obj_dir := obj
-objs := $(srcs:$(src_dir)/%.cpp=$(obj_dir)/%.o)
-deps := $(objs:%.o=%.d)
 
-uploads_dir := uploads
+build_obj_dir := $(obj_dir)/build
+build_obj_dirs := $(subst $(src_dir), $(build_obj_dir), $(dirs))
+build_objs := $(srcs:$(src_dir)/%.cpp=$(build_obj_dir)/%.o)
+build_deps := $(build_objs:%.o=%.d);
+
+fsan_obj_dir := $(obj_dir)/fsanitize
+fsan_obj_dirs := $(subst $(src_dir), $(fsan_obj_dir), $(dirs))
+fsan_objs := $(srcs:$(src_dir)/%.cpp=$(fsan_obj_dir)/%.o)
+fsan_deps := $(fsan_objs:%.o=%.d)
+
+debug_obj_dir := $(obj_dir)/debug
+debug_obj_dirs := $(subst $(src_dir), $(debug_obj_dir), $(dirs))
+debug_objs := $(srcs:$(src_dir)/%.cpp=$(debug_obj_dir)/%.o)
+debug_deps := $(debug_objs:%.o=%.d)
+
+release_obj_dir := $(obj_dir)/release
+release_obj_dirs := $(subst $(src_dir), $(release_obj_dir), $(dirs))
+release_objs := $(srcs:$(src_dir)/%.cpp=$(release_obj_dir)/%.o)
+release_deps := $(release_objs:%.o=%.d)
 
 all: $(NAME)
 
-$(NAME): $(objs) $(uploads_dir)
-	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(NAME)
+$(NAME): $(build_objs)
+	$(CXX) $(CXXFLAGS) $(includes) $(build_objs) -o $(NAME)
 
-$(obj_dir):
-	mkdir -p $(obj_dir)
+$(build_obj_dir):
+	mkdir -p $(build_obj_dirs)
 
-$(obj_dir)/%.o: $(src_dir)/%.cpp | obj
-	mkdir -p $(dir $@)
+$(build_obj_dir)/%.o: $(src_dir)/%.cpp | $(build_obj_dir)
 	$(CXX) $(CXXFLAGS) $(includes) $< -c -o $@
 
-$(uploads_dir):
-	mkdir -p $(uploads_dir)
+debug: CXXFLAGS += -O0 -g3
+debug: $(DEBUG_BUILD)
+
+$(DEBUG_BUILD): $(debug_objs)
+	$(CXX) $(CXXFLAGS) $(includes) $(debug_objs) -o $(DEBUG_BUILD)
+
+$(debug_obj_dir)/%.o: $(src_dir)/%.cpp | $(debug_obj_dir)
+	$(CXX) $(CXXFLAGS) $(includes) $< -c -o $@
+
+$(debug_obj_dir):
+	mkdir -p $(debug_obj_dirs)
+
+fsan: CXXFLAGS += -fsanitize=address,undefined -g3
+fsan: $(FSAN_BUILD)
+
+$(FSAN_BUILD): $(fsan_objs)
+	$(CXX) $(CXXFLAGS) $(includes) $(fsan_objs) -o $(FSAN_BUILD)
+
+$(fsan_obj_dir)/%.o: $(src_dir)/%.cpp | $(fsan_obj_dir)
+	$(CXX) $(CXXFLAGS) $(includes) $< -c -o $@
+
+$(fsan_obj_dir):
+	mkdir -p $(fsan_obj_dirs)
+
+release: CXXFLAGS += -O3
+release: $(RELEASE_BUILD)
+
+$(RELEASE_BUILD): $(release_objs)
+	$(CXX) $(CXXFLAGS) $(includes) $(release_objs) -o $(RELEASE_BUILD)
+
+$(release_obj_dir)/%.o: $(src_dir)/%.cpp | $(release_obj_dir)
+	$(CXX) $(CXXFLAGS) $(includes) $< -c -o $@
+
+$(release_obj_dir):
+	mkdir -p $(release_obj_dirs)
+
+lib:
+	ar -rcs libserv.a $(objs)
 
 clean:
 	$(RM) -r $(obj_dir)
 
 fclean: clean
-	$(RM) $(NAME) $(DEBUG_BUILD)
+	$(RM) $(NAME) $(DEBUG_BUILD) $(FSAN_BUILD)
 
 re: fclean all
 
-debug_server: CXXFLAGS += -O0 -g3
-debug_server: all
+.PHONY: all clean fclean re release debug fsan
 
-debug: CXXFLAGS += -O0 -g3
-debug: $(DEBUG_BUILD)
-
-$(DEBUG_BUILD): $(objs) $(uploads_dir)
-	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(DEBUG_BUILD)
-
-fsan: CXXFLAGS += -fsanitize=address,undefined -g3
-fsan: $(FSAN_BUILD)
-
-$(FSAN_BUILD): $(objs) $(uploads_dir)
-	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(FSAN_BUILD)
-
-release: CXXFLAGS += -O3
-release: $(RELEASE_BUILD)
-
-$(RELEASE_BUILD): $(objs) $(uploads_dir)
-	$(CXX) $(CXXFLAGS) $(includes) $(objs) -o $(RELEASE_BUILD)
-
-lib:
-	ar -rcs libserv.a $(objs)
-
-.PHONY: all clean fclean re optimized debug fsan
-
--include $(deps)
+-include $(build_deps)
+-include $(release_deps)
+-include $(debug_deps)
+-include $(fsan_deps)

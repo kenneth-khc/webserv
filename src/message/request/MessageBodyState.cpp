@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/29 18:31:58 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/31 23:31:30 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 09:07:57 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,15 @@ MessageBodyState::MessageBodyState(void) :
 	isLastChunk(false)
 {}
 
+/*
+	If "Content-Length" exists, store the message body in the request object
+	until the specified length is reached.
+
+	If "Transfer-Encoding: chunked" exists, decode the encoded data and store
+	the message chunks until the "final" chunk is received.
+
+	Returns the final stage (done).
+*/
 RequestState	*MessageBodyState::process(Request &request, Client &client) {
 	String						&message = client.message;
 	Optional<String::size_type>	contentLength = request.find< Optional<String::size_type> >("Content-Length");
@@ -80,10 +89,10 @@ RequestState	*MessageBodyState::process(Request &request, Client &client) {
 			if (message.length() < appendableBytes)
 				appendableBytes = message.length();
 
+			this->bodyLength += appendableBytes;
+			this->chunkSize -= appendableBytes;
 			request.messageBody.append(message.c_str(), appendableBytes);
 			message.erase(0, appendableBytes);
-			this->chunkSize -= appendableBytes;
-			this->bodyLength += appendableBytes;
 
 			if (this->chunkSize > 0)
 				return (this);

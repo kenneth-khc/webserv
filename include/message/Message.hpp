@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 21:29:24 by cteoh             #+#    #+#             */
-/*   Updated: 2025/03/28 02:08:05 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/19 22:02:54 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ class Message {
 		static const String				allowedDuplicateHeaders[NUM_OF_HEADERS];
 
 		char							processStage;
-		float							httpVersion;
+		String							httpVersion;
 		std::multimap<String, String>	headers;
 		String							messageBody;
 

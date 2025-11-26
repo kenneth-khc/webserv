@@ -28,7 +28,6 @@ Configuration::~Configuration()
 		 ++iter)
 	{
 		Directive*	directive = iter->second;
-		directive->cleanUp();
 		delete directive;
 	}
 }

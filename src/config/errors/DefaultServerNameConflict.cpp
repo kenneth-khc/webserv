@@ -6,8 +6,8 @@
 DefaultServerNameConflict::DefaultServerNameConflict(const Directive& server1,
 													 const Directive& server2,
 													 const String& address):
-server1(server1),
-server2(server2),
+server1(&server1),
+server2(&server2),
 address(address)
 {
 }
@@ -24,7 +24,7 @@ const char*	DefaultServerNameConflict::what() const throw()
 String		DefaultServerNameConflict::format() const
 {
 	std::stringstream	buf;
-	Fmt	fmt = Fmt(vector_of(server1.getDiagnostic())(server2.getDiagnostic()));
+	Fmt	fmt = Fmt(vector_of(server1->getDiagnostic())(server2->getDiagnostic()));
 
 	buf << fmt.formatError("multiple default server_names on address " + address)
 		<< fmt.formatDiagnostic("this server has no server_name")

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 09:14:43 by kecheong          #+#    #+#             */
-/*   Updated: 2025/03/28 02:19:17 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/21 05:14:32 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,50 +14,44 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <fstream>
+#include <sys/stat.h>
 #include "String.hpp"
 #include "ErrorCode.hpp"
 #include "Server.hpp"
 #include "Driver.hpp"
 
 // TODO: consider other status codes. 200 OK? 202 Accepted? 403 Forbidden?
-void	Server::delete_(Response& response, Request& request) const
+/*
+	Checks for file or directory existence and removes it.
+*/
+void	Server::delete_(Response& response, const Request& request) const
 {
-	DIR*	dir = opendir("uploads");
+	struct stat					filesystem;
+	const String&				sid = request.cookies.find("sid")->second.value;
+	Optional<String::size_type>	delimiter = request.resolvedPath.find_last_of("/");
+	String						target;
 
-	if (!dir)
+	if (delimiter.exists)
+		target = request.resolvedPath.substr(delimiter.value + 1);
+	else
+		target = request.resolvedPath;
+
+	target = sid + "_" + target;
+
+	if (delimiter.exists)
+		target = request.resolvedPath.substr(0, delimiter.value + 1) + target;
+
+	if (stat(target.c_str(), &filesystem))
 	{
 		throw NotFound404();
 	}
 
-	Optional<String::size_type>	uploads = request.requestTarget.find(String("/") + "uploads");
-
-	if (uploads.exists == false || uploads.value != 0)
+	if (!std::remove(target.c_str()))
 	{
-		throw NotFound404();
-	}
-
-	Optional<String::size_type>	pos = request.requestTarget.find("/", 1);
-	String						fileName = request.requestTarget.substr(pos.value + 1);
-	String						sid = request.cookies.find("sid")->second.value;
-	dirent*						entry = readdir(dir);
-
-	while (entry != 0)
+		response.setStatusCode(Response::NO_CONTENT);
+		response.insert("Content-Length", 0);
+	} else
 	{
-		String	d_name(entry->d_name);
-
-		if (d_name.find(sid).exists == true && d_name.find(fileName).exists == true)
-		{
-			std::remove((String("uploads") + "/" + d_name).c_str());
-			break ;
-		}
-		entry = readdir(dir);
+		throw InternalServerError500();
 	}
-	if (entry == 0)
-	{
-		throw NotFound404();
-	}
-
-	response.setStatusCode(Response::OK);
-	response.insert("Content-Type", "text/html");
-	response.insert("Content-Length", 0);
 }

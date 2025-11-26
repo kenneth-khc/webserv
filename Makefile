@@ -6,7 +6,7 @@
 #    By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/16 16:45:20 by kecheong          #+#    #+#              #
-#    Updated: 2025/11/20 05:15:02 by cteoh            ###   ########.fr        #
+#    Updated: 2025/11/27 05:42:33 by cteoh            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -129,7 +129,7 @@ clean:
 	$(RM) -r $(obj_dir)
 
 fclean: clean
-	$(RM) $(NAME) $(DEBUG_BUILD) $(FSAN_BUILD)
+	$(RM) $(NAME) $(DEBUG_BUILD) $(FSAN_BUILD) $(RELEASE_BUILD)
 
 re: fclean all
 

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/02 22:03:16 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/25 06:19:41 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/27 06:25:15 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,13 +67,13 @@ ssize_t bytes)
 		if (fieldValue.length() == 0)
 			continue ;
 
-		String	trim = fieldName.trim(" ");
+		String	trim = fieldName.trim(" \t\n");
 
 		if (trim.length() != fieldName.length())
 			throw InternalServerError500();
 
 		existingFieldNames.push_back(fieldName.lower());
-		validHeaders.insert(std::make_pair(fieldName.title(), fieldValue.trim(" ")));
+		validHeaders.insert(std::make_pair(fieldName.title(), fieldValue.trim(" \t\n")));
 	}
 
 	int	total = 0;

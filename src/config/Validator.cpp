@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Validator.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kecheong <kecheong@student.42kl.edu.my>    +#+  +:+       +#+        */
+/*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 04:06:02 by kecheong          #+#    #+#             */
-/*   Updated: 2025/04/03 21:08:51 by kecheong         ###   ########.fr       */
+/*   Updated: 2025/11/27 06:04:14 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,27 +173,10 @@ void	validatePrefix(const Directive& directive, const Directive::Map& mappings)
 	validateDuplicateDirective(directive, mappings);
 	validateParameterSize(directive, 1);
 
-	Directive			copy = directive;
-	const Parameter&	path = copy.parameters[0];
+	const Parameter&	path = directive.parameters[0];
 	if (path[0] != '/')
 	{
-		throw InvalidParameter(copy,
-							   path.diagnostic,
-							   "invalid absolute path",
-							   "set an absolute path as the web server root directory");
-	}
-}
-
-void	validatePrefix(const Directive* directive, const Directive::Map& mappings)
-{
-	validateEnclosingContext(*directive, Context::GLOBAL);
-	validateDuplicateDirective(*directive, mappings);
-	validateParameterSize(*directive, 1);
-
-	const Parameter&	path = directive->parameters[0];
-	if (path[0] != '/')
-	{
-		throw InvalidParameter(*directive,
+		throw InvalidParameter(directive,
 							   path.diagnostic,
 							   "invalid absolute path",
 							   "set an absolute path as the web server root directory");

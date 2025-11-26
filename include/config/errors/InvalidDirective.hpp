@@ -15,7 +15,7 @@ public:
 	String		format() const;
 
 private:
-	const Directive	directive;
+	const Directive*	directive;
 };
 
 #endif

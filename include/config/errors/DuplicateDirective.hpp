@@ -14,8 +14,8 @@ public:
 	const char*	what() const throw();
 	String		format() const;
 
-	const Directive	prevDeclaration;
-	const Directive	newDeclaration;
+	const Directive*	prevDeclaration;
+	const Directive*	newDeclaration;
 };
 
 #endif

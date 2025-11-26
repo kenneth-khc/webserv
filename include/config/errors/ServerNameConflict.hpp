@@ -18,10 +18,10 @@ public:
 	String		format() const;
 
 private:
-	const Directive	server1;
-	const Directive	server2;
-	const String	address;
-	const String	serverName;
+	const Directive*	server1;
+	const Directive*	server2;
+	const String		address;
+	const String		serverName;
 };
 
 #endif

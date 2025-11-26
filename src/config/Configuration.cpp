@@ -63,18 +63,6 @@ Optional<Directive*>	Configuration::getDirective(const String& key) const
 	}
 }
 
-Configuration*	Configuration::release()
-{
-	Configuration*	config = new Configuration;
-	DirectiveMappings::iterator iter;
-	for (iter = directives.begin(); iter != directives.end(); ++iter)
-	{
-		config->add(iter->second);
-	}
-	directives.clear();
-	return config;
-}
-
 void	Configuration::display() const
 {
 	for (DirectiveMappingsConstIter iter = directives.begin();

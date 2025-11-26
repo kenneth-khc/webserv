@@ -51,7 +51,7 @@ int	main(int argc, char** argv)
 	}
 
 	Parser			parser(argv[1]);
-	Configuration*	config;
+	Configuration*	config = NULL;
 	try
 	{
 		config = parser.parseConfig();

@@ -25,7 +25,7 @@ public:
 	String		format() const;
 
 private:
-	const Directive		directive;
+	const Directive*	directive;
 	const Diagnostic	diagnostic;
 	const String		reason;
 	const String		help;

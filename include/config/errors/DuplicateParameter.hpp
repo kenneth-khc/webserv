@@ -16,9 +16,9 @@ public:
 	const char*	what() const throw();
 	String		format() const;
 
-	Directive	directive;
-	Parameter	prev;
-	Parameter	curr;
+	const Directive*	directive;
+	Parameter			prev;
+	Parameter			curr;
 };
 
 #endif

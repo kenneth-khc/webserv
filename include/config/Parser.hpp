@@ -35,7 +35,7 @@ public:
 
 	Configuration*	parseConfig();
 
-	Configuration			config;
+	Configuration*			config;
 	Validators				validators;
 	Lexer					lexer;
 	Token					token;

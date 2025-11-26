@@ -28,7 +28,7 @@
 #include <stdexcept>
 
 Parser::Parser(const char *filename):
-	config(),
+	config(new Configuration),
 	validators(),
 	lexer(filename),
 	token(),
@@ -39,6 +39,8 @@ Parser::Parser(const char *filename):
 
 Parser::~Parser()
 {
+	delete config;
+	config = NULL;
 }
 
 Configuration*	Parser::parseConfig()
@@ -48,15 +50,17 @@ Configuration*	Parser::parseConfig()
 	{
 		parseDirective();
 	}
-	if (!config.getDirective("prefix").exists)
+	if (!config->getDirective("prefix").exists)
 	{
 		throw MissingGlobalDirective(filename, "prefix");
 	}
-	if (!config.getDirective("http").exists)
+	if (!config->getDirective("http").exists)
 	{
 		throw MissingGlobalDirective(filename, "http");
 	}
-	return config.release();
+	Configuration*	completeConfig = config;
+	config = NULL;
+	return completeConfig;
 }
 
 void	Parser::parseDirective()
@@ -120,12 +124,12 @@ void	Parser::parseSimple(const String& name,
 	}
 	else
 	{
-		config.add(directive);
+		config->add(directive);
 	}
 	validators.validate(directive,
 						directive->parent ?
 						directive->parent->getDirectives() :
-						config.directives);
+						config->directives);
 
 }
 
@@ -143,14 +147,14 @@ void	Parser::parseBlock(const String& name,
 	}
 	else
 	{
-		config.add(block);
+		config->add(block);
 	}
 	const Validator&	validator = validators.getValidator(block);
 	try
 	{
 		validator.validateHeader(block, block->parent ?
 										block->parent->getDirectives() :
-										config.directives);
+										config->directives);
 	}
 	catch (const std::runtime_error&)
 	{
@@ -165,7 +169,7 @@ void	Parser::parseBlock(const String& name,
 	parents.pop();
 	validator.validateBody(block, block->parent ?
 								  block->parent->getDirectives() :
-								  config.directives);
+								  config->directives);
 }
 
 void	Parser::expect(Token::TokenType expected)

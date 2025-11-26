@@ -7,7 +7,7 @@
 MissingDirective::MissingDirective(const Directive& directive,
                                    const String& missingKey):
 ConfigError(directive.getDiagnostic().filename),
-directive(directive),
+directive(&directive),
 missingKey(missingKey)
 {
 }
@@ -24,10 +24,10 @@ const char*	MissingDirective::what() const throw()
 String	MissingDirective::format() const
 {
 	std::stringstream	buf;
-	Fmt	fmt = Fmt(directive.getDiagnostic());
+	Fmt	fmt = Fmt(directive->getDiagnostic());
 
 	buf << fmt.formatError("missing `" + missingKey + "` in `" +
-	                       directive.name + "` block")
+	                       directive->name + "` block")
 		<< fmt.formatDiagnostic("block declared here")
 		<< fmt.formatHelp("add a " + missingKey + " directive within");
 	return buf.str();

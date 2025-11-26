@@ -15,8 +15,8 @@ public:
 	String		format() const;
 
 private:
-	const Directive	directive;
-	const String	missingKey;
+	const Directive*	directive;
+	const String		missingKey;
 };
 
 #endif

@@ -15,9 +15,9 @@ public:
 	String		format() const;
 
 private:
-	Directive	directive;
-	size_t		expectedMin;
-	size_t		expectedMax;
+	const Directive*	directive;
+	size_t				expectedMin;
+	size_t				expectedMax;
 };
 
 #endif

@@ -9,8 +9,8 @@ const Directive& newDeclaration
 ):
 // WARN: this assumes that both declarations belong within the same file
 ConfigError(prevDeclaration.getDiagnostic().filename),
-prevDeclaration(prevDeclaration),
-newDeclaration(newDeclaration)
+prevDeclaration(&prevDeclaration),
+newDeclaration(&newDeclaration)
 {
 }
 
@@ -22,9 +22,9 @@ const char*	DuplicateDirective::what() const throw()
 String	DuplicateDirective::format() const
 {
 	std::stringstream	buf;
-	const String&		name = prevDeclaration.name;
-	const Diagnostic&	prev = prevDeclaration.getDiagnostic();
-	const Diagnostic&	curr = newDeclaration.getDiagnostic();
+	const String&		name = prevDeclaration->name;
+	const Diagnostic&	prev = prevDeclaration->getDiagnostic();
+	const Diagnostic&	curr = newDeclaration->getDiagnostic();
 	Fmt					fmt = Fmt(filename, vector_of(prev)(curr));
 
 	buf << fmt.formatError("duplicate directive `" + name + '`')

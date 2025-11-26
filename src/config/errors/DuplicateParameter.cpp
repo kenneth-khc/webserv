@@ -8,7 +8,7 @@
 DuplicateParameter::DuplicateParameter(const Directive& directive,
 									   const Parameter& prev,
 									   const Parameter& curr):
-directive(directive),
+directive(&directive),
 prev(prev),
 curr(curr)
 {
@@ -26,7 +26,7 @@ String	DuplicateParameter::format() const
 	std::stringstream	buf;
 	Fmt	fmt = Fmt(vector_of(prev.diagnostic)(curr.diagnostic));
 
-	buf << fmt.formatError("duplicate parameter within `" + directive.name + "`")
+	buf << fmt.formatError("duplicate parameter within `" + directive->name + "`")
 		<< fmt.formatDiagnostic("previously declared here")
 		<< fmt.formatDiagnostic("redeclared here")
 		<< fmt.formatHelp("a file extension can only be assigned to one cgi script handler");

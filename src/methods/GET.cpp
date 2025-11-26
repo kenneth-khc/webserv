@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 23:32:46 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/24 23:42:39 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/27 05:26:46 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ getFile(const String&, Response&, const Request&);
 
 static void		generateUploadsListing(const String& uploadsDir, Response& response, const Request& request);
 static String	getUploadsReference(const Request &request);
-static void		generateDirectoryListing(Response& response, std::string dirName, std::string uri);
+static void		generateDirectoryListing(const Request& request, Response& response);
 static bool		fileIsDirectory(const String& filepath);
 static Optional<String>	tryIndexFiles(const std::vector<String>& indexFiles, const String& filepath);
 
@@ -120,7 +120,7 @@ static Optional<String>	resolveDirectoryGET(Response &response, const Request& r
 	{
 		if (request.location->autoindex)
 		{
-			generateDirectoryListing(response, request.resolvedPath, request.location->uri);
+			generateDirectoryListing(request, response);
 			response.setStatusCode(Response::OK);
 			response.insert("Content-Length", response.messageBody.length());
 			response.insert("Content-Type", "text/html");
@@ -233,9 +233,12 @@ static String	getUploadsReference(const Request &request)
 #define FILE_NAME_LEN 45
 #define FILE_SIZE_LEN 20
 
-void	generateDirectoryListing(Response& response, std::string path, std::string uri)
+void	generateDirectoryListing(const Request& request, Response& response)
 {
-	DIR*	dir = opendir(path.c_str());
+	DIR*	dir = opendir(request.resolvedPath.c_str());
+	String	decodedPath = request.decodedPath;
+	String	resolvedPath = request.resolvedPath;
+	String	uri = request.location->uri;
 
 	if (!dir)
 	{
@@ -245,14 +248,14 @@ void	generateDirectoryListing(Response& response, std::string path, std::string 
 	struct stat			statbuf;
 	std::stringstream	stream;
 
-	if (path[path.length() - 1] != '/')
-		path += "/";
+	if (decodedPath[decodedPath.length() - 1] != '/')
+		decodedPath += "/";
 	if (uri[uri.length() - 1] != '/')
 		uri += "/";
 
 	stream << "<html>\n"
 		   << 	"<head>\n"
-		   << 		"<title>Index of " + uri + "</title>\n"
+		   << 		"<title>Index of " + decodedPath + "</title>\n"
 		   << 		"<style>\n\t"
 		   << 			"html { font-family: 'Comic Sans MS' }\n\t"
 		   << 			"body { background-color: #f4dde7 }\n\t"
@@ -260,7 +263,7 @@ void	generateDirectoryListing(Response& response, std::string path, std::string 
 		   << 		"</style>\n"
 		   << 	"</head>\n"
 		   << 	"<body>\n"
-		   << 		"<h1>Index of " + uri + "</h1>\n"
+		   << 		"<h1>Index of " + decodedPath + "</h1>\n"
 		   << 		"<hr><pre>\n";
 
 	response.messageBody += stream.str();
@@ -297,7 +300,7 @@ void	generateDirectoryListing(Response& response, std::string path, std::string 
 		}
 
 		stream << "<a href=\""
-			   << ((entry->d_type == DT_DIR) ? uri + d_name + "/" : uri + d_name)
+			   << ((entry->d_type == DT_DIR) ? decodedPath + d_name + "/" : decodedPath + d_name)
 			   << "\">"
 			   << std::left
 			   << std::setw(FILE_NAME_LEN + 5)
@@ -314,7 +317,7 @@ void	generateDirectoryListing(Response& response, std::string path, std::string 
 		std::stringstream	streamTwo;
 
 		stream.str("");
-		stat(path.c_str(), &statbuf);
+		stat((resolvedPath + "/" + entry->d_name).c_str(), &statbuf);
 		stream << "<p>";
 		if (entry->d_type == DT_DIR)
 		{

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:39:08 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/24 15:33:15 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/29 12:53:40 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,13 +62,15 @@ ErrorCode	&ErrorCode::operator=(const ErrorCode &obj) {
 BadRequest400::BadRequest400(void) :
 	ErrorCode(HTTP_VERSION, 400, "Bad Request")
 {
-	this->insert("Connection", "close");	// Close connection for all bad requests for now
+	this->insert("Connection", "close");
+	this->closeConnection = true;
 }
 
 BadRequest400::BadRequest400(const char *title) :
 	ErrorCode(HTTP_VERSION, 400, "Bad Request", title)
 {
-	this->insert("Connection", "close");	// Close connection for all bad requests for now
+	this->insert("Connection", "close");
+	this->closeConnection = true;
 }
 
 //	403 Forbidden

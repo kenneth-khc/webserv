@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/30 02:34:13 by cteoh             #+#    #+#             */
-/*   Updated: 2025/04/03 17:31:20 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/29 13:31:37 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 RequestState	*DoneState::process(Request &request, Client &client) {
 	(void)request;
 
-	if (client.message.length() > 0)
+	if (client.timer == 0 && client.message.length() > 0)
 	{
 		client.timer = new ClientHeaderTimer();
 	}

@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/29 13:22:01 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/29 14:03:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,9 +76,6 @@ void	Response::generateErrorPage(const Location *location) {
 			this->insert("Content-Length", status.st_size);
 			constructContentTypeHeader(*this, filepath, location->MIMEMappings);
 			return ;
-		} else {
-			this->statusCode = 500;
-			this->reasonPhrase = "Internal Server Error";
 		}
 	}
 

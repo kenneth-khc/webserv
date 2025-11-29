@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 19:20:18 by cteoh             #+#    #+#             */
-/*   Updated: 2025/11/24 16:42:38 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/29 14:03:13 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include "contentType.hpp"
 #include "ErrorCode.hpp"
 #include "Request.hpp"
+#include "Location.hpp"
 #include "Response.hpp"
 
 Response::Response(void) :
@@ -64,20 +65,17 @@ Response&	Response::operator=(const ErrorCode& obj)
 	return *this;
 }
 
-void	Response::generateErrorPage(const Request &request) {
+void	Response::generateErrorPage(const Location *location) {
 	struct stat	status;
 
-	if (request.location->errorPages.find(this->statusCode) != request.location->errorPages.end()) {
-		const String filepath = request.location->errorPages[this->statusCode];
+	if (location != 0 && location->errorPages.find(this->statusCode) != location->errorPages.end()) {
+		const String filepath = location->errorPages.find(this->statusCode)->second;
 
 		if (stat(filepath.c_str(), &status) == 0 && access(filepath.c_str(), R_OK) == 0) {
 			this->getFileContents(filepath);
 			this->insert("Content-Length", status.st_size);
-			constructContentTypeHeader(*this, filepath, request.location->MIMEMappings);
+			constructContentTypeHeader(*this, filepath, location->MIMEMappings);
 			return ;
-		} else {
-			this->statusCode = 500;
-			this->reasonPhrase = "Internal Server Error";
 		}
 	}
 

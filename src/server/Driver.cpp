@@ -6,7 +6,7 @@
 /*   By: cteoh <cteoh@student.42kl.edu.my>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:41:51 by kecheong          #+#    #+#             */
-/*   Updated: 2025/11/29 13:31:18 by cteoh            ###   ########.fr       */
+/*   Updated: 2025/11/29 13:59:24 by cteoh            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -505,6 +505,7 @@ void	Driver::monitorTimers()
 				if ((*cgiIt)->timer->isTimeout() == true)
 				{
 					(*cgiIt)->response = InternalServerError500();
+					(*cgiIt)->response.generateErrorPage((*cgiIt)->request.location);
 					delete *cgiIt;
 					cgiIt = client.cgis.erase(cgiIt);
 				}
